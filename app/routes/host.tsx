@@ -1,6 +1,6 @@
 import type { Route } from "./+types/host";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { useGame } from "../contexts/GameContext";
 import Button from "../components/Button";
 import Input from "../components/Input";
@@ -43,7 +43,7 @@ export default function Host() {
   };
 
   const copyGameLink = () => {
-    const gameLink = `${window.location.origin}/join/${gameId}`;
+    const gameLink = `${window.location.origin}${window.__reactRouterContext.basename}join/${gameId}`;
     navigator.clipboard.writeText(gameLink).then(() => {
       // Could add a toast notification here
     });
@@ -119,7 +119,7 @@ export default function Host() {
               label="Direct Link"
               value={
                 typeof window !== "undefined"
-                  ? `${window.location.origin}/join/${gameId}`
+                  ? `${window.location.origin}${window.__reactRouterContext.basename}join/${gameId}`
                   : ""
               }
               readOnly

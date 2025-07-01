@@ -66,7 +66,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
 
   const copyGameLink = () => {
     if (window) {
-      const gameLink = `${window.location.origin}/join/${gameId}`;
+      const gameLink = `${window.location.origin}${window.__reactRouterContext.basename}join/${gameId}`;
       navigator.clipboard.writeText(gameLink);
     }
   };
@@ -164,7 +164,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
                 label="Invite Link"
                 value={
                   typeof window !== "undefined"
-                    ? `${window.location.origin}/join/${gameId}`
+                    ? `${window.location.origin}${window.__reactRouterContext.basename}join/${gameId}`
                     : ""
                 }
                 readOnly

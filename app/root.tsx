@@ -14,6 +14,14 @@ import { GameProvider } from "./contexts/GameContext";
 import "./app.css";
 
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import type { Config } from "@react-router/dev/config";
+
+declare global {
+  interface Window {
+    __reactRouterContext: Config;
+  }
+}
+
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
