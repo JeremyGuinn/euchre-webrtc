@@ -58,13 +58,9 @@ jobs:
         env:
           # Set base path for GitHub Pages deployment
           PUBLIC_URL: /${{ github.event.repository.name }}/
-
-      - name: List build output for debugging
-        run: |
-          echo "Contents of build/client:"
-          ls -la build/client/
-          echo "Contents of build/client/assets:"
-          ls -la build/client/assets/ || echo "No assets directory found"
+    
+      - name: Move from repository path to build root
+        run: mv ./build/client/${{ github.event.repository.name }}/* ./build/client/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
