@@ -23,17 +23,29 @@ export function DealerSelection() {
 
   // Host needs to initiate dealer selection
   if (!gameState.dealerSelectionCards) {
+    const getDealerSelectionDescription = () => {
+      if (gameState.options.dealerSelection === 'random_cards') {
+        if (gameState.options.teamSelection === 'random_cards') {
+          return "Each player will draw a card to determine the dealer and teams. The player with the lowest card deals first. The two players with the lowest cards form one team.";
+        } else {
+          return "Each player will draw a card to determine the dealer. The player with the lowest card deals first. Teams remain as arranged in the lobby.";
+        }
+      } else {
+        return "The dealer will be determined by dealing cards around the table until someone receives a black Jack.";
+      }
+    };
+
     return (
       <div className="flex flex-col items-center space-y-4 text-white">
         <h2 className="text-2xl font-bold">Dealer Selection</h2>
         <p className="text-center max-w-md">
-          Each player will draw a card to determine the dealer and teams. The
-          player with the lowest card deals first. The two players with the
-          lowest cards form one team.
+          {getDealerSelectionDescription()}
         </p>
 
         {(isHost && (
-          <Button onClick={selectDealer}>Start Dealer Selection</Button>
+          <Button onClick={selectDealer}>
+            {gameState.options.dealerSelection === 'random_cards' ? 'Start Card Drawing' : 'Find First Black Jack'}
+          </Button>
         )) || <div className="text-gray-400">Waiting for host...</div>}
       </div>
     );

@@ -1,5 +1,15 @@
-import type { GameState, PublicGameState, Player, Card, Bid, Trick } from '../types/game';
-import { createDeck, dealHands, getWinningCard, canPlayCard, getEffectiveSuit, selectDealerAndTeams } from '../utils/gameLogic';
+import type { GameState, PublicGameState, Player, Card, Bid, Trick, GameOptions } from '../types/game';
+import {
+  createDeck,
+  dealHands,
+  getWinningCard,
+  canPlayCard,
+  canPlayCardWithOptions,
+  getEffectiveSuit,
+  selectDealerAndTeams,
+  selectDealerOnly,
+  findFirstBlackJackDealer
+} from '../utils/gameLogic';
 import { v4 as uuidv4 } from 'uuid';
 
 export type GameAction =
@@ -10,6 +20,7 @@ export type GameAction =
   | { type: 'RENAME_PLAYER'; payload: { playerId: string; newName: string } }
   | { type: 'KICK_PLAYER'; payload: { playerId: string } }
   | { type: 'MOVE_PLAYER'; payload: { playerId: string; newPosition: 0 | 1 | 2 | 3 } }
+  | { type: 'UPDATE_GAME_OPTIONS'; payload: { options: GameOptions } }
   | { type: 'START_GAME' }
   | { type: 'SELECT_DEALER' }
   | { type: 'DRAW_DEALER_CARD'; payload: { playerId: string; card: Card } }
@@ -31,6 +42,11 @@ const initialGameState: GameState = {
   id: '',
   players: [],
   phase: 'lobby',
+  options: {
+    teamSelection: 'predetermined',
+    dealerSelection: 'random_cards',
+    allowReneging: false
+  },
   currentDealerId: '',
   deck: [],
   hands: {},
@@ -138,12 +154,31 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         return state; // Need exactly 4 players
       }
 
-      return {
-        ...state,
-        phase: 'dealer_selection'
-      };
+      // If using predetermined teams and first black jack, skip dealer selection phase
+      if (state.options.teamSelection === 'predetermined' && state.options.dealerSelection === 'first_black_jack') {
+        const { dealer, arrangedPlayers } = findFirstBlackJackDealer(state.players);
+
+        return {
+          ...state,
+          players: arrangedPlayers,
+          currentDealerId: dealer.id,
+          phase: 'dealing'
+        };
+      } else {
+        // Go to dealer selection phase for card-based selection
+        return {
+          ...state,
+          phase: 'dealer_selection'
+        };
+      }
 
     case 'SELECT_DEALER': {
+      // For first black jack method, we handle dealer selection immediately in START_GAME
+      // This action is only used for random card selection method
+      if (state.options.dealerSelection === 'first_black_jack') {
+        return state; // This shouldn't happen
+      }
+
       // Create a shuffled deck for card drawing
       const deck = createDeck();
 
@@ -167,19 +202,46 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'COMPLETE_DEALER_SELECTION': {
-      if (!state.dealerSelectionCards || Object.keys(state.dealerSelectionCards).length !== 4) {
-        return state; // Need all 4 players to have drawn cards
+      if (state.options.dealerSelection === 'first_black_jack') {
+        // Use first black jack method
+        const { dealer, arrangedPlayers } = findFirstBlackJackDealer(state.players);
+
+        return {
+          ...state,
+          players: arrangedPlayers,
+          currentDealerId: dealer.id,
+          phase: 'dealing',
+          dealerSelectionCards: undefined
+        };
+      } else {
+        // Use random card selection method
+        if (!state.dealerSelectionCards || Object.keys(state.dealerSelectionCards).length !== 4) {
+          return state; // Need all 4 players to have drawn cards
+        }
+
+        let dealer: Player;
+        let arrangedPlayers: Player[];
+
+        if (state.options.teamSelection === 'random_cards') {
+          // Use cards to determine both dealer and teams
+          const result = selectDealerAndTeams(state.players, state.dealerSelectionCards);
+          dealer = result.dealer;
+          arrangedPlayers = result.arrangedPlayers;
+        } else {
+          // Use cards only for dealer selection, keep predetermined teams
+          const result = selectDealerOnly(state.players, state.dealerSelectionCards);
+          dealer = result.dealer;
+          arrangedPlayers = result.arrangedPlayers;
+        }
+
+        return {
+          ...state,
+          players: arrangedPlayers,
+          currentDealerId: dealer.id,
+          phase: 'dealing',
+          dealerSelectionCards: undefined // Clear the selection cards
+        };
       }
-
-      const { dealer, arrangedPlayers } = selectDealerAndTeams(state.players, state.dealerSelectionCards);
-
-      return {
-        ...state,
-        players: arrangedPlayers,
-        currentDealerId: dealer.id,
-        phase: 'dealing',
-        dealerSelectionCards: undefined // Clear the selection cards
-      };
     }
 
     case 'DEAL_CARDS': {
@@ -481,6 +543,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         id: gameState.id,
         players: gameState.players,
         phase: gameState.phase,
+        options: gameState.options,
         currentDealerId: gameState.currentDealerId,
         currentPlayerId: gameState.currentPlayerId,
         trump: gameState.trump,
@@ -547,6 +610,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
+    case 'UPDATE_GAME_OPTIONS': {
+      // Only allow changing options in lobby phase
+      if (state.phase !== 'lobby') {
+        return state;
+      }
+
+      return {
+        ...state,
+        options: action.payload.options
+      };
+    }
+
     default:
       return state;
   }
@@ -557,6 +632,7 @@ export function createPublicGameState(gameState: GameState, forPlayerId?: string
     id: gameState.id,
     players: gameState.players,
     phase: gameState.phase,
+    options: gameState.options,
     currentDealerId: gameState.currentDealerId,
     currentPlayerId: gameState.currentPlayerId,
     trump: gameState.trump,

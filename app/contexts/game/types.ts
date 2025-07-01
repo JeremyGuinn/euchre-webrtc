@@ -1,4 +1,4 @@
-import type { GameState, Player, Card } from "../../types/game";
+import type { GameState, Player, Card, GameOptions } from "../../types/game";
 import type { NetworkManager } from "../../utils/networking";
 
 export interface GameContextType {
@@ -26,6 +26,7 @@ export interface GameContextType {
   // Host-only actions
   kickPlayer: (playerId: string) => void;
   movePlayer: (playerId: string, newPosition: 0 | 1 | 2 | 3) => void;
+  updateGameOptions: (options: GameOptions) => void;
 
   // Event callbacks
   onKicked?: (message: string) => void;

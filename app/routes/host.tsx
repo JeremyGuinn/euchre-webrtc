@@ -2,10 +2,11 @@ import type { Route } from "./+types/host";
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useGame } from "../contexts/GameContext";
+import { useClientOnly } from "../hooks/useClientOnly";
 import Button from "../components/Button";
 import Input from "../components/Input";
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [
     { title: "Host Game - Euchre Online" },
     {
@@ -17,6 +18,7 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Host() {
   const navigate = useNavigate();
+  const isClientSide = useClientOnly();
   const { hostGame, connectionStatus } = useGame();
   const [gameId, setGameId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -43,16 +45,20 @@ export default function Host() {
   };
 
   const copyGameLink = () => {
-    const gameLink = `${window.location.origin}${window.__reactRouterContext.basename}join/${gameId}`;
-    navigator.clipboard.writeText(gameLink).then(() => {
-      // Could add a toast notification here
-    });
+    if (isClientSide && typeof window !== "undefined") {
+      const gameLink = `${window.location.origin}${window.__reactRouterContext?.basename || ""}join/${gameId}`;
+      navigator.clipboard.writeText(gameLink).then(() => {
+        // Could add a toast notification here
+      });
+    }
   };
 
   const copyGameCode = () => {
-    navigator.clipboard.writeText(gameId).then(() => {
-      // Could add a toast notification here
-    });
+    if (isClientSide && typeof navigator !== "undefined") {
+      navigator.clipboard.writeText(gameId).then(() => {
+        // Could add a toast notification here
+      });
+    }
   };
 
   useEffect(() => {
@@ -118,8 +124,8 @@ export default function Host() {
             <Input
               label="Direct Link"
               value={
-                typeof window !== "undefined"
-                  ? `${window.location.origin}${window.__reactRouterContext.basename}join/${gameId}`
+                isClientSide && typeof window !== "undefined"
+                  ? `${window.location.origin}${window.__reactRouterContext?.basename || ""}join/${gameId}`
                   : ""
               }
               readOnly
@@ -136,15 +142,14 @@ export default function Host() {
           <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
             <span>Connection Status:</span>
             <span
-              className={`font-medium ${
-                connectionStatus === "connected"
+              className={`font-medium ${connectionStatus === "connected"
                   ? "text-green-600"
                   : connectionStatus === "connecting"
-                  ? "text-yellow-600"
-                  : connectionStatus === "error"
-                  ? "text-red-600"
-                  : "text-gray-600"
-              }`}
+                    ? "text-yellow-600"
+                    : connectionStatus === "error"
+                      ? "text-red-600"
+                      : "text-gray-600"
+                }`}
             >
               {connectionStatus}
             </span>

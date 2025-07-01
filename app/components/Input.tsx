@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useState, useId } from "react";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -44,7 +44,8 @@ export function Input({
     className
   ].filter(Boolean).join(' ');
 
-  const inputId = props.id || `input-${Math.random().toString(36).substr(2, 9)}`;
+  const generatedId = useId();
+  const inputId = props.id || generatedId;
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {

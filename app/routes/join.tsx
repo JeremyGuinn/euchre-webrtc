@@ -2,6 +2,7 @@ import type { Route } from "./+types/join";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useGame } from "../contexts/GameContext";
+import { useClientOnly } from "../hooks/useClientOnly";
 import { isValidGameCode } from "../utils/gameCode";
 import Button from "../components/Button";
 import LinkButton from "../components/LinkButton";
@@ -16,9 +17,10 @@ export function meta({ params }: Route.MetaArgs) {
 
 export default function Join({ params }: Route.ComponentProps) {
   const navigate = useNavigate();
+  const isClientSide = useClientOnly();
   const { joinGame, connectionStatus, getDisplayGameCode } = useGame();
   const { gameId } = params;
-  
+
   const [playerName, setPlayerName] = useState("");
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState("");
@@ -30,16 +32,18 @@ export default function Join({ params }: Route.ComponentProps) {
       return;
     }
 
-    // Check if we have a saved player name
-    const savedName = sessionStorage.getItem('euchre-player-name');
-    if (savedName) {
-      setPlayerName(savedName);
+    // Check if we have a saved player name (only on client side)
+    if (isClientSide && typeof sessionStorage !== "undefined") {
+      const savedName = sessionStorage.getItem('euchre-player-name');
+      if (savedName) {
+        setPlayerName(savedName);
+      }
     }
-  }, [gameId]);
+  }, [gameId, isClientSide]);
 
   const handleJoinGame = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!playerName.trim()) {
       setError("Please enter your name");
       return;
@@ -49,11 +53,13 @@ export default function Join({ params }: Route.ComponentProps) {
     setError("");
 
     try {
-      // Save player name for future use
-      sessionStorage.setItem('euchre-player-name', playerName.trim());
-      
+      // Save player name for future use (only on client side)
+      if (isClientSide && typeof sessionStorage !== "undefined") {
+        sessionStorage.setItem('euchre-player-name', playerName.trim());
+      }
+
       await joinGame(gameId, playerName.trim());
-      
+
       // Navigate to lobby using the original gameId parameter
       navigate(`/lobby/${gameId}`);
     } catch (err) {
@@ -98,12 +104,11 @@ export default function Join({ params }: Route.ComponentProps) {
 
           <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
             <span>Connection Status:</span>
-            <span className={`font-medium ${
-              connectionStatus === 'connected' ? 'text-green-600' :
-              connectionStatus === 'connecting' ? 'text-yellow-600' :
-              connectionStatus === 'error' ? 'text-red-600' :
-              'text-gray-600'
-            }`}>
+            <span className={`font-medium ${connectionStatus === 'connected' ? 'text-green-600' :
+                connectionStatus === 'connecting' ? 'text-yellow-600' :
+                  connectionStatus === 'error' ? 'text-red-600' :
+                    'text-gray-600'
+              }`}>
               {connectionStatus}
             </span>
           </div>

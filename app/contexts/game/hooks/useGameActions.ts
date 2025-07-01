@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { Card, Bid, GameState } from "../../../types/game";
+import type { Card, Bid, GameState, GameOptions } from "../../../types/game";
 import type { BidMessage, DrawDealerCardMessage, GameMessage } from "../../../types/messages";
 import { createMessageId } from "../../../utils/protocol";
 import type { GameAction } from "../../../utils/gameState";
@@ -33,21 +33,21 @@ export function useGameActions(
     if (isHost) {
       // Host draws a card for themselves
       if (!gameState.deck) return;
-      
-      const availableCards = gameState.deck.filter(card => 
-        !Object.values(gameState.dealerSelectionCards || {}).some(drawnCard => 
+
+      const availableCards = gameState.deck.filter(card =>
+        !Object.values(gameState.dealerSelectionCards || {}).some(drawnCard =>
           drawnCard.id === card.id
         )
       );
-      
+
       if (availableCards.length === 0) return;
-      
+
       const randomIndex = Math.floor(Math.random() * availableCards.length);
       const drawnCard = availableCards[randomIndex];
 
-      dispatch({ 
-        type: "DRAW_DEALER_CARD", 
-        payload: { playerId: myPlayerId, card: drawnCard } 
+      dispatch({
+        type: "DRAW_DEALER_CARD",
+        payload: { playerId: myPlayerId, card: drawnCard }
       });
       // State change will trigger auto-broadcast via useEffect
     } else {
@@ -65,13 +65,13 @@ export function useGameActions(
 
   const completeDealerSelection = useCallback(() => {
     if (!isHost || !gameState.dealerSelectionCards) return;
-    
+
     // Check if all players have drawn cards
     const drawnCards = Object.keys(gameState.dealerSelectionCards).length;
     if (drawnCards !== gameState.players.length) return;
 
     dispatch({ type: "COMPLETE_DEALER_SELECTION" });
-    
+
     // Automatically proceed to dealing after a short delay
     setTimeout(() => {
       dispatch({ type: "DEAL_CARDS" });
@@ -229,6 +229,20 @@ export function useGameActions(
     [myPlayerId, gameState.currentDealerId, isHost, dispatch, networkService]
   );
 
+  const updateGameOptions = useCallback(
+    (options: GameOptions) => {
+      if (!isHost) return;
+      if (gameState.phase !== 'lobby') return; // Can only change options in lobby
+
+      dispatch({
+        type: "UPDATE_GAME_OPTIONS",
+        payload: { options }
+      });
+      // State change will trigger auto-broadcast via useEffect
+    },
+    [isHost, gameState.phase, dispatch]
+  );
+
   return {
     startGame,
     selectDealer,
@@ -240,5 +254,6 @@ export function useGameActions(
     renamePlayer,
     kickPlayer,
     movePlayer,
+    updateGameOptions,
   };
 }

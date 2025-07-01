@@ -13,7 +13,7 @@ export type Player = {
   teamId: 0 | 1; // Team 0: positions 0,2; Team 1: positions 1,3
 };
 
-export type GamePhase = 
+export type GamePhase =
   | 'lobby'
   | 'dealer_selection'
   | 'dealing'
@@ -40,10 +40,17 @@ export type Trick = {
   leaderId: string;
 };
 
+export type GameOptions = {
+  teamSelection: 'predetermined' | 'random_cards';
+  dealerSelection: 'random_cards' | 'first_black_jack';
+  allowReneging: boolean;
+};
+
 export type GameState = {
   id: string;
   players: Player[];
   phase: GamePhase;
+  options: GameOptions;
   currentDealerId: string;
   currentPlayerId?: string;
   deck: Card[];

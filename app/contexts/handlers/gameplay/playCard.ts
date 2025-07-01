@@ -1,5 +1,5 @@
 import type { PlayCardMessage } from "../../../types/messages";
-import { canPlayCard } from "../../../utils/gameLogic";
+import { canPlayCardWithOptions } from "../../../utils/gameLogic";
 import type { MessageHandler } from "../types";
 
 /**
@@ -12,7 +12,7 @@ import type { MessageHandler } from "../types";
  */
 export const handlePlayCardMessage: MessageHandler<PlayCardMessage> = (message, senderId, context) => {
   const { gameState, dispatch } = context;
-  
+
   const { card } = message.payload;
 
   // Validate it's the sender's turn and they have the card
@@ -23,7 +23,13 @@ export const handlePlayCardMessage: MessageHandler<PlayCardMessage> = (message, 
 
   // Validate the card can be played according to euchre rules
   const leadSuit = gameState.currentTrick?.cards[0]?.card.suit;
-  if (!canPlayCard(card, playerHand, leadSuit, gameState.trump)) return;
+  if (!canPlayCardWithOptions(
+    card,
+    playerHand,
+    leadSuit,
+    gameState.trump,
+    gameState.options.allowReneging
+  )) return;
 
   dispatch({ type: "PLAY_CARD", payload: { card, playerId: senderId } });
 

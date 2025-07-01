@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import type { Card, Player, GameState } from "../../../types/game";
-import { canPlayCard } from "../../../utils/gameLogic";
+import { canPlayCardWithOptions } from "../../../utils/gameLogic";
 import { uuidToGameCode } from "../../../utils/gameCode";
 
 export function useGameUtils(gameState: GameState, myPlayerId: string) {
@@ -8,9 +8,15 @@ export function useGameUtils(gameState: GameState, myPlayerId: string) {
     (card: Card): boolean => {
       const myHand = gameState.hands[myPlayerId] || [];
       const leadSuit = gameState.currentTrick?.cards[0]?.card.suit;
-      return canPlayCard(card, myHand, leadSuit, gameState.trump);
+      return canPlayCardWithOptions(
+        card,
+        myHand,
+        leadSuit,
+        gameState.trump,
+        gameState.options.allowReneging
+      );
     },
-    [gameState.hands, gameState.currentTrick, gameState.trump, myPlayerId]
+    [gameState.hands, gameState.currentTrick, gameState.trump, gameState.options.allowReneging, myPlayerId]
   );
 
   const isMyTurn = useCallback((): boolean => {

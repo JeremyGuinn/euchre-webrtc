@@ -19,6 +19,11 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
   const [gameState, dispatch] = useReducer(gameReducer, {
     id: "",
     players: [],
+    options: {
+      allowReneging: false,
+      teamSelection: "predetermined",
+      dealerSelection: "first_black_jack"
+    },
     phase: "lobby",
     currentDealerId: "",
     deck: [],

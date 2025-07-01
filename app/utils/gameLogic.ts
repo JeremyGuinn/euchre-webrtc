@@ -59,13 +59,13 @@ export function dealHands(deck: Card[]): {
 
 export function getCardValue(card: Card, trump: Card['suit']): number {
   const { suit, value } = card;
-  
+
   // Handle Jacks (trump jack is highest, off-jack is second highest)
   if (value === 'J') {
     if (suit === trump) return 11; // Trump jack (highest)
     if (getOffSuit(trump) === suit) return 10; // Off-jack (second highest)
   }
-  
+
   // Handle trump cards
   if (suit === trump) {
     switch (value) {
@@ -77,7 +77,7 @@ export function getCardValue(card: Card, trump: Card['suit']): number {
       default: return 0;
     }
   }
-  
+
   // Handle non-trump cards
   switch (value) {
     case 'A': return 4;
@@ -111,35 +111,35 @@ export function getEffectiveSuit(card: Card, trump: Card['suit']): Card['suit'] 
 export function canPlayCard(card: Card, hand: Card[], leadSuit?: Card['suit'], trump?: Card['suit']): boolean {
   if (!leadSuit) return true; // First card of trick, any card is valid
   if (!trump) return true; // No trump set yet
-  
+
   const cardEffectiveSuit = getEffectiveSuit(card, trump);
-  
+
   // Must follow suit if possible
   const hasLeadSuit = hand.some(c => getEffectiveSuit(c, trump) === leadSuit);
-  
+
   if (hasLeadSuit) {
     return cardEffectiveSuit === leadSuit;
   }
-  
+
   // If can't follow suit, any card is valid
   return true;
 }
 
 export function getWinningCard(cards: Array<{ card: Card; playerId: string }>, trump: Card['suit'], leadSuit: Card['suit']): { card: Card; playerId: string } {
   if (cards.length === 0) throw new Error('No cards to evaluate');
-  
+
   let winningPlay = cards[0];
   let highestValue = getCardValue(winningPlay.card, trump);
   let isWinningTrump = getEffectiveSuit(winningPlay.card, trump) === trump;
   let isWinningLeadSuit = getEffectiveSuit(winningPlay.card, trump) === leadSuit;
-  
+
   for (let i = 1; i < cards.length; i++) {
     const currentPlay = cards[i];
     const currentCard = currentPlay.card;
     const currentValue = getCardValue(currentCard, trump);
     const currentIseTrump = getEffectiveSuit(currentCard, trump) === trump;
     const currentIsLeadSuit = getEffectiveSuit(currentCard, trump) === leadSuit;
-    
+
     // Trump always beats non-trump
     if (currentIseTrump && !isWinningTrump) {
       winningPlay = currentPlay;
@@ -162,7 +162,7 @@ export function getWinningCard(cards: Array<{ card: Card; playerId: string }>, t
       isWinningLeadSuit = true;
     }
   }
-  
+
   return winningPlay;
 }
 
@@ -206,14 +206,14 @@ export function selectDealerAndTeams(players: Player[], drawnCards: Record<strin
 
   // The player with the lowest card deals first
   const dealer = playersWithCards[0].player;
-  
+
   // The players with the two lowest cards play together
   const team0Players = [playersWithCards[0].player, playersWithCards[1].player];
   const team1Players = [playersWithCards[2].player, playersWithCards[3].player];
 
   // Arrange players in positions: dealer at position 0, then clockwise
   const arrangedPlayers: Player[] = [];
-  
+
   // Dealer gets position 0
   arrangedPlayers[0] = {
     ...dealer,
@@ -224,7 +224,7 @@ export function selectDealerAndTeams(players: Player[], drawnCards: Record<strin
   // Find dealer's partner (same team)
   const dealerTeam = team0Players.includes(dealer) ? team0Players : team1Players;
   const dealerPartner = dealerTeam.find(p => p.id !== dealer.id)!;
-  
+
   // Partner sits opposite (position 2)
   arrangedPlayers[2] = {
     ...dealerPartner,
@@ -254,4 +254,124 @@ export function selectDealerAndTeams(players: Player[], drawnCards: Record<strin
     dealer: arrangedPlayers[0],
     arrangedPlayers
   };
+}
+
+/**
+ * Select dealer from random cards but keep predetermined teams
+ */
+export function selectDealerOnly(players: Player[], drawnCards: Record<string, Card>): {
+  dealer: Player;
+  arrangedPlayers: Player[];
+} {
+  // Sort players by their drawn card rank (lowest first) to find dealer
+  const playersWithCards = players.map(player => ({
+    player,
+    card: drawnCards[player.id],
+    rank: getDealerSelectionRank(drawnCards[player.id])
+  })).sort((a, b) => {
+    if (a.rank === b.rank) {
+      return a.card.id.localeCompare(b.card.id);
+    }
+    return a.rank - b.rank;
+  });
+
+  // The player with the lowest card deals first
+  const dealer = playersWithCards[0].player;
+
+  // Keep players in their current positions but update dealer position to 0
+  const arrangedPlayers: Player[] = [];
+  const dealerOriginalPosition = dealer.position;
+
+  // Rotate positions so dealer is at position 0
+  players.forEach(player => {
+    const newPosition = ((player.position - dealerOriginalPosition + 4) % 4) as 0 | 1 | 2 | 3;
+    arrangedPlayers[newPosition] = {
+      ...player,
+      position: newPosition,
+      // Keep original team assignments based on new positions
+      teamId: (newPosition % 2) as 0 | 1
+    };
+  });
+
+  return {
+    dealer: arrangedPlayers[0],
+    arrangedPlayers
+  };
+}
+
+/**
+ * Find the first player to receive a black Jack when dealing around the table
+ */
+export function findFirstBlackJackDealer(players: Player[]): {
+  dealer: Player;
+  arrangedPlayers: Player[];
+} {
+  const deck = createDeck();
+  let currentPlayerIndex = 0;
+  let cardIndex = 0;
+
+  // Deal cards around until someone gets a black Jack
+  while (cardIndex < deck.length) {
+    const card = deck[cardIndex];
+    const currentPlayer = players[currentPlayerIndex];
+
+    // Check if this is a black Jack (Jack of Spades or Jack of Clubs)
+    if (card.value === 'J' && (card.suit === 'spades' || card.suit === 'clubs')) {
+      // This player becomes the dealer
+      const dealer = currentPlayer;
+      const dealerOriginalPosition = dealer.position;
+
+      // Arrange players so dealer is at position 0
+      const arrangedPlayers: Player[] = [];
+      players.forEach(player => {
+        const newPosition = ((player.position - dealerOriginalPosition + 4) % 4) as 0 | 1 | 2 | 3;
+        arrangedPlayers[newPosition] = {
+          ...player,
+          position: newPosition,
+          teamId: (newPosition % 2) as 0 | 1
+        };
+      });
+
+      return {
+        dealer: arrangedPlayers[0],
+        arrangedPlayers
+      };
+    }
+
+    // Move to next player
+    currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+    cardIndex++;
+  }
+
+  // Fallback: if no black Jack found, first player deals
+  const dealer = players[0];
+  const arrangedPlayers = players.map((player, index) => ({
+    ...player,
+    position: index as 0 | 1 | 2 | 3,
+    teamId: (index % 2) as 0 | 1
+  }));
+
+  return {
+    dealer: arrangedPlayers[0],
+    arrangedPlayers
+  };
+}
+
+/**
+ * Update canPlayCard to respect the allowReneging option
+ */
+export function canPlayCardWithOptions(
+  card: Card,
+  hand: Card[],
+  leadSuit?: Card['suit'],
+  trump?: Card['suit'],
+  allowReneging: boolean = false
+): boolean {
+  // If reneging is allowed, any card can be played
+  if (allowReneging) {
+    return true;
+  }
+
+  // Otherwise, use standard euchre rules
+  return canPlayCard(card, hand, leadSuit, trump);
 }
