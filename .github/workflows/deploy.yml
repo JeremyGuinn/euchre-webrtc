@@ -57,7 +57,14 @@ jobs:
         run: pnpm build
         env:
           # Set base path for GitHub Pages deployment
-          PUBLIC_URL: /${{ github.event.repository.name }}
+          PUBLIC_URL: /${{ github.event.repository.name }}/
+
+      - name: List build output for debugging
+        run: |
+          echo "Contents of build/client:"
+          ls -la build/client/
+          echo "Contents of build/client/assets:"
+          ls -la build/client/assets/ || echo "No assets directory found"
 
       - name: Copy 404.html for GitHub Pages SPA routing
         run: cp public/404.html build/client/404.html
