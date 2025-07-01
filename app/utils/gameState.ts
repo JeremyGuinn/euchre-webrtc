@@ -45,7 +45,9 @@ const initialGameState: GameState = {
   options: {
     teamSelection: 'predetermined',
     dealerSelection: 'random_cards',
-    allowReneging: false
+    allowReneging: false,
+    screwTheDealer: false,
+    farmersHand: false
   },
   currentDealerId: '',
   deck: [],

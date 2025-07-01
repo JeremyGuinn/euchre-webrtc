@@ -184,7 +184,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
         </div>
 
         {/* Main content - responsive layout */}
-        <div className="space-y-6 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
+        <div className="space-y-6">
           {/* Left Column - Players (takes up 2/3 on large screens) */}
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white rounded-lg shadow-lg p-6">
@@ -192,151 +192,161 @@ export default function Lobby({ params }: Route.ComponentProps) {
                 Players ({connectedPlayers.length}/4)
               </h2>
 
-              {gameState.options?.teamSelection === 'predetermined' ? (
-                // Team-based layout for predetermined teams
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Team 0 */}
-                  <div className="bg-blue-50 rounded-lg p-4">
-                    <h3 className="font-medium text-blue-800 mb-3 text-center">
-                      Team 1
-                    </h3>
-                    <div className="space-y-2">
-                      {[0, 2].map((position) => {
-                        const player = gameState.players.find(
-                          (p) => p.position === position
-                        );
-                        return (
-                          <div
-                            key={position}
-                            className={`transition-all ${player
-                              ? player.isConnected
-                                ? ""
-                                : "opacity-75"
-                              : "border-dashed border-gray-300 bg-gray-50"
-                              } ${isHost && !player ? "hover:border-blue-400" : ""}`}
-                            onDragOver={handleDragOver}
-                            onDrop={(e) => handleDrop(e, position as 0 | 1 | 2 | 3)}
-                          >
-                            {player ? (
-                              <PlayerCard
-                                player={player}
-                                isCurrentUser={player.id === myPlayer?.id}
-                                isHost={isHost}
-                                canEdit={isHost || player.id === myPlayer?.id}
-                                canKick={isHost && player.id !== myPlayer?.id}
-                                canDrag={isHost && player.id !== myPlayer?.id}
-                                onRename={handleRenamePlayer}
-                                onKick={handleKickPlayer}
-                                onDragStart={handleDragStart}
-                              />
-                            ) : (
-                              <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                                <div className="flex items-center justify-center text-gray-500">
-                                  <span className="text-sm font-medium">Waiting for player...</span>
+              <div className="space-y-3">
+                {gameState.options?.teamSelection === 'predetermined' ? (
+                  // Team-based layout for predetermined teams
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Team 0 */}
+                    <div className="bg-blue-50 rounded-lg p-4">
+                      <h3 className="font-medium text-blue-800 mb-3 text-center">
+                        Team 1
+                      </h3>
+                      <div className="space-y-2">
+                        {[0, 2].map((position) => {
+                          const player = gameState.players.find(
+                            (p) => p.position === position
+                          );
+                          return (
+                            <div
+                              key={position}
+                              className={`transition-all ${player
+                                ? player.isConnected
+                                  ? ""
+                                  : "opacity-75"
+                                : "border-dashed border-gray-300 bg-gray-50"
+                                } ${isHost && !player ? "hover:border-blue-400" : ""}`}
+                              onDragOver={handleDragOver}
+                              onDrop={(e) => handleDrop(e, position as 0 | 1 | 2 | 3)}
+                            >
+                              {player ? (
+                                <PlayerCard
+                                  player={player}
+                                  isCurrentUser={player.id === myPlayer?.id}
+                                  isHost={isHost}
+                                  canEdit={isHost || player.id === myPlayer?.id}
+                                  canKick={isHost && player.id !== myPlayer?.id}
+                                  canDrag={isHost && player.id !== myPlayer?.id}
+                                  onRename={handleRenamePlayer}
+                                  onKick={handleKickPlayer}
+                                  onDragStart={handleDragStart}
+                                />
+                              ) : (
+                                <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                                  <div className="flex items-center justify-center text-gray-500">
+                                    <span className="text-sm font-medium">Waiting for player...</span>
+                                  </div>
                                 </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Team 1 */}
-                  <div className="bg-red-50 rounded-lg p-4">
-                    <h3 className="font-medium text-red-800 mb-3 text-center">
-                      Team 2
-                    </h3>
-                    <div className="space-y-2">
-                      {[1, 3].map((position) => {
-                        const player = gameState.players.find(
-                          (p) => p.position === position
-                        );
-                        return (
-                          <div
-                            key={position}
-                            className={`transition-all ${player
-                              ? player.isConnected
-                                ? ""
-                                : "opacity-75"
-                              : "border-dashed border-gray-300 bg-gray-50"
-                              } ${isHost && !player ? "hover:border-red-400" : ""}`}
-                            onDragOver={handleDragOver}
-                            onDrop={(e) => handleDrop(e, position as 0 | 1 | 2 | 3)}
-                          >
-                            {player ? (
-                              <PlayerCard
-                                player={player}
-                                isCurrentUser={player.id === myPlayer?.id}
-                                isHost={isHost}
-                                canEdit={isHost || player.id === myPlayer?.id}
-                                canKick={isHost && player.id !== myPlayer?.id}
-                                canDrag={isHost && player.id !== myPlayer?.id}
-                                onRename={handleRenamePlayer}
-                                onKick={handleKickPlayer}
-                                onDragStart={handleDragStart}
-                              />
-                            ) : (
-                              <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                                <div className="flex items-center justify-center text-gray-500">
-                                  <span className="text-sm font-medium">Waiting for player...</span>
+                    {/* Team 1 */}
+                    <div className="bg-red-50 rounded-lg p-4">
+                      <h3 className="font-medium text-red-800 mb-3 text-center">
+                        Team 2
+                      </h3>
+                      <div className="space-y-2">
+                        {[1, 3].map((position) => {
+                          const player = gameState.players.find(
+                            (p) => p.position === position
+                          );
+                          return (
+                            <div
+                              key={position}
+                              className={`transition-all ${player
+                                ? player.isConnected
+                                  ? ""
+                                  : "opacity-75"
+                                : "border-dashed border-gray-300 bg-gray-50"
+                                } ${isHost && !player ? "hover:border-red-400" : ""}`}
+                              onDragOver={handleDragOver}
+                              onDrop={(e) => handleDrop(e, position as 0 | 1 | 2 | 3)}
+                            >
+                              {player ? (
+                                <PlayerCard
+                                  player={player}
+                                  isCurrentUser={player.id === myPlayer?.id}
+                                  isHost={isHost}
+                                  canEdit={isHost || player.id === myPlayer?.id}
+                                  canKick={isHost && player.id !== myPlayer?.id}
+                                  canDrag={isHost && player.id !== myPlayer?.id}
+                                  onRename={handleRenamePlayer}
+                                  onKick={handleKickPlayer}
+                                  onDragStart={handleDragStart}
+                                />
+                              ) : (
+                                <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                                  <div className="flex items-center justify-center text-gray-500">
+                                    <span className="text-sm font-medium">Waiting for player...</span>
+                                  </div>
                                 </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                // Simple list layout for random card teams
-                <div className="space-y-3">
-                  <div className="text-sm text-gray-600 text-center mb-4">
-                    Teams will be determined by card selection when the game starts
+                ) : (
+                  // Simple list layout for random card teams
+                  <div className="space-y-3">
+                    <div className="text-sm text-gray-600 text-center mb-4">
+                      Teams will be determined by card selection when the game starts
+                    </div>
+
+                    {gameState.players.length === 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+                        {Array.from({ length: 4 }).map((_, index) => (
+                          <div key={index} className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                            <div className="flex items-center justify-center text-gray-500">
+                              <span className="text-sm font-medium">Waiting for player...</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+                        {gameState.players.map((player) => (
+                          <PlayerCard
+                            key={player.id}
+                            player={player}
+                            isCurrentUser={player.id === myPlayer?.id}
+                            isHost={isHost}
+                            canEdit={isHost || player.id === myPlayer?.id}
+                            canKick={isHost && player.id !== myPlayer?.id}
+                            canDrag={false} // No dragging for random teams
+                            onRename={handleRenamePlayer}
+                            onKick={handleKickPlayer}
+                            onDragStart={handleDragStart}
+                          />
+                        ))}
+                        {/* Show empty slots for remaining players */}
+                        {Array.from({ length: Math.max(0, 4 - gameState.players.length) }).map((_, index) => (
+                          <div key={`empty-${index}`} className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                            <div className="flex items-center justify-center text-gray-500">
+                              <span className="text-sm font-medium">Waiting for player...</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  {gameState.players.length === 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
-                      {Array.from({ length: 4 }).map((_, index) => (
-                        <div key={index} className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                          <div className="flex items-center justify-center text-gray-500">
-                            <span className="text-sm font-medium">Waiting for player...</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
-                      {gameState.players.map((player) => (
-                        <PlayerCard
-                          key={player.id}
-                          player={player}
-                          isCurrentUser={player.id === myPlayer?.id}
-                          isHost={isHost}
-                          canEdit={isHost || player.id === myPlayer?.id}
-                          canKick={isHost && player.id !== myPlayer?.id}
-                          canDrag={false} // No dragging for random teams
-                          onRename={handleRenamePlayer}
-                          onKick={handleKickPlayer}
-                          onDragStart={handleDragStart}
-                        />
-                      ))}
-                      {/* Show empty slots for remaining players */}
-                      {Array.from({ length: Math.max(0, 4 - gameState.players.length) }).map((_, index) => (
-                        <div key={`empty-${index}`} className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                          <div className="flex items-center justify-center text-gray-500">
-                            <span className="text-sm font-medium">Waiting for player...</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+                )}
+
+                {/* Host Controls Info */}
+                <HostControlsInfo isHost={isHost} />
+              </div>
             </div>
 
-            {/* Host Controls Info */}
-            <HostControlsInfo isHost={isHost} />
+            <GameOptionsPanel
+              options={gameState.options}
+              onOptionsChange={updateGameOptions}
+              isHost={isHost}
+              disabled={gameState.phase !== 'lobby'}
+            />
 
             {/* Game Controls */}
             <div className="bg-white rounded-lg shadow-lg p-6">
@@ -373,18 +383,6 @@ export default function Lobby({ params }: Route.ComponentProps) {
                 )}
               </div>
             </div>
-          </div>
-
-          {/* Right Column - Settings and Controls (takes up 1/3 on large screens) */}
-          <div className="space-y-6">
-            {/* Game Options */}
-            <GameOptionsPanel
-              options={gameState.options}
-              onOptionsChange={updateGameOptions}
-              isHost={isHost}
-              disabled={gameState.phase !== 'lobby'}
-            />
-
           </div>
         </div>
       </div>

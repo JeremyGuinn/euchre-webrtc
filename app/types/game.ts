@@ -44,6 +44,8 @@ export type GameOptions = {
   teamSelection: 'predetermined' | 'random_cards';
   dealerSelection: 'random_cards' | 'first_black_jack';
   allowReneging: boolean;
+  screwTheDealer: boolean;
+  farmersHand: boolean;
 };
 
 export type GameState = {

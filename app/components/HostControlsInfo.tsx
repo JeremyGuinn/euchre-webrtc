@@ -5,7 +5,7 @@ interface HostControlsInfoProps {
 export function HostControlsInfo({ isHost }: HostControlsInfoProps) {
   if (!isHost) {
     return (
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 mb-6 shadow-sm">
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 shadow-sm">
         <div className="flex items-start space-x-3">
           <div className="flex-shrink-0">
             <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -26,7 +26,7 @@ export function HostControlsInfo({ isHost }: HostControlsInfoProps) {
   }
 
   return (
-    <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-5 mb-6 shadow-sm">
+    <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-5 shadow-sm">
       <div className="flex items-start space-x-3">
         <div className="flex-shrink-0">
           <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
