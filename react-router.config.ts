@@ -6,4 +6,5 @@ export default {
   ssr: false,
   // Enable prerendering for better SEO and performance
   prerender: ["/"],
+  basename: process.env.PUBLIC_URL || "/",
 } satisfies Config;
