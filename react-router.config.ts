@@ -2,6 +2,8 @@ import type { Config } from "@react-router/dev/config";
 
 export default {
   // Config options...
-  // Server-side render by default, to enable SPA mode set this to `false`
-  ssr: true,
+  // Set to false for SPA mode on GitHub Pages
+  ssr: false,
+  // Enable prerendering for better SEO and performance
+  prerender: ["/"],
 } satisfies Config;

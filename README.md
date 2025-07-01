@@ -2,6 +2,10 @@
 
 A modern web-based implementation of the classic Euchre card game, built with React 19 and react-router 7. Play with friends using peer-to-peer connections - no servers required!
 
+## 🚀 Live Demo
+
+Play the game online at: [https://yourusername.github.io/euchre-webrtc](https://yourusername.github.io/euchre-webrtc)
+
 ## ✨ Features
 
 - **Zero Backend**: Complete peer-to-peer gameplay using WebRTC
