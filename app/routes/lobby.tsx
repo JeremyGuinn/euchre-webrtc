@@ -122,15 +122,14 @@ export default function Lobby({ params }: Route.ComponentProps) {
               <div className="text-sm text-gray-600">
                 Status:{" "}
                 <span
-                  className={`font-medium ${
-                    connectionStatus === "connected"
-                      ? "text-green-600"
-                      : connectionStatus === "connecting"
+                  className={`font-medium ${connectionStatus === "connected"
+                    ? "text-green-600"
+                    : connectionStatus === "connecting"
                       ? "text-yellow-600"
                       : connectionStatus === "error"
-                      ? "text-red-600"
-                      : "text-gray-600"
-                  }`}
+                        ? "text-red-600"
+                        : "text-gray-600"
+                    }`}
                 >
                   {connectionStatus}
                 </span>
@@ -198,13 +197,12 @@ export default function Lobby({ params }: Route.ComponentProps) {
                   return (
                     <div
                       key={position}
-                      className={`transition-all ${
-                        player
-                          ? player.isConnected
-                            ? ""
-                            : "opacity-75"
-                          : "border-dashed border-gray-300 bg-gray-50"
-                      } ${isHost && !player ? "hover:border-blue-400" : ""}`}
+                      className={`transition-all ${player
+                        ? player.isConnected
+                          ? ""
+                          : "opacity-75"
+                        : "border-dashed border-gray-300 bg-gray-50"
+                        } ${isHost && !player ? "hover:border-blue-400" : ""}`}
                       onDragOver={handleDragOver}
                       onDrop={(e) => handleDrop(e, position as 0 | 1 | 2 | 3)}
                     >
@@ -221,13 +219,10 @@ export default function Lobby({ params }: Route.ComponentProps) {
                           onDragStart={handleDragStart}
                         />
                       ) : (
-                        <div className="text-gray-500 text-center py-8 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                          <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
+                        <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                          <div className="flex items-center justify-center text-gray-500">
+                            <span className="text-sm font-medium">Waiting for player...</span>
                           </div>
-                          <span className="text-sm">Waiting for player...</span>
                         </div>
                       )}
                     </div>
@@ -249,13 +244,12 @@ export default function Lobby({ params }: Route.ComponentProps) {
                   return (
                     <div
                       key={position}
-                      className={`transition-all ${
-                        player
-                          ? player.isConnected
-                            ? ""
-                            : "opacity-75"
-                          : "border-dashed border-gray-300 bg-gray-50"
-                      } ${isHost && !player ? "hover:border-red-400" : ""}`}
+                      className={`transition-all ${player
+                        ? player.isConnected
+                          ? ""
+                          : "opacity-75"
+                        : "border-dashed border-gray-300 bg-gray-50"
+                        } ${isHost && !player ? "hover:border-red-400" : ""}`}
                       onDragOver={handleDragOver}
                       onDrop={(e) => handleDrop(e, position as 0 | 1 | 2 | 3)}
                     >
@@ -272,13 +266,10 @@ export default function Lobby({ params }: Route.ComponentProps) {
                           onDragStart={handleDragStart}
                         />
                       ) : (
-                        <div className="text-gray-500 text-center py-8 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                          <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
+                        <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                          <div className="flex items-center justify-center text-gray-500">
+                            <span className="text-sm font-medium">Waiting for player...</span>
                           </div>
-                          <span className="text-sm">Waiting for player...</span>
                         </div>
                       )}
                     </div>

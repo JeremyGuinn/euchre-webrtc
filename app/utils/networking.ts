@@ -55,15 +55,7 @@ export class NetworkManager {
     this.notifyStatusChange("connecting");
 
     return new Promise((resolve, reject) => {
-      this.peer = new Peer(peerId, {
-        debug: 0, // Set to 2 for verbose debugging
-        config: {
-          iceServers: [
-            { urls: "stun:stun.l.google.com:19302" },
-            { urls: "stun:global.stun.twilio.com:3478" },
-          ],
-        },
-      });
+      this.peer = new Peer(peerId);
 
       this.peer.on("open", (id) => {
         this._myId = id;
@@ -245,13 +237,13 @@ export class NetworkManager {
     const connectedPeers = Array.from(this.connections.values())
       .filter((conn) => {
         const isConnected = conn.status === "connected" && conn.connection.open;
-        
+
         // If connection appears disconnected but we haven't handled it yet, handle it now
         if (!isConnected && conn.status === "connected") {
           console.warn(`Detected stale connection for peer ${conn.id}, handling disconnection`);
           this.handleConnectionClose(conn.id);
         }
-        
+
         return isConnected;
       })
       .map((conn) => conn.id);
@@ -263,12 +255,12 @@ export class NetworkManager {
     if (!connection) {
       return false;
     }
-    
+
     // Check both status and actual connection state
-    const isConnected = 
-      connection.status === "connected" && 
+    const isConnected =
+      connection.status === "connected" &&
       connection.connection.open;
-    
+
     return isConnected;
   }
 
@@ -315,12 +307,12 @@ export class NetworkManager {
     this.connections.forEach((connection, peerId) => {
       if (now - connection.lastHeartbeat > timeout) {
         console.warn(`Connection to ${peerId} timed out (last heartbeat: ${new Date(connection.lastHeartbeat).toISOString()})`);
-        
+
         // Check if connection is actually still open
         if (connection.connection.open) {
           console.warn(`Connection to ${peerId} appears open but heartbeat timed out, treating as disconnected`);
         }
-        
+
         this.handleConnectionError(peerId);
       }
     });

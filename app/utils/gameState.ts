@@ -7,7 +7,6 @@ export type GameAction =
   | { type: 'ADD_PLAYER'; payload: { player: Player } }
   | { type: 'REMOVE_PLAYER'; payload: { playerId: string } }
   | { type: 'UPDATE_PLAYER_CONNECTION'; payload: { playerId: string; isConnected: boolean } }
-  | { type: 'UPDATE_PLAYER_ID_AND_CONNECTION'; payload: { oldPlayerId: string; newPlayerId: string; isConnected: boolean } }
   | { type: 'RENAME_PLAYER'; payload: { playerId: string; newName: string } }
   | { type: 'KICK_PLAYER'; payload: { playerId: string } }
   | { type: 'MOVE_PLAYER'; payload: { playerId: string; newPosition: 0 | 1 | 2 | 3 } }
@@ -44,7 +43,7 @@ const initialGameState: GameState = {
 function getNextPlayer(currentPlayerId: string, players: Player[]): string {
   const currentIndex = players.findIndex(p => p.id === currentPlayerId);
   if (currentIndex === -1) return players[0]?.id || '';
-  
+
   const nextIndex = (currentIndex + 1) % players.length;
   return players[nextIndex].id;
 }
@@ -59,13 +58,13 @@ function getTeamId(position: number): 0 | 1 {
 
 function calculateHandScore(tricks: Trick[], makingTeam: 0 | 1, alone: boolean): { team0: number; team1: number } {
   const makingTeamTricks = tricks.filter(trick => {
-    const winnerPosition = trick.winnerId ? 
+    const winnerPosition = trick.winnerId ?
       parseInt(trick.winnerId.split('-')[1]) || 0 : 0;
     return getTeamId(winnerPosition) === makingTeam;
   }).length;
 
   const scores = { team0: 0, team1: 0 };
-  
+
   if (makingTeamTricks === 5) {
     // Made all 5 tricks
     scores[`team${makingTeam}`] = alone ? 4 : 2;
@@ -101,7 +100,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'ADD_PLAYER': {
       const { player } = action.payload;
       const newPosition = state.players.length as 0 | 1 | 2 | 3;
-      
+
       if (newPosition >= 4) {
         return state; // Game is full
       }
@@ -134,54 +133,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         )
       };
 
-    case 'UPDATE_PLAYER_ID_AND_CONNECTION': {
-      const { oldPlayerId, newPlayerId, isConnected } = action.payload;
-      
-      // Update player ID and connection status
-      const updatedPlayers = state.players.map(p =>
-        p.id === oldPlayerId
-          ? { ...p, id: newPlayerId, isConnected }
-          : p
-      );
-
-      // Update any game state references to the old player ID
-      const updatedHands = { ...state.hands };
-      if (updatedHands[oldPlayerId]) {
-        updatedHands[newPlayerId] = updatedHands[oldPlayerId];
-        delete updatedHands[oldPlayerId];
-      }
-
-      return {
-        ...state,
-        players: updatedPlayers,
-        hands: updatedHands,
-        currentDealerId: state.currentDealerId === oldPlayerId ? newPlayerId : state.currentDealerId,
-        currentPlayerId: state.currentPlayerId === oldPlayerId ? newPlayerId : state.currentPlayerId,
-        bids: state.bids.map(bid => 
-          bid.playerId === oldPlayerId ? { ...bid, playerId: newPlayerId } : bid
-        ),
-        completedTricks: state.completedTricks.map(trick => ({
-          ...trick,
-          winnerId: trick.winnerId === oldPlayerId ? newPlayerId : trick.winnerId,
-          leaderId: trick.leaderId === oldPlayerId ? newPlayerId : trick.leaderId,
-          cards: trick.cards.map(card => 
-            card.playerId === oldPlayerId ? { ...card, playerId: newPlayerId } : card
-          )
-        })),
-        currentTrick: state.currentTrick ? {
-          ...state.currentTrick,
-          winnerId: state.currentTrick.winnerId === oldPlayerId ? newPlayerId : state.currentTrick.winnerId,
-          leaderId: state.currentTrick.leaderId === oldPlayerId ? newPlayerId : state.currentTrick.leaderId,
-          cards: state.currentTrick.cards.map(card => 
-            card.playerId === oldPlayerId ? { ...card, playerId: newPlayerId } : card
-          )
-        } : undefined,
-        maker: state.maker?.playerId === oldPlayerId 
-          ? { ...state.maker, playerId: newPlayerId }
-          : state.maker
-      };
-    }
-
     case 'START_GAME':
       if (state.players.length !== 4) {
         return state; // Need exactly 4 players
@@ -195,7 +146,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'SELECT_DEALER': {
       // Create a shuffled deck for card drawing
       const deck = createDeck();
-      
+
       return {
         ...state,
         deck,
@@ -205,7 +156,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'DRAW_DEALER_CARD': {
       const { playerId, card } = action.payload;
-      
+
       return {
         ...state,
         dealerSelectionCards: {
@@ -234,7 +185,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'DEAL_CARDS': {
       const deck = createDeck();
       const { hands, kitty, remainingDeck } = dealHands(deck);
-      
+
       const playerHands: Record<string, Card[]> = {};
       state.players.forEach((player, index) => {
         playerHands[player.id] = hands[index];
@@ -257,7 +208,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'PLACE_BID': {
       const { bid } = action.payload;
       const newBids = [...state.bids, bid];
-      
+
       let newPhase = state.phase;
       let trump = state.trump;
       let maker = state.maker;
@@ -276,7 +227,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             teamId: player?.teamId || 0,
             alone: bid.alone || false
           };
-          
+
           // If dealer took it up, they need to discard
           if (bid.playerId === state.currentDealerId) {
             // Add kitty to dealer's hand (will be handled in UI)
@@ -287,14 +238,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               };
             }
           }
-          
+
           newPhase = 'playing';
           currentPlayer = getNextPlayer(state.currentDealerId, state.players);
         } else {
           // Player passed, check if round 1 is complete
           const currentPlayerIndex = state.players.findIndex(p => p.id === bid.playerId);
           const dealerIndex = state.players.findIndex(p => p.id === state.currentDealerId);
-          
+
           if (currentPlayerIndex === dealerIndex) {
             // Dealer passed, start round 2
             newPhase = 'bidding_round2';
@@ -322,7 +273,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           // Player passed, check if round 2 is complete
           const currentPlayerIndex = state.players.findIndex(p => p.id === bid.playerId);
           const dealerIndex = state.players.findIndex(p => p.id === state.currentDealerId);
-          
+
           if (currentPlayerIndex === dealerIndex) {
             // All players passed both rounds, deal new hand
             newPhase = 'dealing';
@@ -349,7 +300,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'DEALER_DISCARD': {
       const { card } = action.payload;
-      
+
       // Remove the discarded card from dealer's hand
       const newHands = {
         ...state.hands,
@@ -378,7 +329,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'PLAY_CARD': {
       const { card, playerId } = action.payload;
-      
+
       if (!state.currentTrick) {
         // Start new trick
         const newTrick: Trick = {
@@ -410,15 +361,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
         // Check if trick is complete (4 cards)
         if (updatedTrick.cards.length === 4) {
-          const leadSuit = state.trump ? 
-            getEffectiveSuit(updatedTrick.cards[0].card, state.trump) : 
+          const leadSuit = state.trump ?
+            getEffectiveSuit(updatedTrick.cards[0].card, state.trump) :
             updatedTrick.cards[0].card.suit;
-          
+
           const winningPlay = getWinningCard(updatedTrick.cards, state.trump!, leadSuit);
           updatedTrick.winnerId = winningPlay.playerId;
 
           const newCompletedTricks = [...state.completedTricks, updatedTrick];
-          
+
           // Check if hand is complete (5 tricks)
           if (newCompletedTricks.length === 5) {
             return {
@@ -524,7 +475,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'SYNC_STATE': {
       const { gameState, playerHand, receivingPlayerId } = action.payload;
-      
+
       return {
         ...state,
         id: gameState.id,
@@ -570,7 +521,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       // Find if there's already a player at the target position
       const playerAtTarget = state.players.find(p => p.position === newPosition);
-      
+
       const updatedPlayers = state.players.map(p => {
         if (p.id === playerId) {
           // Move the player to new position and update team
@@ -589,29 +540,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
         return p;
       });
-
-      return {
-        ...state,
-        players: updatedPlayers
-      };
-    }
-
-    case 'UPDATE_PLAYER_ID_AND_CONNECTION': {
-      const { oldPlayerId, newPlayerId, isConnected } = action.payload;
-      
-      const updatedPlayers = state.players
-        .filter(p => p.id !== oldPlayerId) // Remove old player entry
-        .map(p => {
-          if (p.id === newPlayerId) {
-            // Update existing player ID
-            return {
-              ...p,
-              id: newPlayerId,
-              isConnected
-            };
-          }
-          return p;
-        });
 
       return {
         ...state,
