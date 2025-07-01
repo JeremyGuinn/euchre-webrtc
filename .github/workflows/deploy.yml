@@ -66,9 +66,6 @@ jobs:
           echo "Contents of build/client/assets:"
           ls -la build/client/assets/ || echo "No assets directory found"
 
-      - name: Copy 404.html for GitHub Pages SPA routing
-        run: cp public/404.html build/client/404.html
-
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
