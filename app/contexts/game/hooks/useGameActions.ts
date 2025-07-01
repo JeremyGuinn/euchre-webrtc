@@ -26,7 +26,7 @@ export function useGameActions(
     // State changes will trigger auto-broadcast via useEffect
   }, [isHost, dispatch]);
 
-  const drawDealerCard = useCallback(() => {
+  const drawDealerCard = useCallback((cardIndex?: number) => {
     // Check if player has already drawn a card
     if (gameState.dealerSelectionCards?.[myPlayerId]) return;
 
@@ -42,8 +42,15 @@ export function useGameActions(
 
       if (availableCards.length === 0) return;
 
-      const randomIndex = Math.floor(Math.random() * availableCards.length);
-      const drawnCard = availableCards[randomIndex];
+      let drawnCard: Card;
+      if (cardIndex !== undefined && cardIndex >= 0 && cardIndex < availableCards.length) {
+        // Use the specified index
+        drawnCard = availableCards[cardIndex];
+      } else {
+        // Random selection for host
+        const randomIndex = Math.floor(Math.random() * availableCards.length);
+        drawnCard = availableCards[randomIndex];
+      }
 
       dispatch({
         type: "DRAW_DEALER_CARD",
@@ -51,12 +58,14 @@ export function useGameActions(
       });
       // State change will trigger auto-broadcast via useEffect
     } else {
-      // Client sends a request to draw a card, host will handle the actual drawing
+      // Client sends a request to draw a card with the specified index
+      if (cardIndex === undefined) return; // Clients must specify an index
+
       const message: DrawDealerCardMessage = {
         type: "DRAW_DEALER_CARD",
         timestamp: Date.now(),
         messageId: createMessageId(),
-        payload: {}
+        payload: { cardIndex }
       };
 
       networkService.sendMessage(message);
@@ -71,12 +80,18 @@ export function useGameActions(
     if (drawnCards !== gameState.players.length) return;
 
     dispatch({ type: "COMPLETE_DEALER_SELECTION" });
+  }, [isHost, gameState.dealerSelectionCards, gameState.players.length, dispatch]);
 
-    // Automatically proceed to dealing after a short delay
+  const proceedToDealing = useCallback(() => {
+    if (!isHost) return;
+
+    dispatch({ type: "PROCEED_TO_DEALING" });
+
+    // Automatically deal cards after transitioning to dealing phase
     setTimeout(() => {
       dispatch({ type: "DEAL_CARDS" });
-    }, 1500);
-  }, [isHost, gameState.dealerSelectionCards, gameState.players.length, dispatch]);
+    }, 500);
+  }, [isHost, dispatch]);
 
   const placeBid = useCallback(
     (suit: Card["suit"] | "pass", alone?: boolean) => {
@@ -248,6 +263,7 @@ export function useGameActions(
     selectDealer,
     drawDealerCard,
     completeDealerSelection,
+    proceedToDealing,
     placeBid,
     playCard,
     dealerDiscard,

@@ -1,4 +1,4 @@
-import { useReducer, useState, useMemo } from "react";
+import { useReducer, useState, useMemo, useEffect } from "react";
 import { gameReducer } from "../../../utils/gameState";
 import { GameNetworkService } from "../services/networkService";
 import { useConnectionActions } from "./useConnectionActions";
@@ -22,7 +22,9 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
     options: {
       allowReneging: false,
       teamSelection: "predetermined",
-      dealerSelection: "first_black_jack"
+      dealerSelection: "first_black_jack",
+      screwTheDealer: false,
+      farmersHand: false
     },
     phase: "lobby",
     currentDealerId: "",
@@ -109,6 +111,15 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
     // Event callbacks
     onKicked,
   };
+
+  // Cleanup on unmount - ensure we disconnect properly
+  useEffect(() => {
+    return () => {
+      if (connectionStatus !== "disconnected") {
+        networkService.disconnect();
+      }
+    };
+  }, [networkService, connectionStatus]);
 
   return contextValue;
 }

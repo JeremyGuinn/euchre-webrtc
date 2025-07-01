@@ -1,6 +1,6 @@
 import type { Card, Player, PublicGameState, Bid } from './game';
 
-export type MessageType = 
+export type MessageType =
   | 'JOIN_REQUEST'
   | 'JOIN_RESPONSE'
   | 'PLAYER_JOINED'
@@ -19,7 +19,7 @@ export type MessageType =
   | 'KICK_PLAYER'
   | 'MOVE_PLAYER'
   | 'ERROR';
-  
+
 export interface BaseMessage {
   type: MessageType;
   timestamp: number;
@@ -148,7 +148,9 @@ export interface SelectDealerMessage extends BaseMessage {
 
 export interface DrawDealerCardMessage extends BaseMessage {
   type: 'DRAW_DEALER_CARD';
-  payload: {};
+  payload: {
+    cardIndex?: number;
+  };
 }
 
 export interface CompleteDealerSelectionMessage extends BaseMessage {
@@ -158,7 +160,7 @@ export interface CompleteDealerSelectionMessage extends BaseMessage {
   };
 }
 
-export type GameMessage = 
+export type GameMessage =
   | JoinRequestMessage
   | JoinResponseMessage
   | PlayerJoinedMessage

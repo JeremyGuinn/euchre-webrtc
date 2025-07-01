@@ -35,9 +35,18 @@ export const handleDrawDealerCard: MessageHandler<DrawDealerCardMessage> = (
 
   if (availableCards.length === 0) return;
 
-  // Draw a random card for the requesting player
-  const randomIndex = Math.floor(Math.random() * availableCards.length);
-  const drawnCard = availableCards[randomIndex];
+  // Draw the card at the specified index, or random if no index provided
+  let drawnCard;
+  const { cardIndex } = message.payload;
+
+  if (cardIndex !== undefined && cardIndex >= 0 && cardIndex < availableCards.length) {
+    // Use the specific card index requested by the client
+    drawnCard = availableCards[cardIndex];
+  } else {
+    // Fall back to random selection
+    const randomIndex = Math.floor(Math.random() * availableCards.length);
+    drawnCard = availableCards[randomIndex];
+  }
 
   // Update local state
   // State change will trigger an auto-broadcast via useEffect

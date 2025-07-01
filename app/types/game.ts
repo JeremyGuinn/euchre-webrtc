@@ -16,6 +16,7 @@ export type Player = {
 export type GamePhase =
   | 'lobby'
   | 'dealer_selection'
+  | 'team_summary' // Show dealer and team assignments before dealing
   | 'dealing'
   | 'bidding_round1' // First round: can order up/assist the turned up card
   | 'bidding_round2' // Second round: can call any suit except the turned up suit
@@ -81,5 +82,6 @@ export type GameState = {
 
 export type PublicGameState = Omit<GameState, 'hands' | 'deck'> & {
   playerHand?: Card[]; // Only for the current player
-  deckSize: number;
+  deck: Card[]; // Placeholder cards for clients, actual cards for host
+  deckSize: number; // Keep for backward compatibility
 };

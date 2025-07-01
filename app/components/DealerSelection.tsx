@@ -81,7 +81,7 @@ export function DealerSelection() {
                     ) : (
                       <Button
                         size="sm"
-                        onClick={drawDealerCard}
+                        onClick={() => drawDealerCard()}
                         className="text-xs py-1 px-2"
                       >
                         Draw Card

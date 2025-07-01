@@ -13,8 +13,9 @@ export interface GameContextType {
   joinGame: (gameCode: string, playerName: string) => Promise<void>; // Accepts base64 game code
   startGame: () => void;
   selectDealer: () => void;
-  drawDealerCard: () => void;
+  drawDealerCard: (cardIndex?: number) => void;
   completeDealerSelection: () => void;
+  proceedToDealing: () => void;
   placeBid: (suit: Card["suit"] | "pass", alone?: boolean) => void;
   playCard: (card: Card) => void;
   dealerDiscard: (card: Card) => void;

@@ -25,6 +25,7 @@ export type GameAction =
   | { type: 'SELECT_DEALER' }
   | { type: 'DRAW_DEALER_CARD'; payload: { playerId: string; card: Card } }
   | { type: 'COMPLETE_DEALER_SELECTION' }
+  | { type: 'PROCEED_TO_DEALING' }
   | { type: 'DEAL_CARDS' }
   | { type: 'PLACE_BID'; payload: { bid: Bid } }
   | { type: 'DEALER_DISCARD'; payload: { card: Card } }
@@ -164,7 +165,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ...state,
           players: arrangedPlayers,
           currentDealerId: dealer.id,
-          phase: 'dealing'
+          phase: 'team_summary'
         };
       } else {
         // Go to dealer selection phase for card-based selection
@@ -194,12 +195,41 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'DRAW_DEALER_CARD': {
       const { playerId, card } = action.payload;
 
+      const newDealerSelectionCards = {
+        ...state.dealerSelectionCards,
+        [playerId]: card
+      };
+
+      // Check if all 4 players have drawn cards
+      if (Object.keys(newDealerSelectionCards).length === 4) {
+        // Automatically complete dealer selection
+        let dealer: Player;
+        let arrangedPlayers: Player[];
+
+        if (state.options.teamSelection === 'random_cards') {
+          // Use cards to determine both dealer and teams
+          const result = selectDealerAndTeams(state.players, newDealerSelectionCards);
+          dealer = result.dealer;
+          arrangedPlayers = result.arrangedPlayers;
+        } else {
+          // Use cards only for dealer selection, keep predetermined teams
+          const result = selectDealerOnly(state.players, newDealerSelectionCards);
+          dealer = result.dealer;
+          arrangedPlayers = result.arrangedPlayers;
+        }
+
+        return {
+          ...state,
+          players: arrangedPlayers,
+          currentDealerId: dealer.id,
+          phase: 'team_summary',
+          dealerSelectionCards: undefined // Clear the selection cards
+        };
+      }
+
       return {
         ...state,
-        dealerSelectionCards: {
-          ...state.dealerSelectionCards,
-          [playerId]: card
-        }
+        dealerSelectionCards: newDealerSelectionCards
       };
     }
 
@@ -212,7 +242,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ...state,
           players: arrangedPlayers,
           currentDealerId: dealer.id,
-          phase: 'dealing',
+          phase: 'team_summary',
           dealerSelectionCards: undefined
         };
       } else {
@@ -240,11 +270,17 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ...state,
           players: arrangedPlayers,
           currentDealerId: dealer.id,
-          phase: 'dealing',
+          phase: 'team_summary',
           dealerSelectionCards: undefined // Clear the selection cards
         };
       }
     }
+
+    case 'PROCEED_TO_DEALING':
+      return {
+        ...state,
+        phase: 'dealing'
+      };
 
     case 'DEAL_CARDS': {
       const deck = createDeck();
@@ -559,7 +595,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         maker: gameState.maker,
         dealerSelectionCards: gameState.dealerSelectionCards,
         hands: playerHand ? { [receivingPlayerId]: playerHand } : {},
-        deck: [] // Client doesn't need the full deck
+        deck: gameState.deck
       };
     }
 
@@ -630,6 +666,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 }
 
 export function createPublicGameState(gameState: GameState, forPlayerId?: string): PublicGameState {
+  // Create placeholder cards for the deck - clients only see placeholders for security
+  const placeholderCards: Card[] = Array.from({ length: gameState.deck.length }, (_, index) => ({
+    id: `placeholder-${index}`,
+    suit: 'spades' as const,
+    value: 'A' as const
+  }));
+
   const publicState: PublicGameState = {
     id: gameState.id,
     players: gameState.players,
@@ -647,6 +690,7 @@ export function createPublicGameState(gameState: GameState, forPlayerId?: string
     handScores: gameState.handScores,
     maker: gameState.maker,
     dealerSelectionCards: gameState.dealerSelectionCards,
+    deck: placeholderCards,
     deckSize: gameState.deck.length
   };
 
