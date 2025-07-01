@@ -1,4 +1,4 @@
-import type { Card } from '../types/game';
+import type { Card, Player } from '../types/game';
 
 export function createDeck(): Card[] {
   const suits: Card['suit'][] = ['spades', 'hearts', 'diamonds', 'clubs'];
@@ -164,4 +164,94 @@ export function getWinningCard(cards: Array<{ card: Card; playerId: string }>, t
   }
   
   return winningPlay;
+}
+
+/**
+ * Get the rank value for dealer selection
+ * Aces rank low (1), Jacks rank below Queens (11), suits are irrelevant
+ */
+export function getDealerSelectionRank(card: Card): number {
+  switch (card.value) {
+    case 'A': return 1;  // Aces rank low
+    case '9': return 9;
+    case '10': return 10;
+    case 'J': return 11; // Jacks rank below Queens
+    case 'Q': return 12;
+    case 'K': return 13;
+    default: return 0;
+  }
+}
+
+/**
+ * Select dealer and arrange teams based on drawn cards
+ * Returns the player assignments with correct positions and teams
+ */
+export function selectDealerAndTeams(players: Player[], drawnCards: Record<string, Card>): {
+  dealer: Player;
+  arrangedPlayers: Player[];
+} {
+  // Sort players by their drawn card rank (lowest first)
+  const playersWithCards = players.map(player => ({
+    player,
+    card: drawnCards[player.id],
+    rank: getDealerSelectionRank(drawnCards[player.id])
+  })).sort((a, b) => {
+    // If ranks are equal, maintain current order (arbitrary but consistent)
+    if (a.rank === b.rank) {
+      // Use card id as tiebreaker for consistency
+      return a.card.id.localeCompare(b.card.id);
+    }
+    return a.rank - b.rank;
+  });
+
+  // The player with the lowest card deals first
+  const dealer = playersWithCards[0].player;
+  
+  // The players with the two lowest cards play together
+  const team0Players = [playersWithCards[0].player, playersWithCards[1].player];
+  const team1Players = [playersWithCards[2].player, playersWithCards[3].player];
+
+  // Arrange players in positions: dealer at position 0, then clockwise
+  const arrangedPlayers: Player[] = [];
+  
+  // Dealer gets position 0
+  arrangedPlayers[0] = {
+    ...dealer,
+    position: 0,
+    teamId: team0Players.includes(dealer) ? 0 : 1
+  };
+
+  // Find dealer's partner (same team)
+  const dealerTeam = team0Players.includes(dealer) ? team0Players : team1Players;
+  const dealerPartner = dealerTeam.find(p => p.id !== dealer.id)!;
+  
+  // Partner sits opposite (position 2)
+  arrangedPlayers[2] = {
+    ...dealerPartner,
+    position: 2,
+    teamId: arrangedPlayers[0].teamId
+  };
+
+  // Remaining two players are opponents
+  const opponents = playersWithCards
+    .map(pc => pc.player)
+    .filter(p => p.id !== dealer.id && p.id !== dealerPartner.id);
+
+  // Arrange opponents in positions 1 and 3
+  arrangedPlayers[1] = {
+    ...opponents[0],
+    position: 1,
+    teamId: arrangedPlayers[0].teamId === 0 ? 1 : 0
+  };
+
+  arrangedPlayers[3] = {
+    ...opponents[1],
+    position: 3,
+    teamId: arrangedPlayers[1].teamId
+  };
+
+  return {
+    dealer: arrangedPlayers[0],
+    arrangedPlayers
+  };
 }

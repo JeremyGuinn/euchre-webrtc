@@ -15,6 +15,9 @@ import {
   handleGameStateUpdate,
   handleStartGame,
   handleDealCards,
+  handleSelectDealer,
+  handleDrawDealerCard,
+  handleCompleteDealerSelection,
 } from "./gameplay";
 
 // Import player management handlers
@@ -46,6 +49,9 @@ export {
   
   // Gameplay handlers
   handleStartGame,
+  handleSelectDealer,
+  handleDrawDealerCard,
+  handleCompleteDealerSelection,
   handleBidMessage,
   handlePlayCardMessage,
   handleDealCards,

@@ -3,3 +3,7 @@ export { handlePlayCardMessage } from "./playCard";
 export { handleGameStateUpdate } from "./gameStateUpdate";
 export { handleStartGame } from "./startGame";
 export { handleDealCards } from "./dealCards";
+export { handleSelectDealer } from "./selectDealer";
+export { handleDrawDealerCard } from "./drawDealerCard";
+export { handleCompleteDealerSelection } from "./completeDealerSelection";
+export { handleDealerDiscard } from "./dealerDiscard";

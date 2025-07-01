@@ -12,8 +12,12 @@ export interface GameContextType {
   hostGame: () => Promise<string>; // Returns base64 game code for display
   joinGame: (gameCode: string, playerName: string) => Promise<void>; // Accepts base64 game code
   startGame: () => void;
+  selectDealer: () => void;
+  drawDealerCard: () => void;
+  completeDealerSelection: () => void;
   placeBid: (suit: Card["suit"] | "pass", alone?: boolean) => void;
   playCard: (card: Card) => void;
+  dealerDiscard: (card: Card) => void;
   disconnect: () => void;
 
   // Host or self actions

@@ -15,8 +15,10 @@ export type Player = {
 
 export type GamePhase = 
   | 'lobby'
+  | 'dealer_selection'
   | 'dealing'
-  | 'bidding'
+  | 'bidding_round1' // First round: can order up/assist the turned up card
+  | 'bidding_round2' // Second round: can call any suit except the turned up suit
   | 'playing'
   | 'trick_complete'
   | 'hand_complete'
@@ -48,6 +50,7 @@ export type GameState = {
   hands: Record<string, Card[]>; // Only on host
   trump?: Card['suit'];
   kitty?: Card; // The turned-up card
+  turnedDownSuit?: Card['suit']; // The suit that was turned down in round 1
   bids: Bid[];
   currentTrick?: Trick;
   completedTricks: Trick[];
@@ -64,6 +67,7 @@ export type GameState = {
     teamId: 0 | 1;
     alone: boolean;
   };
+  dealerSelectionCards?: Record<string, Card>; // Cards drawn for dealer selection
 };
 
 export type PublicGameState = Omit<GameState, 'hands' | 'deck'> & {

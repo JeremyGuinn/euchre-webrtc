@@ -17,7 +17,11 @@ export const handleBidMessage: MessageHandler<BidMessage> = (message, senderId, 
   // Validate it's the sender's turn and they're in the game
   if (gameState.currentPlayerId !== senderId) return;
 
-  dispatch({ type: "PLACE_BID", payload: { bid } });
+  dispatch({ type: "PLACE_BID", payload: { bid: {
+    playerId: senderId,
+    suit: bid.suit,
+    alone: bid.alone,
+  } } });
 
   // State change will trigger auto-broadcast via useEffect in GameContext
 };

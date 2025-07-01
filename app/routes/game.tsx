@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useGame } from "../contexts/GameContext";
 import { Card, CardBack } from "../components/Card";
+import { DealerSelection } from "../components/DealerSelection";
 import Button from "../components/Button";
 import type { Card as CardType } from "../types/game";
 
@@ -39,12 +40,14 @@ export default function Game({ params }: Route.ComponentProps) {
     canPlay,
     playCard,
     placeBid,
+    dealerDiscard,
     disconnect 
   } = useGame();
   const { gameId } = params;
 
   const [selectedCard, setSelectedCard] = useState<CardType | null>(null);
   const [showBidding, setShowBidding] = useState(false);
+  const [showDealerDiscard, setShowDealerDiscard] = useState(false);
 
   const myPlayer = getMyPlayer();
   const myHand = getMyHand();
@@ -59,8 +62,18 @@ export default function Game({ params }: Route.ComponentProps) {
 
   useEffect(() => {
     // Show bidding interface when it's bidding phase and my turn
-    setShowBidding(gameState.phase === 'bidding' && isMyTurn());
+    setShowBidding((gameState.phase === 'bidding_round1' || gameState.phase === 'bidding_round2') && isMyTurn());
   }, [gameState.phase, isMyTurn]);
+
+  useEffect(() => {
+    // Show dealer discard interface when dealer took up the kitty and needs to discard
+    setShowDealerDiscard(
+      gameState.phase === 'playing' && 
+      myPlayer?.id === gameState.currentDealerId && 
+      gameState.trump === gameState.kitty?.suit &&
+      myHand.length === 6 // Dealer has 6 cards (5 + kitty)
+    );
+  }, [gameState.phase, gameState.trump, gameState.kitty, myPlayer?.id, gameState.currentDealerId, myHand.length]);
 
   const handleCardClick = (card: CardType) => {
     if (!isMyTurn() || gameState.phase !== 'playing') return;
@@ -184,7 +197,7 @@ export default function Game({ params }: Route.ComponentProps) {
             })}
 
             {/* Kitty card (during bidding) */}
-            {gameState.phase === 'bidding' && gameState.kitty && (
+            {(gameState.phase === 'bidding_round1' || gameState.phase === 'bidding_round2') && gameState.kitty && (
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                 <Card card={gameState.kitty} size="small" />
               </div>
@@ -212,6 +225,7 @@ export default function Game({ params }: Route.ComponentProps) {
                 >
                   {player.name} {player.id === myPlayer.id && '(You)'}
                   {!player.isConnected && ' (Disconnected)'}
+                  {gameState.currentDealerId === player.id && ' (Dealer)'}
                 </div>
                 
                 {/* Player's cards (face down for others, face up for self) */}
@@ -257,49 +271,154 @@ export default function Game({ params }: Route.ComponentProps) {
         )}
       </div>
 
+      {/* Dealer Selection Overlay */}
+      {gameState.phase === 'dealer_selection' && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-40">
+          <div className="bg-black/20 backdrop-blur-sm rounded-lg p-8 max-w-2xl w-full mx-4">
+            <DealerSelection />
+          </div>
+        </div>
+      )}
+
       {/* Bidding Modal */}
       {showBidding && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">Make Your Bid</h2>
-            
-            {gameState.kitty && (
-              <div className="text-center mb-4">
-                <p className="text-sm text-gray-600 mb-2">Turned up card:</p>
-                <div className="inline-block">
-                  <Card card={gameState.kitty} size="medium" />
-                </div>
-              </div>
-            )}
+            {gameState.phase === 'bidding_round1' ? (
+              // Round 1: Order up/Assist/Take up the kitty suit
+              <>
+                <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">
+                  {myPlayer.id === gameState.currentDealerId ? 'Take it up?' : 'Order it up?'}
+                </h2>
+                
+                {gameState.kitty && (
+                  <div className="text-center mb-4">
+                    <p className="text-sm text-gray-600 mb-2">Turned up card:</p>
+                    <div className="inline-block">
+                      <Card card={gameState.kitty} size="medium" />
+                    </div>
+                    <p className="text-sm text-gray-600 mt-2">
+                      Trump would be: <span className={`font-bold ${suitColors[gameState.kitty.suit]}`}>
+                        {suitSymbols[gameState.kitty.suit]} {gameState.kitty.suit}
+                      </span>
+                    </p>
+                  </div>
+                )}
 
-            <div className="grid grid-cols-2 gap-3">
-              {(['spades', 'hearts', 'diamonds', 'clubs'] as const).map((suit) => (
-                <Button
-                  key={suit}
-                  variant="ghost"
-                  onClick={() => handleBid(suit)}
-                  className="flex items-center justify-center space-x-2 p-3"
+                <div className="space-y-3">
+                  <Button
+                    variant="primary"
+                    fullWidth
+                    onClick={() => handleBid(gameState.kitty!.suit)}
+                    className="p-3"
+                  >
+                    {myPlayer.id === gameState.currentDealerId ? 'Take it up' : 
+                     myPlayer.teamId === gameState.players.find(p => p.id === gameState.currentDealerId)?.teamId ? 'Assist' : 'Order it up'}
+                  </Button>
+                  
+                  <Button
+                    variant="secondary"
+                    fullWidth
+                    onClick={() => handleBid('pass')}
+                  >
+                    Pass
+                  </Button>
+                </div>
+
+                <div className="mt-4 text-xs text-gray-500 text-center">
+                  {myPlayer.id === gameState.currentDealerId 
+                    ? 'Take the turned up card or pass'
+                    : myPlayer.teamId === gameState.players.find(p => p.id === gameState.currentDealerId)?.teamId
+                      ? 'Assist your partner or pass'
+                      : 'Order up the turned card or pass'
+                  }
+                </div>
+              </>
+            ) : (
+              // Round 2: Call any suit except the turned down suit
+              <>
+                <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">Call Trump</h2>
+                
+                {gameState.turnedDownSuit && (
+                  <div className="text-center mb-4">
+                    <p className="text-sm text-gray-600">
+                      Turned down: <span className={`font-bold ${suitColors[gameState.turnedDownSuit]}`}>
+                        {suitSymbols[gameState.turnedDownSuit]} {gameState.turnedDownSuit}
+                      </span>
+                    </p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  {(['spades', 'hearts', 'diamonds', 'clubs'] as const)
+                    .filter(suit => suit !== gameState.turnedDownSuit)
+                    .map((suit) => (
+                    <Button
+                      key={suit}
+                      variant="ghost"
+                      onClick={() => handleBid(suit)}
+                      className="flex items-center justify-center space-x-2 p-3"
+                    >
+                      <span className={`text-2xl ${suitColors[suit]}`}>
+                        {suitSymbols[suit]}
+                      </span>
+                      <span className="font-medium capitalize">{suit}</span>
+                    </Button>
+                  ))}
+                </div>
+
+                <div className="mt-4">
+                  <Button
+                    variant="secondary"
+                    fullWidth
+                    onClick={() => handleBid('pass')}
+                  >
+                    Pass
+                  </Button>
+                </div>
+
+                <div className="mt-4 text-xs text-gray-500 text-center">
+                  Choose a different suit as trump, or pass
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Dealer Discard Modal */}
+      {showDealerDiscard && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">
+              Discard a Card
+            </h2>
+            
+            <p className="text-sm text-gray-600 mb-4 text-center">
+              You picked up the {gameState.kitty && (
+                <span className={`font-bold ${suitColors[gameState.kitty.suit]}`}>
+                  {suitSymbols[gameState.kitty.suit]} {gameState.kitty.value}
+                </span>
+              )}. Choose a card to discard:
+            </p>
+
+            <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto">
+              {myHand.map((card) => (
+                <button
+                  key={card.id}
+                  onClick={() => {
+                    dealerDiscard(card);
+                    setShowDealerDiscard(false);
+                  }}
+                  className="hover:scale-105 transform transition-transform"
                 >
-                  <span className={`text-2xl ${suitColors[suit]}`}>
-                    {suitSymbols[suit]}
-                  </span>
-                  <span className="font-medium capitalize">{suit}</span>
-                </Button>
+                  <Card card={card} size="small" />
+                </button>
               ))}
             </div>
 
-            <div className="mt-4 space-y-2">
-              <Button
-                variant="secondary"
-                fullWidth
-                onClick={() => handleBid('pass')}
-              >
-                Pass
-              </Button>
-            </div>
-
             <div className="mt-4 text-xs text-gray-500 text-center">
-              Click a suit to bid or pass to skip your turn
+              Click a card to discard it and start play
             </div>
           </div>
         </div>

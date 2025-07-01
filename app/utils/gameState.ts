@@ -1,5 +1,5 @@
 import type { GameState, PublicGameState, Player, Card, Bid, Trick } from '../types/game';
-import { createDeck, dealHands, getWinningCard, canPlayCard, getEffectiveSuit } from '../utils/gameLogic';
+import { createDeck, dealHands, getWinningCard, canPlayCard, getEffectiveSuit, selectDealerAndTeams } from '../utils/gameLogic';
 import { v4 as uuidv4 } from 'uuid';
 
 export type GameAction =
@@ -12,8 +12,12 @@ export type GameAction =
   | { type: 'KICK_PLAYER'; payload: { playerId: string } }
   | { type: 'MOVE_PLAYER'; payload: { playerId: string; newPosition: 0 | 1 | 2 | 3 } }
   | { type: 'START_GAME' }
+  | { type: 'SELECT_DEALER' }
+  | { type: 'DRAW_DEALER_CARD'; payload: { playerId: string; card: Card } }
+  | { type: 'COMPLETE_DEALER_SELECTION' }
   | { type: 'DEAL_CARDS' }
   | { type: 'PLACE_BID'; payload: { bid: Bid } }
+  | { type: 'DEALER_DISCARD'; payload: { card: Card } }
   | { type: 'SET_TRUMP'; payload: { trump: Card['suit']; makerId: string; alone?: boolean } }
   | { type: 'PLAY_CARD'; payload: { card: Card; playerId: string } }
   | { type: 'COMPLETE_TRICK' }
@@ -185,8 +189,47 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       return {
         ...state,
-        phase: 'dealing'
+        phase: 'dealer_selection'
       };
+
+    case 'SELECT_DEALER': {
+      // Create a shuffled deck for card drawing
+      const deck = createDeck();
+      
+      return {
+        ...state,
+        deck,
+        dealerSelectionCards: {}
+      };
+    }
+
+    case 'DRAW_DEALER_CARD': {
+      const { playerId, card } = action.payload;
+      
+      return {
+        ...state,
+        dealerSelectionCards: {
+          ...state.dealerSelectionCards,
+          [playerId]: card
+        }
+      };
+    }
+
+    case 'COMPLETE_DEALER_SELECTION': {
+      if (!state.dealerSelectionCards || Object.keys(state.dealerSelectionCards).length !== 4) {
+        return state; // Need all 4 players to have drawn cards
+      }
+
+      const { dealer, arrangedPlayers } = selectDealerAndTeams(state.players, state.dealerSelectionCards);
+
+      return {
+        ...state,
+        players: arrangedPlayers,
+        currentDealerId: dealer.id,
+        phase: 'dealing',
+        dealerSelectionCards: undefined // Clear the selection cards
+      };
+    }
 
     case 'DEAL_CARDS': {
       const deck = createDeck();
@@ -202,11 +245,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         deck: remainingDeck,
         hands: playerHands,
         kitty,
-        phase: 'bidding',
+        phase: 'bidding_round1',
         bids: [],
         currentPlayerId: getNextPlayer(state.currentDealerId, state.players),
         trump: undefined,
-        maker: undefined
+        maker: undefined,
+        turnedDownSuit: undefined
       };
     }
 
@@ -214,33 +258,80 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const { bid } = action.payload;
       const newBids = [...state.bids, bid];
       
-      // Check if bidding is complete
-      const passCount = newBids.filter(b => b.suit === 'pass').length;
-      const validBid = newBids.find(b => b.suit !== 'pass');
-      
       let newPhase = state.phase;
       let trump = state.trump;
       let maker = state.maker;
       let currentPlayer = state.currentPlayerId;
+      let turnedDownSuit = state.turnedDownSuit;
+      let newHands = state.hands;
 
-      if (validBid && bid.suit !== 'pass') {
-        // Someone made a bid
-        trump = bid.suit as Card['suit'];
-        const player = state.players.find(p => p.id === bid.playerId);
-        maker = {
-          playerId: bid.playerId,
-          teamId: player?.teamId || 0,
-          alone: bid.alone || false
-        };
-        newPhase = 'playing';
-        currentPlayer = getNextPlayer(state.currentDealerId, state.players);
-      } else if (passCount === 4) {
-        // All players passed, deal new hand
-        newPhase = 'dealing';
-        currentPlayer = getNextDealer(state.currentDealerId, state.players);
-      } else {
-        // Continue bidding
-        currentPlayer = getNextPlayer(bid.playerId, state.players);
+      if (state.phase === 'bidding_round1') {
+        // Round 1: Can only order up/assist/take up the kitty suit, or pass
+        if (bid.suit !== 'pass') {
+          // Someone ordered up/assisted/took up the kitty suit
+          trump = state.kitty!.suit;
+          const player = state.players.find(p => p.id === bid.playerId);
+          maker = {
+            playerId: bid.playerId,
+            teamId: player?.teamId || 0,
+            alone: bid.alone || false
+          };
+          
+          // If dealer took it up, they need to discard
+          if (bid.playerId === state.currentDealerId) {
+            // Add kitty to dealer's hand (will be handled in UI)
+            if (newHands[bid.playerId]) {
+              newHands = {
+                ...newHands,
+                [bid.playerId]: [...newHands[bid.playerId], state.kitty!]
+              };
+            }
+          }
+          
+          newPhase = 'playing';
+          currentPlayer = getNextPlayer(state.currentDealerId, state.players);
+        } else {
+          // Player passed, check if round 1 is complete
+          const currentPlayerIndex = state.players.findIndex(p => p.id === bid.playerId);
+          const dealerIndex = state.players.findIndex(p => p.id === state.currentDealerId);
+          
+          if (currentPlayerIndex === dealerIndex) {
+            // Dealer passed, start round 2
+            newPhase = 'bidding_round2';
+            turnedDownSuit = state.kitty!.suit;
+            currentPlayer = getNextPlayer(state.currentDealerId, state.players);
+          } else {
+            // Continue round 1
+            currentPlayer = getNextPlayer(bid.playerId, state.players);
+          }
+        }
+      } else if (state.phase === 'bidding_round2') {
+        // Round 2: Can call any suit except the turned down suit, or pass
+        if (bid.suit !== 'pass') {
+          // Someone called a suit
+          trump = bid.suit as Card['suit'];
+          const player = state.players.find(p => p.id === bid.playerId);
+          maker = {
+            playerId: bid.playerId,
+            teamId: player?.teamId || 0,
+            alone: bid.alone || false
+          };
+          newPhase = 'playing';
+          currentPlayer = getNextPlayer(state.currentDealerId, state.players);
+        } else {
+          // Player passed, check if round 2 is complete
+          const currentPlayerIndex = state.players.findIndex(p => p.id === bid.playerId);
+          const dealerIndex = state.players.findIndex(p => p.id === state.currentDealerId);
+          
+          if (currentPlayerIndex === dealerIndex) {
+            // All players passed both rounds, deal new hand
+            newPhase = 'dealing';
+            currentPlayer = getNextDealer(state.currentDealerId, state.players);
+          } else {
+            // Continue round 2
+            currentPlayer = getNextPlayer(bid.playerId, state.players);
+          }
+        }
       }
 
       return {
@@ -249,8 +340,27 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         phase: newPhase,
         trump,
         maker,
+        turnedDownSuit,
         currentPlayerId: currentPlayer,
-        currentDealerId: newPhase === 'dealing' ? currentPlayer : state.currentDealerId
+        currentDealerId: newPhase === 'dealing' ? (currentPlayer || state.currentDealerId) : state.currentDealerId,
+        hands: newHands
+      };
+    }
+
+    case 'DEALER_DISCARD': {
+      const { card } = action.payload;
+      
+      // Remove the discarded card from dealer's hand
+      const newHands = {
+        ...state.hands,
+        [state.currentDealerId]: state.hands[state.currentDealerId]?.filter(c => c.id !== card.id) || []
+      };
+
+      return {
+        ...state,
+        hands: newHands,
+        phase: 'playing',
+        currentPlayerId: getNextPlayer(state.currentDealerId, state.players)
       };
     }
 
@@ -396,6 +506,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         bids: [],
         hands: {},
         currentTrick: undefined,
+        turnedDownSuit: undefined,
         handScores: { team0: 0, team1: 0 }
       };
 
@@ -423,12 +534,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         currentPlayerId: gameState.currentPlayerId,
         trump: gameState.trump,
         kitty: gameState.kitty,
+        turnedDownSuit: gameState.turnedDownSuit,
         bids: gameState.bids,
         currentTrick: gameState.currentTrick,
         completedTricks: gameState.completedTricks,
         scores: gameState.scores,
         handScores: gameState.handScores,
         maker: gameState.maker,
+        dealerSelectionCards: gameState.dealerSelectionCards,
         hands: playerHand ? { [receivingPlayerId]: playerHand } : {},
         deck: [] // Client doesn't need the full deck
       };
@@ -520,12 +633,14 @@ export function createPublicGameState(gameState: GameState, forPlayerId?: string
     currentPlayerId: gameState.currentPlayerId,
     trump: gameState.trump,
     kitty: gameState.kitty,
+    turnedDownSuit: gameState.turnedDownSuit,
     bids: gameState.bids,
     currentTrick: gameState.currentTrick,
     completedTricks: gameState.completedTricks,
     scores: gameState.scores,
     handScores: gameState.handScores,
     maker: gameState.maker,
+    dealerSelectionCards: gameState.dealerSelectionCards,
     deckSize: gameState.deck.length
   };
 

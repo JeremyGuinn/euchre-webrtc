@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import type { Card, Bid, GameState } from "../../../types/game";
-import type { GameMessage } from "../../../types/messages";
+import type { BidMessage, DrawDealerCardMessage, GameMessage } from "../../../types/messages";
 import { createMessageId } from "../../../utils/protocol";
 import type { GameAction } from "../../../utils/gameState";
 import { GameNetworkService } from "../services/networkService";
@@ -16,9 +16,67 @@ export function useGameActions(
     if (!isHost) return;
 
     dispatch({ type: "START_GAME" });
-    dispatch({ type: "DEAL_CARDS" });
+    // Note: Don't auto-deal cards anymore, wait for dealer selection
+  }, [isHost, dispatch]);
+
+  const selectDealer = useCallback(() => {
+    if (!isHost) return;
+
+    dispatch({ type: "SELECT_DEALER" });
     // State changes will trigger auto-broadcast via useEffect
   }, [isHost, dispatch]);
+
+  const drawDealerCard = useCallback(() => {
+    // Check if player has already drawn a card
+    if (gameState.dealerSelectionCards?.[myPlayerId]) return;
+
+    if (isHost) {
+      // Host draws a card for themselves
+      if (!gameState.deck) return;
+      
+      const availableCards = gameState.deck.filter(card => 
+        !Object.values(gameState.dealerSelectionCards || {}).some(drawnCard => 
+          drawnCard.id === card.id
+        )
+      );
+      
+      if (availableCards.length === 0) return;
+      
+      const randomIndex = Math.floor(Math.random() * availableCards.length);
+      const drawnCard = availableCards[randomIndex];
+
+      dispatch({ 
+        type: "DRAW_DEALER_CARD", 
+        payload: { playerId: myPlayerId, card: drawnCard } 
+      });
+      // State change will trigger auto-broadcast via useEffect
+    } else {
+      // Client sends a request to draw a card, host will handle the actual drawing
+      const message: DrawDealerCardMessage = {
+        type: "DRAW_DEALER_CARD",
+        timestamp: Date.now(),
+        messageId: createMessageId(),
+        payload: {}
+      };
+
+      networkService.sendMessage(message);
+    }
+  }, [gameState, myPlayerId, isHost, dispatch, networkService]);
+
+  const completeDealerSelection = useCallback(() => {
+    if (!isHost || !gameState.dealerSelectionCards) return;
+    
+    // Check if all players have drawn cards
+    const drawnCards = Object.keys(gameState.dealerSelectionCards).length;
+    if (drawnCards !== gameState.players.length) return;
+
+    dispatch({ type: "COMPLETE_DEALER_SELECTION" });
+    
+    // Automatically proceed to dealing after a short delay
+    setTimeout(() => {
+      dispatch({ type: "DEAL_CARDS" });
+    }, 1500);
+  }, [isHost, gameState.dealerSelectionCards, gameState.players.length, dispatch]);
 
   const placeBid = useCallback(
     (suit: Card["suit"] | "pass", alone?: boolean) => {
@@ -35,7 +93,7 @@ export function useGameActions(
         dispatch({ type: "PLACE_BID", payload: { bid } });
         // State change will trigger auto-broadcast via useEffect
       } else {
-        const message: GameMessage = {
+        const message: BidMessage = {
           type: "BID",
           timestamp: Date.now(),
           messageId: createMessageId(),
@@ -146,10 +204,39 @@ export function useGameActions(
     [isHost, dispatch, networkService]
   );
 
+  const dealerDiscard = useCallback(
+    (card: Card) => {
+      // Only dealer can discard
+      if (myPlayerId !== gameState.currentDealerId) return;
+
+      if (isHost) {
+        dispatch({
+          type: "DEALER_DISCARD",
+          payload: { card },
+        });
+        // State change will trigger auto-broadcast via useEffect
+      } else {
+        const message: GameMessage = {
+          type: "DEALER_DISCARD",
+          timestamp: Date.now(),
+          messageId: createMessageId(),
+          payload: { card },
+        };
+
+        networkService.sendMessage(message);
+      }
+    },
+    [myPlayerId, gameState.currentDealerId, isHost, dispatch, networkService]
+  );
+
   return {
     startGame,
+    selectDealer,
+    drawDealerCard,
+    completeDealerSelection,
     placeBid,
     playCard,
+    dealerDiscard,
     renamePlayer,
     kickPlayer,
     movePlayer,

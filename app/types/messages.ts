@@ -6,8 +6,12 @@ export type MessageType =
   | 'PLAYER_JOINED'
   | 'PLAYER_LEFT'
   | 'START_GAME'
+  | 'SELECT_DEALER'
+  | 'DRAW_DEALER_CARD'
+  | 'COMPLETE_DEALER_SELECTION'
   | 'GAME_STATE_UPDATE'
   | 'BID'
+  | 'DEALER_DISCARD'
   | 'PLAY_CARD'
   | 'DEAL_CARDS'
   | 'HEARTBEAT'
@@ -76,6 +80,13 @@ export interface BidMessage extends BaseMessage {
   };
 }
 
+export interface DealerDiscardMessage extends BaseMessage {
+  type: 'DEALER_DISCARD';
+  payload: {
+    card: Card;
+  };
+}
+
 export interface PlayCardMessage extends BaseMessage {
   type: 'PLAY_CARD';
   payload: {
@@ -128,14 +139,37 @@ export interface MovePlayerMessage extends BaseMessage {
   };
 }
 
+export interface SelectDealerMessage extends BaseMessage {
+  type: 'SELECT_DEALER';
+  payload: {
+    gameState: PublicGameState;
+  };
+}
+
+export interface DrawDealerCardMessage extends BaseMessage {
+  type: 'DRAW_DEALER_CARD';
+  payload: {};
+}
+
+export interface CompleteDealerSelectionMessage extends BaseMessage {
+  type: 'COMPLETE_DEALER_SELECTION';
+  payload: {
+    gameState: PublicGameState;
+  };
+}
+
 export type GameMessage = 
   | JoinRequestMessage
   | JoinResponseMessage
   | PlayerJoinedMessage
   | PlayerLeftMessage
   | StartGameMessage
+  | SelectDealerMessage
+  | DrawDealerCardMessage
+  | CompleteDealerSelectionMessage
   | GameStateUpdateMessage
   | BidMessage
+  | DealerDiscardMessage
   | PlayCardMessage
   | DealCardsMessage
   | HeartbeatMessage
