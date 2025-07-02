@@ -1,82 +1,80 @@
 /**
- * Utility functions for converting between UUIDs (used for peer connections)
- * and user-friendly base64 game codes
+ * Game Code Management System
+ * 
+ * Provides a clean abstraction for generating and managing user-friendly game codes.
+ * Game codes are short, easy to type, and avoid confusing characters.
+ * 
+ * Internal implementation uses a prefix/suffix system to create valid PeerJS IDs
+ * while maintaining short, readable codes for users.
  */
 
+// Characters that are easy to read and type, avoiding confusion (no 0/O, 1/I/l, etc.)
+const GAME_CODE_CHARS = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+const GAME_CODE_LENGTH = 6;
+const PEER_ID_PREFIX = 'euchre-';
+const PEER_ID_SUFFIX = '-host';
+
 /**
- * Converts a UUID to a shortened base64 game code for display to users
- * @param uuid - The UUID string (with or without hyphens)
- * @returns A shortened base64 string without padding
+ * Generates a new random game code
+ * @returns A short, user-friendly game code (e.g., "A3K7M2")
  */
-export function uuidToGameCode(uuid: string): string {
-  // Remove hyphens from UUID
-  const cleanUuid = uuid.replace(/-/g, '');
-  
-  // Convert hex string to bytes
-  const bytes = new Uint8Array(16);
-  for (let i = 0; i < 16; i++) {
-    bytes[i] = parseInt(cleanUuid.substr(i * 2, 2), 16);
+export function generateGameCode(): string {
+  let code = '';
+  for (let i = 0; i < GAME_CODE_LENGTH; i++) {
+    const randomIndex = Math.floor(Math.random() * GAME_CODE_CHARS.length);
+    code += GAME_CODE_CHARS[randomIndex];
   }
-  
-  // Convert bytes to base64 and remove padding
-  const base64 = btoa(String.fromCharCode(...bytes))
-    .replace(/\+/g, '-')  // Make URL safe
-    .replace(/\//g, '_')  // Make URL safe
-    .replace(/=/g, '');   // Remove padding for shortest form
-  
-  return base64;
+  return code;
 }
 
 /**
- * Converts a base64 game code back to a UUID for peer connections
- * @param gameCode - The base64 game code (with or without padding)
- * @returns The original UUID string with hyphens
+ * Converts a user-friendly game code to a PeerJS-compatible host ID
+ * @param gameCode - The user-friendly game code
+ * @returns A PeerJS-compatible ID for the host
  */
-export function gameCodeToUuid(gameCode: string): string {
-  // Restore URL-safe characters and add padding if needed
-  let base64 = gameCode
-    .replace(/-/g, '+')
-    .replace(/_/g, '/');
-  
-  // Add padding if needed (base64 should be multiple of 4)
-  while (base64.length % 4) {
-    base64 += '=';
-  }
-  
-  // Convert base64 to bytes
-  const binaryString = atob(base64);
-  const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  
-  // Convert bytes to hex string
-  const hex = Array.from(bytes)
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
-  
-  // Format as UUID with hyphens
-  return [
-    hex.substr(0, 8),
-    hex.substr(8, 4),
-    hex.substr(12, 4),
-    hex.substr(16, 4),
-    hex.substr(20, 12)
-  ].join('-');
+export function gameCodeToHostId(gameCode: string): string {
+  return `${PEER_ID_PREFIX}${gameCode.toLowerCase()}${PEER_ID_SUFFIX}`;
 }
 
 /**
- * Validates that a game code can be converted to a valid UUID
- * @param gameCode - The base64 game code to validate
+ * Extracts the game code from a PeerJS host ID
+ * @param hostId - The PeerJS host ID
+ * @returns The user-friendly game code, or null if invalid
+ */
+export function hostIdToGameCode(hostId: string): string | null {
+  if (!hostId.startsWith(PEER_ID_PREFIX) || !hostId.endsWith(PEER_ID_SUFFIX)) {
+    return null;
+  }
+
+  const code = hostId.slice(PEER_ID_PREFIX.length, -PEER_ID_SUFFIX.length);
+  return code.toUpperCase();
+}
+
+/**
+ * Validates that a game code has the correct format
+ * @param gameCode - The game code to validate
  * @returns True if the game code is valid, false otherwise
  */
 export function isValidGameCode(gameCode: string): boolean {
-  try {
-    const uuid = gameCodeToUuid(gameCode);
-    // Basic UUID format validation
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    return uuidRegex.test(uuid);
-  } catch (error) {
+  if (typeof gameCode !== 'string' || gameCode.length !== GAME_CODE_LENGTH) {
     return false;
   }
+
+  // Check that all characters are valid
+  for (let i = 0; i < gameCode.length; i++) {
+    if (!GAME_CODE_CHARS.includes(gameCode[i].toUpperCase())) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Normalizes a game code to uppercase format
+ * @param gameCode - The game code to normalize
+ * @returns The normalized game code in uppercase
+ */
+export function normalizeGameCode(gameCode: string): string {
+  return gameCode.toUpperCase().trim();
 }

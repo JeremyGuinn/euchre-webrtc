@@ -51,6 +51,7 @@ export type GameOptions = {
 
 export type GameState = {
   id: string;
+  gameCode?: string; // User-friendly game code
   players: Player[];
   phase: GamePhase;
   options: GameOptions;

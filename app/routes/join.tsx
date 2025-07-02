@@ -2,8 +2,8 @@ import type { Route } from "./+types/join";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useGame } from "../contexts/GameContext";
-import { useClientOnly } from "../hooks/useClientOnly";
-import { isValidGameCode } from "../utils/gameCode";
+import { useIsClient } from "../hooks/useClientOnly";
+import { isValidGameCode, normalizeGameCode } from "../utils/gameCode";
 import Button from "../components/Button";
 import LinkButton from "../components/LinkButton";
 import Input from "../components/Input";
@@ -17,9 +17,9 @@ export function meta({ params }: Route.MetaArgs) {
 
 export default function Join({ params }: Route.ComponentProps) {
   const navigate = useNavigate();
-  const isClientSide = useClientOnly();
+  const isClientSide = useIsClient();
   const { joinGame, connectionStatus } = useGame();
-  const { gameId } = params;
+  const gameId = normalizeGameCode(params.gameId || "");
 
   const [playerName, setPlayerName] = useState("");
   const [isJoining, setIsJoining] = useState(false);

@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 import type { Card, Player, GameState } from "../../../types/game";
 import { canPlayCardWithOptions } from "../../../utils/gameLogic";
-import { uuidToGameCode } from "../../../utils/gameCode";
 
 export function useGameUtils(gameState: GameState, myPlayerId: string) {
   const canPlay = useCallback(
@@ -31,15 +30,10 @@ export function useGameUtils(gameState: GameState, myPlayerId: string) {
     return gameState.hands[myPlayerId] || [];
   }, [gameState.hands, myPlayerId]);
 
-  const getDisplayGameCode = useCallback((): string => {
-    return gameState.id ? uuidToGameCode(gameState.id) : "";
-  }, [gameState.id]);
-
   return {
     canPlay,
     isMyTurn,
     getMyPlayer,
     getMyHand,
-    getDisplayGameCode,
   };
 }

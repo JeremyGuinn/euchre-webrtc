@@ -1,4 +1,4 @@
-import { useReducer, useState, useMemo, useEffect } from "react";
+import { useReducer, useState, useMemo } from "react";
 import { gameReducer } from "../../../utils/gameState";
 import { GameNetworkService } from "../services/networkService";
 import { useConnectionActions } from "./useConnectionActions";
@@ -43,21 +43,17 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
   const [myPlayerId, setMyPlayerId] = useState("");
   const [isHost, setIsHost] = useState(false);
 
-  // Initialize network service - only recreate when truly disconnected
   const networkService = useMemo(() => {
     return new GameNetworkService();
-  }, [connectionStatus === "disconnected" ? uuidv4() : 0]); // Force recreation only on disconnect
+  }, [connectionStatus === "disconnected" ? uuidv4() : 0]);
 
-  // Game state effects (auto-broadcast, session storage)
   const { broadcastGameState } = useGameStateEffects(
     gameState,
     myPlayerId,
     isHost,
-    connectionStatus,
     networkService
   );
 
-  // Network handlers setup
   useNetworkHandlers(
     networkService,
     gameState,
@@ -71,7 +67,6 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
     setIsHost
   );
 
-  // Connection actions
   const connectionActions = useConnectionActions(
     networkService,
     connectionStatus,
@@ -81,7 +76,6 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
     dispatch
   );
 
-  // Game actions  
   const gameActions = useGameActions(
     gameState,
     myPlayerId,
@@ -90,28 +84,17 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
     networkService
   );
 
-  // Game utilities
   const gameUtils = useGameUtils(gameState, myPlayerId);
 
-  // Combine all the context values
   const contextValue: GameContextType = {
-    // State
     gameState,
     networkManager: networkService.getNetworkManager(),
     myPlayerId,
     isHost,
     connectionStatus,
-
-    // Connection actions
     ...connectionActions,
-
-    // Game actions
     ...gameActions,
-
-    // Utilities
     ...gameUtils,
-
-    // Event callbacks
     onKicked,
   };
 

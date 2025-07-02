@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
-import type { GameMessage, JoinRequestMessage } from "../../../types/messages";
+import type { GameMessage } from "../../../types/messages";
 import { NetworkManager } from "../../../utils/networking";
 import { createMessageId } from "../../../utils/protocol";
-import { uuidToGameCode, gameCodeToUuid } from "../../../utils/gameCode";
+import { generateGameCode, gameCodeToHostId } from "../../../utils/gameCode";
 
 export class GameNetworkService {
   private networkManager: NetworkManager = new NetworkManager();
@@ -23,11 +23,14 @@ export class GameNetworkService {
   }
 
   async hostGame(): Promise<{ gameCode: string; hostId: string; gameUuid: string }> {
-    const gameUuid = uuidv4();
-    const hostId = await this.networkManager.initialize(true, gameUuid);
+    const gameCode = generateGameCode();
+    const hostId = gameCodeToHostId(gameCode);
+    const gameUuid = uuidv4(); // Keep internal UUID for game state management
+
+    await this.networkManager.initialize(true, hostId);
 
     return {
-      gameCode: uuidToGameCode(gameUuid),
+      gameCode,
       hostId,
       gameUuid,
     };
@@ -37,17 +40,17 @@ export class GameNetworkService {
     gameCode: string,
     playerName: string,
   ): Promise<string> {
-    const gameUuid = gameCodeToUuid(gameCode);
+    const hostId = gameCodeToHostId(gameCode);
     const playerId = await this.networkManager.initialize(false);
 
-    await this.networkManager.connectToPeer(gameUuid);
+    await this.networkManager.connectToPeer(hostId);
 
     this.networkManager.sendMessage({
       type: "JOIN_REQUEST",
       timestamp: Date.now(),
       messageId: createMessageId(),
       payload: { playerName },
-    }, gameUuid);
+    }, hostId);
 
     return playerId;
   }
@@ -60,19 +63,16 @@ export class GameNetworkService {
     messageType: string,
     handler: (message: GameMessage, senderId: string) => void
   ) {
-    // Store handler for potential cleanup
     this.messageHandlers.set(messageType, handler);
     this.networkManager.onMessage(messageType as any, handler);
   }
 
   unregisterMessageHandler(messageType: string) {
     this.messageHandlers.delete(messageType);
-    // Note: NetworkManager should ideally provide an unregister method
   }
 
   clearAllHandlers() {
     this.messageHandlers.clear();
-    // Clear all handlers when service is reset
   }
 
   disconnect() {

@@ -25,7 +25,6 @@ export const handleDrawDealerCard: MessageHandler<DrawDealerCardMessage> = (
   // Check if deck is available
   if (!gameState.deck || gameState.deck.length === 0) return;
 
-  // Find available cards (not already drawn)
   const availableCards = gameState.deck.filter(
     (card) =>
       !Object.values(gameState.dealerSelectionCards || {}).some(
@@ -35,21 +34,16 @@ export const handleDrawDealerCard: MessageHandler<DrawDealerCardMessage> = (
 
   if (availableCards.length === 0) return;
 
-  // Draw the card at the specified index, or random if no index provided
   let drawnCard;
   const { cardIndex } = message.payload;
 
   if (cardIndex !== undefined && cardIndex >= 0 && cardIndex < availableCards.length) {
-    // Use the specific card index requested by the client
     drawnCard = availableCards[cardIndex];
   } else {
-    // Fall back to random selection
     const randomIndex = Math.floor(Math.random() * availableCards.length);
     drawnCard = availableCards[randomIndex];
   }
 
-  // Update local state
-  // State change will trigger an auto-broadcast via useEffect
   dispatch({
     type: "DRAW_DEALER_CARD",
     payload: { playerId: senderId, card: drawnCard },

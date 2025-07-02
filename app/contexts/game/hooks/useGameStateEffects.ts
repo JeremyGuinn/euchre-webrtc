@@ -1,7 +1,6 @@
 import { useEffect, useRef, useCallback } from "react";
 import type { GameState } from "../../../types/game";
 import { createPublicGameState } from "../../../utils/gameState";
-import type { GameMessage } from "../../../types/messages";
 import { createMessageId } from "../../../utils/protocol";
 import { GameNetworkService } from "../services/networkService";
 
@@ -9,7 +8,6 @@ export function useGameStateEffects(
   gameState: GameState,
   myPlayerId: string,
   isHost: boolean,
-  connectionStatus: "disconnected" | "connecting" | "connected" | "error",
   networkService: GameNetworkService
 ) {
   const prevGameStateRef = useRef<GameState | undefined>(undefined);

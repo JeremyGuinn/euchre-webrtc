@@ -14,7 +14,7 @@ export const handleDealerDiscard: MessageHandler<DealerDiscardMessage> = (
   senderId,
   context
 ) => {
-  const { dispatch, myPlayerId, isHost } = context;
+  const { dispatch, isHost } = context;
 
   if (!isHost) return; // Only the host processes dealer discard messages
 
@@ -24,12 +24,8 @@ export const handleDealerDiscard: MessageHandler<DealerDiscardMessage> = (
     return;
   }
 
-  // Host processes the dealer discard
-  const { card } = message.payload;
-
-  // State change will trigger auto-broadcast via useEffect
   dispatch({
     type: "DEALER_DISCARD",
-    payload: { card },
+    payload: { card: message.payload.card },
   });
 };

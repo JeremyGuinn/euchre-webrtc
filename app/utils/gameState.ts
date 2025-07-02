@@ -13,7 +13,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 
 export type GameAction =
-  | { type: 'INIT_GAME'; payload: { hostId: string; gameId: string } }
+  | { type: 'INIT_GAME'; payload: { hostId: string; gameId: string; gameCode?: string } }
   | { type: 'ADD_PLAYER'; payload: { player: Player } }
   | { type: 'REMOVE_PLAYER'; payload: { playerId: string } }
   | { type: 'UPDATE_PLAYER_CONNECTION'; payload: { playerId: string; isConnected: boolean } }
@@ -105,6 +105,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...initialGameState,
         id: action.payload.gameId,
+        gameCode: action.payload.gameCode,
         players: [{
           id: action.payload.hostId,
           name: 'Host',

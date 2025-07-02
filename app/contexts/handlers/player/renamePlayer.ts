@@ -15,16 +15,10 @@ export const handleRenamePlayer: MessageHandler<RenamePlayerMessage> = (message,
 
   const { newName } = message.payload;
 
-  // Ensure the new name is unique (excluding the player being renamed)
   const uniqueName = makeNameUnique(newName, gameState.players, senderId);
 
-  // Security: Only the sender can rename themselves via message
-  // (Host renaming others is handled differently - directly through local state + broadcast)
   dispatch({
     type: "RENAME_PLAYER",
     payload: { playerId: senderId, newName: uniqueName }
   });
-
-  // If I'm the host and this rename came from another player, 
-  // state change will trigger auto-broadcast via useEffect in GameContext
 };

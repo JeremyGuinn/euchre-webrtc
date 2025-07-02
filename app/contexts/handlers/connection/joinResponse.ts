@@ -11,7 +11,7 @@ import type { MessageHandler } from "../types";
  */
 export const handleJoinResponse: MessageHandler<JoinResponseMessage> = (message, senderId, context) => {
   const { dispatch, myPlayerId } = context;
-  
+
   const {
     success,
     gameState: newGameState,
@@ -20,7 +20,6 @@ export const handleJoinResponse: MessageHandler<JoinResponseMessage> = (message,
   } = message.payload;
 
   if (success && newGameState && player) {
-    // Successfully joined the game
     dispatch({
       type: "SYNC_STATE",
       payload: {
@@ -30,7 +29,6 @@ export const handleJoinResponse: MessageHandler<JoinResponseMessage> = (message,
       },
     });
   } else {
-    // Join failed
     console.error("Failed to join game:", error);
     throw new Error(error || "Failed to join game");
   }

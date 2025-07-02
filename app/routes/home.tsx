@@ -1,13 +1,13 @@
 import type { Route } from "./+types/home";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useState, useEffect } from "react";
-import { isValidGameCode } from "../utils/gameCode";
+import { isValidGameCode, normalizeGameCode } from "../utils/gameCode";
 import { useGame } from "../contexts/GameContext";
 import LinkButton from "../components/LinkButton";
 import ButtonDivider from "../components/ButtonDivider";
 import Input from "../components/Input";
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [
     { title: "Euchre Online - Play with Friends" },
     { name: "description", content: "Play Euchre online with friends using peer-to-peer connections. No servers, no registration required!" },
@@ -20,9 +20,9 @@ export default function Home() {
   const navigate = useNavigate();
   const [kickMessage, setKickMessage] = useState<string | null>(null);
   const [hasExistingGame, setHasExistingGame] = useState(false);
-  
+
   const { connectionStatus } = useGame();
-  
+
   const isCodeValid = gameCode ? isValidGameCode(gameCode) : false;
 
   // Check for kick message from navigation state
@@ -71,10 +71,14 @@ export default function Home() {
 
           <div className="space-y-2">
             <Input
-              placeholder="Enter game code"
+              placeholder="Enter game code (e.g., A3K7M2)"
               value={gameCode}
-              onChange={(e) => setGameCode(e.target.value)}
+              onChange={(e) => {
+                const normalized = normalizeGameCode(e.target.value);
+                setGameCode(normalized);
+              }}
               className="font-mono text-center"
+              maxLength={6}
               fullWidth
             />
             <LinkButton

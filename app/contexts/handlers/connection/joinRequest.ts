@@ -23,7 +23,6 @@ export const handleJoinRequest: MessageHandler<JoinRequestMessage> = (
 
   const { playerName } = message.payload;
 
-  // Ensure the player name is unique
   const uniqueName = makeNameUnique(playerName, gameState.players);
 
   if (gameState.players.length >= 4) {

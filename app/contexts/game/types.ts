@@ -8,9 +8,8 @@ export interface GameContextType {
   isHost: boolean;
   connectionStatus: "disconnected" | "connecting" | "connected" | "error";
 
-  // Actions
-  hostGame: () => Promise<string>; // Returns base64 game code for display
-  joinGame: (gameCode: string, playerName: string) => Promise<void>; // Accepts base64 game code
+  hostGame: () => Promise<string>;
+  joinGame: (gameCode: string, playerName: string) => Promise<void>;
   startGame: () => void;
   selectDealer: () => void;
   drawDealerCard: (cardIndex?: number) => void;
@@ -21,23 +20,18 @@ export interface GameContextType {
   dealerDiscard: (card: Card) => void;
   disconnect: () => void;
 
-  // Host or self actions
   renamePlayer: (playerId: string, newName: string) => void;
 
-  // Host-only actions
   kickPlayer: (playerId: string) => void;
   movePlayer: (playerId: string, newPosition: 0 | 1 | 2 | 3) => void;
   updateGameOptions: (options: GameOptions) => void;
 
-  // Event callbacks
   onKicked?: (message: string) => void;
 
-  // Utilities
   canPlay: (card: Card) => boolean;
   isMyTurn: () => boolean;
   getMyPlayer: () => Player | undefined;
   getMyHand: () => Card[];
-  getDisplayGameCode: () => string; // Gets the base64 game code for display
 }
 
 export interface GameProviderProps {

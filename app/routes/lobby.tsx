@@ -1,13 +1,14 @@
 import type { Route } from "./+types/lobby";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useGame } from "../contexts/GameContext";
-import { useClientOnly } from "../hooks/useClientOnly";
+import { useIsClient } from "../hooks/useClientOnly";
 import Button from "../components/Button";
 import PlayerCard from "../components/PlayerCard";
 import HostControlsInfo from "../components/HostControlsInfo";
 import GameOptionsPanel from "../components/GameOptionsPanel";
 import Input from "../components/Input";
+import { normalizeGameCode } from "~/utils/gameCode";
 
 export function meta({ params }: Route.MetaArgs) {
   return [
@@ -21,14 +22,13 @@ export function meta({ params }: Route.MetaArgs) {
 
 export default function Lobby({ params }: Route.ComponentProps) {
   const navigate = useNavigate();
-  const isClientSide = useClientOnly();
+  const isClientSide = useIsClient();
   const {
     gameState,
     isHost,
     startGame,
     connectionStatus,
     getMyPlayer,
-    getDisplayGameCode,
     disconnect,
     renamePlayer,
     kickPlayer,
@@ -42,7 +42,6 @@ export default function Lobby({ params }: Route.ComponentProps) {
   const myPlayer = getMyPlayer();
   const connectedPlayers = gameState.players.filter((p) => p.isConnected);
   const canStartGame = isHost && connectedPlayers.length === 4;
-  const displayGameCode = getDisplayGameCode();
 
   useEffect(() => {
     if (connectionStatus === "disconnected") {
@@ -77,7 +76,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
 
   const copyGameCode = () => {
     if (isClientSide && typeof navigator !== "undefined") {
-      navigator.clipboard.writeText(displayGameCode);
+      navigator.clipboard.writeText(gameId);
     }
   };
 
@@ -154,7 +153,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
             <div className="bg-gray-50 rounded-lg p-4">
               <Input
                 label="Game Code"
-                value={displayGameCode}
+                value={normalizeGameCode(gameId)}
                 readOnly
                 variant="readonly"
                 className="text-center font-mono"

@@ -11,12 +11,11 @@ import type { MessageHandler } from "../types";
  */
 export const handlePlayerJoined: MessageHandler<PlayerJoinedMessage> = (message, senderId, context) => {
   const { isHost, dispatch, myPlayerId } = context;
-  
+
   if (isHost) return; // Host already knows about player joins
 
-  const { player, gameState: newGameState } = message.payload;
+  const { gameState: newGameState } = message.payload;
 
-  // Update game state with new player
   dispatch({
     type: "SYNC_STATE",
     payload: {

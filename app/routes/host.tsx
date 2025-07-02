@@ -2,7 +2,7 @@ import type { Route } from "./+types/host";
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useGame } from "../contexts/GameContext";
-import { useClientOnly } from "../hooks/useClientOnly";
+import { useIsClient } from "../hooks/useClientOnly";
 import Button from "../components/Button";
 import Input from "../components/Input";
 
@@ -18,7 +18,7 @@ export function meta({ }: Route.MetaArgs) {
 
 export default function Host() {
   const navigate = useNavigate();
-  const isClientSide = useClientOnly();
+  const isClientSide = useIsClient();
   const { hostGame, connectionStatus } = useGame();
   const [gameId, setGameId] = useState("");
   const [isLoading, setIsLoading] = useState(false);

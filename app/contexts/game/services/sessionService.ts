@@ -1,5 +1,3 @@
-import { uuidToGameCode } from "../../../utils/gameCode";
-
 export class SessionStorageService {
   private static readonly KEYS = {
     PLAYER_ID: "euchre-player-id",

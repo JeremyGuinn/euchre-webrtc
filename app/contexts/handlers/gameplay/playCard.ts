@@ -21,7 +21,6 @@ export const handlePlayCardMessage: MessageHandler<PlayCardMessage> = (message, 
   const playerHand = gameState.hands[senderId];
   if (!playerHand || !playerHand.some((c) => c.id === card.id)) return;
 
-  // Validate the card can be played according to euchre rules
   const leadSuit = gameState.currentTrick?.cards[0]?.card.suit;
   if (!canPlayCardWithOptions(
     card,
@@ -32,6 +31,4 @@ export const handlePlayCardMessage: MessageHandler<PlayCardMessage> = (message, 
   )) return;
 
   dispatch({ type: "PLAY_CARD", payload: { card, playerId: senderId } });
-
-  // State change will trigger auto-broadcast via useEffect in GameContext
 };

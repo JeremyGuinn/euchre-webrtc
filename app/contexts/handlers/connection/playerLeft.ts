@@ -11,10 +11,9 @@ import type { MessageHandler } from "../types";
  */
 export const handlePlayerLeft: MessageHandler<PlayerLeftMessage> = (message, senderId, context) => {
   const { dispatch, myPlayerId } = context;
-  
-  const { playerId, gameState: newGameState } = message.payload;
 
-  // Update game state when a player leaves
+  const { gameState: newGameState } = message.payload;
+
   dispatch({
     type: "SYNC_STATE",
     payload: {

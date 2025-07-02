@@ -11,10 +11,9 @@ import type { MessageHandler } from "../types";
  */
 export const handleMovePlayer: MessageHandler<MovePlayerMessage> = (message, senderId, context) => {
   const { gameState, dispatch } = context;
-  
+
   const { targetPlayerId, newPosition } = message.payload;
 
-  // Security: Only host can move players
   const senderPlayer = gameState.players.find(p => p.id === senderId);
   if (!senderPlayer?.isHost) {
     console.warn(`Non-host player ${senderId} attempted to move player ${targetPlayerId}`);
