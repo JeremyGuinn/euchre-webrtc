@@ -1,4 +1,5 @@
 import { createMessageId } from "~/utils/protocol";
+import { makeNameUnique } from "~/utils/playerUtils";
 import type { Player } from "../../../types/game";
 import type { JoinRequestMessage } from "../../../types/messages";
 import type { MessageHandler } from "../types";
@@ -22,6 +23,9 @@ export const handleJoinRequest: MessageHandler<JoinRequestMessage> = (
 
   const { playerName } = message.payload;
 
+  // Ensure the player name is unique
+  const uniqueName = makeNameUnique(playerName, gameState.players);
+
   if (gameState.players.length >= 4) {
     networkManager?.sendMessage(
       {
@@ -39,7 +43,7 @@ export const handleJoinRequest: MessageHandler<JoinRequestMessage> = (
 
   const newPlayer: Player = {
     id: senderId,
-    name: playerName,
+    name: uniqueName,
     isHost: false,
     isConnected: true,
     position: gameState.players.length as 0 | 1 | 2 | 3,

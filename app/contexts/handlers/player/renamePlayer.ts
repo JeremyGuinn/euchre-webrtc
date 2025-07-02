@@ -1,3 +1,4 @@
+import { makeNameUnique } from "~/utils/playerUtils";
 import type { RenamePlayerMessage } from "../../../types/messages";
 import type { MessageHandler } from "../types";
 
@@ -10,15 +11,18 @@ import type { MessageHandler } from "../types";
  * @param context - Handler context with dispatch functions
  */
 export const handleRenamePlayer: MessageHandler<RenamePlayerMessage> = (message, senderId, context) => {
-  const { dispatch } = context;
-  
+  const { dispatch, gameState } = context;
+
   const { newName } = message.payload;
+
+  // Ensure the new name is unique (excluding the player being renamed)
+  const uniqueName = makeNameUnique(newName, gameState.players, senderId);
 
   // Security: Only the sender can rename themselves via message
   // (Host renaming others is handled differently - directly through local state + broadcast)
   dispatch({
     type: "RENAME_PLAYER",
-    payload: { playerId: senderId, newName }
+    payload: { playerId: senderId, newName: uniqueName }
   });
 
   // If I'm the host and this rename came from another player, 

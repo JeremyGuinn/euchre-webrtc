@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import type { Card, Bid, GameState, GameOptions } from "../../../types/game";
 import type { BidMessage, DrawDealerCardMessage, GameMessage } from "../../../types/messages";
 import { createMessageId } from "../../../utils/protocol";
+import { makeNameUnique } from "../../../utils/playerUtils";
 import type { GameAction } from "../../../utils/gameState";
 import { GameNetworkService } from "../services/networkService";
 
@@ -144,10 +145,13 @@ export function useGameActions(
       // Allow if user is host OR if they're renaming themselves
       if (!isHost && playerId !== myPlayerId) return;
 
+      // Ensure the new name is unique (excluding the player being renamed)
+      const uniqueName = makeNameUnique(newName, gameState.players, playerId);
+
       // Update local state
       dispatch({
         type: "RENAME_PLAYER",
-        payload: { playerId, newName }
+        payload: { playerId, newName: uniqueName }
       });
 
       if (playerId === myPlayerId) {
@@ -156,13 +160,13 @@ export function useGameActions(
           type: "RENAME_PLAYER",
           timestamp: Date.now(),
           messageId: createMessageId(),
-          payload: { newName }
+          payload: { newName: uniqueName }
         });
       } else if (isHost) {
         // Host is renaming another player - state change will trigger auto-broadcast via useEffect
       }
     },
-    [isHost, myPlayerId, dispatch, networkService]
+    [isHost, myPlayerId, dispatch, networkService, gameState.players]
   );
 
   const kickPlayer = useCallback(
