@@ -83,11 +83,5 @@ export function useNetworkHandlers(
     Object.entries(messageHandlers).forEach(([messageType, handler]) => {
       networkService.registerMessageHandler(messageType, handleMessage(messageType, handler));
     });
-
-    return () => {
-      Object.keys(messageHandlers).forEach(messageType => {
-        networkService.unregisterMessageHandler(messageType);
-      });
-    };
   }, [networkService, handleMessage]);
 }

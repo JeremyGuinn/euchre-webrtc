@@ -66,20 +66,8 @@ export class GameNetworkService {
     this.networkManager.onMessage(messageType as any, handler);
   }
 
-  unregisterMessageHandler(messageType: string) {
-    this.messageHandlers.delete(messageType);
-  }
-
-  clearAllHandlers() {
-    this.messageHandlers.clear();
-  }
-
   disconnect() {
-    if (this.networkManager) {
-      this.clearAllHandlers();
-      this.networkManager.disconnect();
-      this.networkManager = new NetworkManager();
-    }
+    this.networkManager.disconnect();
   }
 
   getNetworkManager(): NetworkManager | null {

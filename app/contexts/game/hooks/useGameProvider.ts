@@ -42,9 +42,7 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
   const [myPlayerId, setMyPlayerId] = useState("");
   const [isHost, setIsHost] = useState(false);
 
-  const networkService = useMemo(() => {
-    return new GameNetworkService();
-  }, [connectionStatus === "disconnected" ? crypto.randomUUID() : 0]);
+  const networkService = useMemo(() => new GameNetworkService(), []);
 
   const { broadcastGameState } = useGameStateEffects(
     gameState,

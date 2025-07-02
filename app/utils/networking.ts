@@ -196,19 +196,19 @@ export class NetworkManager {
           this.handleConnectionClose(targetId);
         }
       } else {
-        // Broadcast to all connected peers
-        const connectedPeers = Array.from(this.connections.values()).filter(
-          (conn) => conn.connection.open
-        );
+      // Broadcast to all connected peers
+      const connectedPeers = Array.from(this.connections.values()).filter(
+        (conn) => conn.connection.open
+      );
 
-        connectedPeers.forEach((connection) => {
-          try {
-            connection.connection.send(encodedMessage);
-          } catch (error) {
-            console.warn(`Failed to send message to ${connection.id}, connection may be closed:`, error);
-            this.handleConnectionError(connection.id);
-          }
-        });
+      connectedPeers.forEach((connection) => {
+        try {
+          connection.connection.send(encodedMessage);
+        } catch (error) {
+          console.warn(`Failed to send message to ${connection.id}, connection may be closed:`, error);
+          this.handleConnectionError(connection.id);
+        }
+      });
       }
     } catch (error) {
       console.error('Failed to encode message:', error);
@@ -352,10 +352,6 @@ export class NetworkManager {
       this.peer.destroy();
       this.peer = null;
     }
-
-    this.messageHandlers.clear();
-    this.statusHandlers.clear();
-    this.connectionHandlers.clear();
   }
 
   disconnectPeer(peerId: string): void {
