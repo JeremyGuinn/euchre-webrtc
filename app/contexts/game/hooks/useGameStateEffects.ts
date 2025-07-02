@@ -14,30 +14,45 @@ export function useGameStateEffects(
 ) {
   const prevGameStateRef = useRef<GameState | undefined>(undefined);
 
-  // Define broadcastGameState function
+  // Use refs to avoid recreating broadcastGameState on every render
+  const stateRef = useRef({
+    gameState,
+    myPlayerId,
+    networkService,
+  });
+
+  // Update refs without triggering re-renders
+  stateRef.current = {
+    gameState,
+    myPlayerId,
+    networkService,
+  };
+
+  // Create stable broadcastGameState function
   const broadcastGameState = useCallback(() => {
+    const { gameState: currentGameState, myPlayerId: currentMyPlayerId, networkService: currentNetworkService } = stateRef.current;
+
     // Send personalized state to each player
-    gameState.players.forEach((player: any) => {
-      if (player.id !== myPlayerId) {
-        const personalizedState = createPublicGameState(gameState, player.id);
-        const message: GameMessage = {
+    currentGameState.players.forEach((player: any) => {
+      if (player.id !== currentMyPlayerId) {
+        const personalizedState = createPublicGameState(currentGameState, player.id);
+
+        currentNetworkService.sendMessage({
           type: "GAME_STATE_UPDATE",
           timestamp: Date.now(),
           messageId: createMessageId(),
           payload: { gameState: personalizedState },
-        };
-
-        networkService.sendMessage(message, player.id);
+        }, player.id);
       }
     });
-  }, [gameState, myPlayerId, networkService]);
+  }, []); // Empty dependency array - function is stable
 
   // Auto-broadcast game state changes when host
   useEffect(() => {
     if (isHost && prevGameStateRef.current) {
       broadcastGameState();
     }
-    
+
     prevGameStateRef.current = { ...gameState };
   }, [gameState, isHost, broadcastGameState]);
 

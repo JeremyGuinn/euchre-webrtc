@@ -7,6 +7,7 @@ import { useGameUtils } from "./useGameUtils";
 import { useGameStateEffects } from "./useGameStateEffects";
 import { useNetworkHandlers } from "./useNetworkHandlers";
 import type { GameContextType } from "../types";
+import { v4 as uuidv4 } from "uuid";
 
 interface UseGameProviderOptions {
   onKicked?: (message: string) => void;
@@ -42,8 +43,10 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
   const [myPlayerId, setMyPlayerId] = useState("");
   const [isHost, setIsHost] = useState(false);
 
-  // Initialize network service
-  const networkService = useMemo(() => new GameNetworkService(), []);
+  // Initialize network service - only recreate when truly disconnected
+  const networkService = useMemo(() => {
+    return new GameNetworkService();
+  }, [connectionStatus === "disconnected" ? uuidv4() : 0]); // Force recreation only on disconnect
 
   // Game state effects (auto-broadcast, session storage)
   const { broadcastGameState } = useGameStateEffects(
@@ -111,15 +114,6 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
     // Event callbacks
     onKicked,
   };
-
-  // Cleanup on unmount - ensure we disconnect properly
-  useEffect(() => {
-    return () => {
-      if (connectionStatus !== "disconnected") {
-        networkService.disconnect();
-      }
-    };
-  }, [networkService, connectionStatus]);
 
   return contextValue;
 }

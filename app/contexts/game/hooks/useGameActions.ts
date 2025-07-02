@@ -61,14 +61,12 @@ export function useGameActions(
       // Client sends a request to draw a card with the specified index
       if (cardIndex === undefined) return; // Clients must specify an index
 
-      const message: DrawDealerCardMessage = {
+      networkService.sendMessage({
         type: "DRAW_DEALER_CARD",
         timestamp: Date.now(),
         messageId: createMessageId(),
         payload: { cardIndex }
-      };
-
-      networkService.sendMessage(message);
+      });
     }
   }, [gameState, myPlayerId, isHost, dispatch, networkService]);
 
@@ -108,14 +106,12 @@ export function useGameActions(
         dispatch({ type: "PLACE_BID", payload: { bid } });
         // State change will trigger auto-broadcast via useEffect
       } else {
-        const message: BidMessage = {
+        networkService.sendMessage({
           type: "BID",
           timestamp: Date.now(),
           messageId: createMessageId(),
           payload: { bid },
-        };
-
-        networkService.sendMessage(message);
+        });
       }
     },
     [gameState.players, gameState.currentPlayerId, myPlayerId, isHost, dispatch, networkService]
@@ -132,14 +128,12 @@ export function useGameActions(
         });
         // State change will trigger auto-broadcast via useEffect
       } else {
-        const message: GameMessage = {
+        networkService.sendMessage({
           type: "PLAY_CARD",
           timestamp: Date.now(),
           messageId: createMessageId(),
           payload: { card },
-        };
-
-        networkService.sendMessage(message);
+        });
       }
     },
     [gameState.currentPlayerId, myPlayerId, isHost, dispatch, networkService]
@@ -158,14 +152,12 @@ export function useGameActions(
 
       if (playerId === myPlayerId) {
         // Player is renaming themselves - send message to others
-        const message: GameMessage = {
+        networkService.sendMessage({
           type: "RENAME_PLAYER",
           timestamp: Date.now(),
           messageId: createMessageId(),
           payload: { newName }
-        };
-
-        networkService.sendMessage(message);
+        });
       } else if (isHost) {
         // Host is renaming another player - state change will trigger auto-broadcast via useEffect
       }
@@ -184,14 +176,12 @@ export function useGameActions(
       });
 
       // Send kick message to all players
-      const message: GameMessage = {
+      networkService.sendMessage({
         type: "KICK_PLAYER",
         timestamp: Date.now(),
         messageId: createMessageId(),
         payload: { targetPlayerId: playerId }
-      };
-
-      networkService.sendMessage(message);
+      });
     },
     [isHost, dispatch, networkService]
   );
@@ -207,14 +197,12 @@ export function useGameActions(
       });
 
       // Broadcast to all players
-      const message: GameMessage = {
+      networkService.sendMessage({
         type: "MOVE_PLAYER",
         timestamp: Date.now(),
         messageId: createMessageId(),
         payload: { targetPlayerId: playerId, newPosition }
-      };
-
-      networkService.sendMessage(message);
+      });
     },
     [isHost, dispatch, networkService]
   );
@@ -231,14 +219,12 @@ export function useGameActions(
         });
         // State change will trigger auto-broadcast via useEffect
       } else {
-        const message: GameMessage = {
+        networkService.sendMessage({
           type: "DEALER_DISCARD",
           timestamp: Date.now(),
           messageId: createMessageId(),
           payload: { card },
-        };
-
-        networkService.sendMessage(message);
+        });
       }
     },
     [myPlayerId, gameState.currentDealerId, isHost, dispatch, networkService]

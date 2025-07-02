@@ -1,3 +1,4 @@
+import { createMessageId } from "~/utils/protocol";
 import type { Player } from "../../../types/game";
 import type { JoinRequestMessage } from "../../../types/messages";
 import type { MessageHandler } from "../types";
@@ -25,6 +26,8 @@ export const handleJoinRequest: MessageHandler<JoinRequestMessage> = (
     networkManager?.sendMessage(
       {
         type: "ERROR",
+        timestamp: Date.now(),
+        messageId: createMessageId(),
         payload: {
           message: "Game is full",
         },
@@ -47,10 +50,12 @@ export const handleJoinRequest: MessageHandler<JoinRequestMessage> = (
 
   networkManager?.sendMessage({
     type: "JOIN_RESPONSE",
+    timestamp: Date.now(),
+    messageId: createMessageId(),
     payload: {
-        success: true,
-        gameState,
-        player: newPlayer,
+      success: true,
+      gameState,
+      player: newPlayer,
     },
   }, senderId);
 
@@ -61,6 +66,8 @@ export const handleJoinRequest: MessageHandler<JoinRequestMessage> = (
 
   networkManager?.sendMessage({
     type: "PLAYER_JOINED",
+    timestamp: Date.now(),
+    messageId: createMessageId(),
     payload: {
       player: newPlayer,
       gameState: updatedGameState,

@@ -1,9 +1,6 @@
 import { useCallback } from "react";
-import { gameCodeToUuid } from "../../../utils/gameCode";
 import { SessionStorageService } from "../services/sessionService";
 import { GameNetworkService } from "../services/networkService";
-import type { GameMessage } from "../../../types/messages";
-import { createMessageId } from "../../../utils/protocol";
 import type { GameAction } from "../../../utils/gameState";
 
 export function useConnectionActions(
@@ -24,7 +21,7 @@ export function useConnectionActions(
     SessionStorageService.clearSession();
 
     const { gameCode, hostId, gameUuid } = await networkService.hostGame();
-    
+
     setMyPlayerId(hostId);
     setIsHost(true);
 
@@ -41,8 +38,13 @@ export function useConnectionActions(
     async (gameCode: string, playerName: string): Promise<void> => {
       // Prevent initialization if already connected
       if (connectionStatus === "connected" || connectionStatus === "connecting") {
-        throw new Error("Cannot join game: already connected to a game");
+        const error = "Cannot join game: already connected to a game";
+        console.error("useConnectionActions:", error);
+        throw new Error(error);
       }
+
+      // Clear any existing session data before joining
+      SessionStorageService.clearSession();
 
       const playerId = await networkService.joinGame(gameCode, playerName);
       setMyPlayerId(playerId);
@@ -57,7 +59,7 @@ export function useConnectionActions(
     setMyPlayerId("");
     setIsHost(false);
     SessionStorageService.clearSession();
-  }, [networkService, setConnectionStatus, setMyPlayerId, setIsHost, dispatch]);
+  }, [networkService, setConnectionStatus, setMyPlayerId, setIsHost]);
 
   return {
     hostGame,

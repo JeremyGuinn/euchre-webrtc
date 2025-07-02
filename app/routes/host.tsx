@@ -1,5 +1,5 @@
 import type { Route } from "./+types/host";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useGame } from "../contexts/GameContext";
 import { useClientOnly } from "../hooks/useClientOnly";
@@ -23,13 +23,14 @@ export default function Host() {
   const [gameId, setGameId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const hasHostedRef = useRef(false);
 
-  const handleHostGame = async () => {
+  const handleHostGame = async (hostGameFn: typeof hostGame) => {
     setIsLoading(true);
     setError("");
 
     try {
-      const newGameId = await hostGame();
+      const newGameId = await hostGameFn();
       setGameId(newGameId);
 
       // Navigate to lobby
@@ -62,9 +63,11 @@ export default function Host() {
   };
 
   useEffect(() => {
-    // Auto-host when component mounts
-    handleHostGame();
-  }, []);
+    if (!hasHostedRef.current) {
+      hasHostedRef.current = true;
+      handleHostGame(hostGame);
+    }
+  }, [hostGame, navigate]);
 
   if (isLoading) {
     return (
@@ -87,7 +90,10 @@ export default function Host() {
           <div className="text-red-500 text-4xl mb-4">⚠️</div>
           <h2 className="text-xl font-semibold text-gray-800 mb-2">Error</h2>
           <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={handleHostGame}>
+          <Button onClick={() => {
+            hasHostedRef.current = false;
+            handleHostGame(hostGame);
+          }}>
             Try Again
           </Button>
         </div>
@@ -143,12 +149,12 @@ export default function Host() {
             <span>Connection Status:</span>
             <span
               className={`font-medium ${connectionStatus === "connected"
-                  ? "text-green-600"
-                  : connectionStatus === "connecting"
-                    ? "text-yellow-600"
-                    : connectionStatus === "error"
-                      ? "text-red-600"
-                      : "text-gray-600"
+                ? "text-green-600"
+                : connectionStatus === "connecting"
+                  ? "text-yellow-600"
+                  : connectionStatus === "error"
+                    ? "text-red-600"
+                    : "text-gray-600"
                 }`}
             >
               {connectionStatus}

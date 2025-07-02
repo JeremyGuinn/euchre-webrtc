@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { GameNetworkService } from "../services/networkService";
 import { createMessageHandlers, type HandlerContext, type MessageHandler } from "../../handlers";
 import type { GameMessage } from "../../../types/messages";
@@ -17,52 +17,8 @@ export function useNetworkHandlers(
   setMyPlayerId?: (id: string) => void,
   setIsHost?: (isHost: boolean) => void
 ) {
-  // Initialize network event handlers
-  useEffect(() => {
-    networkService.setStatusChangeHandler((status) => {
-      console.log("Network status changed:", status);
-      setConnectionStatus?.(status);
-    });
-
-    networkService.setConnectionChangeHandler((peerId, connected) => {
-      dispatch({
-        type: "UPDATE_PLAYER_CONNECTION",
-        payload: { playerId: peerId, isConnected: connected },
-      });
-    });
-  }, [networkService, dispatch, setConnectionStatus]);
-
-  // Set up message handlers when network service changes
-  useEffect(() => {
-    const networkManager = networkService.getNetworkManager();
-    if (!networkManager) return;
-
-    // Create handler context
-    const handlerContext: HandlerContext = {
-      gameState,
-      myPlayerId,
-      isHost,
-      dispatch,
-      networkManager,
-      broadcastGameState,
-      onKicked,
-      setConnectionStatus: setConnectionStatus || (() => {}),
-      setMyPlayerId: setMyPlayerId || (() => {}),
-      setIsHost: setIsHost || (() => {}),
-    };
-
-    // Create message handlers
-    const messageHandlers = createMessageHandlers();
-
-    // Register all message handlers with the current context
-    Object.entries(messageHandlers).forEach(([messageType, handler]) => {
-      networkService.registerMessageHandler(messageType, (message: GameMessage, senderId: string) => {
-        // Cast handler to accept GameMessage to avoid type intersection issues
-        (handler as MessageHandler<GameMessage>)(message, senderId, handlerContext);
-      });
-    });
-  }, [
-    networkService,
+  // Use refs to store current values without causing re-renders
+  const stateRef = useRef({
     gameState,
     myPlayerId,
     isHost,
@@ -72,5 +28,78 @@ export function useNetworkHandlers(
     setConnectionStatus,
     setMyPlayerId,
     setIsHost,
-  ]);
+  });
+
+  // Update refs on every render but don't trigger effects
+  stateRef.current = {
+    gameState,
+    myPlayerId,
+    isHost,
+    dispatch,
+    broadcastGameState,
+    onKicked,
+    setConnectionStatus,
+    setMyPlayerId,
+    setIsHost,
+  };
+
+  // Create stable message handler that uses current refs
+  const handleMessage = useCallback((messageType: string, handler: any) => {
+    return (message: GameMessage, senderId: string) => {
+      const networkManager = networkService.getNetworkManager();
+      if (!networkManager) return;
+
+      // Create handler context with current values
+      const handlerContext: HandlerContext = {
+        gameState: stateRef.current.gameState,
+        myPlayerId: stateRef.current.myPlayerId,
+        isHost: stateRef.current.isHost,
+        dispatch: stateRef.current.dispatch,
+        networkManager,
+        broadcastGameState: stateRef.current.broadcastGameState,
+        onKicked: stateRef.current.onKicked,
+        setConnectionStatus: stateRef.current.setConnectionStatus || (() => { }),
+        setMyPlayerId: stateRef.current.setMyPlayerId || (() => { }),
+        setIsHost: stateRef.current.setIsHost || (() => { }),
+      };
+
+      // Call handler with proper context
+      handler(message, senderId, handlerContext);
+    };
+  }, [networkService]);
+
+  // Initialize network event handlers only once
+  useEffect(() => {
+    networkService.setStatusChangeHandler((status) => {
+      stateRef.current.setConnectionStatus?.(status);
+    });
+
+    networkService.setConnectionChangeHandler((peerId, connected) => {
+      stateRef.current.dispatch({
+        type: "UPDATE_PLAYER_CONNECTION",
+        payload: { playerId: peerId, isConnected: connected },
+      });
+    });
+  }, [networkService]);
+
+  // Set up message handlers only when network service changes
+  useEffect(() => {
+    const networkManager = networkService.getNetworkManager();
+    if (!networkManager) return;
+
+    // Create message handlers once
+    const messageHandlers = createMessageHandlers();
+
+    // Register all message handlers with stable handlers
+    Object.entries(messageHandlers).forEach(([messageType, handler]) => {
+      networkService.registerMessageHandler(messageType, handleMessage(messageType, handler));
+    });
+
+    // Cleanup function to unregister handlers
+    return () => {
+      Object.keys(messageHandlers).forEach(messageType => {
+        networkService.unregisterMessageHandler(messageType);
+      });
+    };
+  }, [networkService, handleMessage]);
 }

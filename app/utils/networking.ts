@@ -277,27 +277,21 @@ export class NetworkManager {
   }
 
   private sendHeartbeats(): void {
-    const connectedPeers = this.getConnectedPeers();
-
-    const heartbeatMessage: GameMessage = {
+    this.sendMessage({
       type: "HEARTBEAT",
       timestamp: Date.now(),
       messageId: `heartbeat-${Date.now()}`,
       payload: { gameId: this.myId },
-    };
-
-    this.sendMessage(heartbeatMessage);
+    });
   }
 
   private sendHeartbeatResponse(targetId: string): void {
-    const responseMessage: GameMessage = {
+    this.sendMessage({
       type: "HEARTBEAT",
       timestamp: Date.now(),
       messageId: `heartbeat-response-${Date.now()}`,
       payload: { gameId: this.myId },
-    };
-
-    this.sendMessage(responseMessage, targetId);
+    }, targetId);
   }
 
   private checkConnectionHealth(): void {
@@ -323,14 +317,12 @@ export class NetworkManager {
     message: string,
     code?: string
   ): void {
-    const errorMessage: GameMessage = {
+    this.sendMessage({
       type: "ERROR",
       timestamp: Date.now(),
       messageId: `error-${Date.now()}`,
       payload: { message, code },
-    };
-
-    this.sendMessage(errorMessage, targetId);
+    }, targetId);
   }
 
   private notifyStatusChange(status: ConnectionStatus): void {

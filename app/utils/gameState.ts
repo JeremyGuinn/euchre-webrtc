@@ -691,7 +691,6 @@ export function createPublicGameState(gameState: GameState, forPlayerId?: string
     maker: gameState.maker,
     dealerSelectionCards: gameState.dealerSelectionCards,
     deck: placeholderCards,
-    deckSize: gameState.deck.length
   };
 
   // Include player's hand if specified

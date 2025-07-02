@@ -18,7 +18,7 @@ export function meta({ params }: Route.MetaArgs) {
 export default function Join({ params }: Route.ComponentProps) {
   const navigate = useNavigate();
   const isClientSide = useClientOnly();
-  const { joinGame, connectionStatus, getDisplayGameCode } = useGame();
+  const { joinGame, connectionStatus } = useGame();
   const { gameId } = params;
 
   const [playerName, setPlayerName] = useState("");
@@ -41,6 +41,19 @@ export default function Join({ params }: Route.ComponentProps) {
     }
   }, [gameId, isClientSide]);
 
+  // Handle connection status changes
+  useEffect(() => {
+    // If we successfully connect, navigate to lobby
+    if (connectionStatus === "connected") {
+      navigate(`/lobby/${gameId}`);
+    }
+    // If connection fails or errors out, show error
+    if (connectionStatus === "error") {
+      setError("Connection failed. Please try again.");
+      setIsJoining(false);
+    }
+  }, [connectionStatus, navigate, gameId]);
+
   const handleJoinGame = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -60,12 +73,10 @@ export default function Join({ params }: Route.ComponentProps) {
 
       await joinGame(gameId, playerName.trim());
 
-      // Navigate to lobby using the original gameId parameter
-      navigate(`/lobby/${gameId}`);
+      // Navigation to lobby will be handled by the useEffect watching connectionStatus
     } catch (err) {
       console.error("Failed to join game:", err);
       setError("Failed to join game. Please check the game code and try again.");
-    } finally {
       setIsJoining(false);
     }
   };
@@ -105,9 +116,9 @@ export default function Join({ params }: Route.ComponentProps) {
           <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
             <span>Connection Status:</span>
             <span className={`font-medium ${connectionStatus === 'connected' ? 'text-green-600' :
-                connectionStatus === 'connecting' ? 'text-yellow-600' :
-                  connectionStatus === 'error' ? 'text-red-600' :
-                    'text-gray-600'
+              connectionStatus === 'connecting' ? 'text-yellow-600' :
+                connectionStatus === 'error' ? 'text-red-600' :
+                  'text-gray-600'
               }`}>
               {connectionStatus}
             </span>

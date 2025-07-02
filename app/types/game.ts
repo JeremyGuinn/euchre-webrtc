@@ -83,5 +83,4 @@ export type GameState = {
 export type PublicGameState = Omit<GameState, 'hands' | 'deck'> & {
   playerHand?: Card[]; // Only for the current player
   deck: Card[]; // Placeholder cards for clients, actual cards for host
-  deckSize: number; // Keep for backward compatibility
 };

@@ -1,5 +1,6 @@
+import type { NetworkManager } from "~/utils/networking";
 import type { GameState } from "../../types/game";
-import type { 
+import type {
   GameMessage,
   MessageType
 } from "../../types/messages";
@@ -10,35 +11,35 @@ import type { GameAction } from "../../utils/gameState";
  * that message handlers need to process messages and update the game state.
  */
 export interface HandlerContext {
-    /** Current state of the game including players, cards, scores, etc. */
-    gameState: GameState;
-    
-    /** The ID of the current player/client */
-    myPlayerId: string;
-    
-    /** Whether this client is the host of the game */
-    isHost: boolean;
-    
-    /** React dispatch function to update the game state */
-    dispatch: React.Dispatch<GameAction>;
-    
-    /** Network manager instance for sending messages to other players */
-    networkManager: any; // NetworkManager type
-    
-    /** Function to broadcast the current game state to all connected players */
-    broadcastGameState: () => void;
-    
-    /** Optional callback triggered when this player is kicked from the game */
-    onKicked?: (message: string) => void;
-    
-    /** Function to update the connection status in the UI */
-    setConnectionStatus: (status: "disconnected" | "connecting" | "connected" | "error") => void;
-    
-    /** Function to update the current player's ID */
-    setMyPlayerId: (id: string) => void;
-    
-    /** Function to update whether this client is the host */
-    setIsHost: (isHost: boolean) => void;
+  /** Current state of the game including players, cards, scores, etc. */
+  gameState: GameState;
+
+  /** The ID of the current player/client */
+  myPlayerId: string;
+
+  /** Whether this client is the host of the game */
+  isHost: boolean;
+
+  /** React dispatch function to update the game state */
+  dispatch: React.Dispatch<GameAction>;
+
+  /** Network manager instance for sending messages to other players */
+  networkManager: NetworkManager;
+
+  /** Function to broadcast the current game state to all connected players */
+  broadcastGameState: () => void;
+
+  /** Optional callback triggered when this player is kicked from the game */
+  onKicked?: (message: string) => void;
+
+  /** Function to update the connection status in the UI */
+  setConnectionStatus: (status: "disconnected" | "connecting" | "connected" | "error") => void;
+
+  /** Function to update the current player's ID */
+  setMyPlayerId: (id: string) => void;
+
+  /** Function to update whether this client is the host */
+  setIsHost: (isHost: boolean) => void;
 }
 
 /**
