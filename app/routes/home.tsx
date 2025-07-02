@@ -1,8 +1,7 @@
 import type { Route } from "./+types/home";
-import { Link, useLocation, useNavigate } from "react-router";
+import { useLocation } from "react-router";
 import { useState, useEffect } from "react";
 import { isValidGameCode, normalizeGameCode } from "../utils/gameCode";
-import { useGame } from "../contexts/GameContext";
 import LinkButton from "../components/LinkButton";
 import ButtonDivider from "../components/ButtonDivider";
 import Input from "../components/Input";
@@ -17,13 +16,7 @@ export function meta({ }: Route.MetaArgs) {
 export default function Home() {
   const [gameCode, setGameCode] = useState("");
   const location = useLocation();
-  const navigate = useNavigate();
   const [kickMessage, setKickMessage] = useState<string | null>(null);
-  const [hasExistingGame, setHasExistingGame] = useState(false);
-
-  const { connectionStatus } = useGame();
-
-  const isCodeValid = gameCode ? isValidGameCode(gameCode) : false;
 
   // Check for kick message from navigation state
   useEffect(() => {
@@ -82,9 +75,9 @@ export default function Home() {
               fullWidth
             />
             <LinkButton
-              to={isCodeValid ? `/join/${gameCode}` : "#"}
+              to={isValidGameCode(gameCode) ? `/join/${gameCode}` : "#"}
               variant="success"
-              disabled={!isCodeValid}
+              disabled={!isValidGameCode(gameCode)}
               onClick={(e) => {
                 if (!gameCode) {
                   e.preventDefault();

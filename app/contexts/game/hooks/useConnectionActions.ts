@@ -12,7 +12,7 @@ export function useConnectionActions(
   dispatch: React.Dispatch<GameAction>
 ) {
   const hostGame = useCallback(async (): Promise<string> => {
-    if (connectionStatus === "connected" || connectionStatus === "connecting") {
+    if (connectionStatus === "connected") {
       throw new Error("Cannot host game: already connected to a game");
     }
 

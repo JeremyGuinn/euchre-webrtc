@@ -7,7 +7,6 @@ import { useGameUtils } from "./useGameUtils";
 import { useGameStateEffects } from "./useGameStateEffects";
 import { useNetworkHandlers } from "./useNetworkHandlers";
 import type { GameContextType } from "../types";
-import { v4 as uuidv4 } from "uuid";
 
 interface UseGameProviderOptions {
   onKicked?: (message: string) => void;
@@ -45,7 +44,7 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
 
   const networkService = useMemo(() => {
     return new GameNetworkService();
-  }, [connectionStatus === "disconnected" ? uuidv4() : 0]);
+  }, [connectionStatus === "disconnected" ? crypto.randomUUID() : 0]);
 
   const { broadcastGameState } = useGameStateEffects(
     gameState,

@@ -10,7 +10,6 @@ import {
   selectDealerOnly,
   findFirstBlackJackDealer
 } from '../utils/gameLogic';
-import { v4 as uuidv4 } from 'uuid';
 
 export type GameAction =
   | { type: 'INIT_GAME'; payload: { hostId: string; gameId: string; gameCode?: string } }
@@ -434,7 +433,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (!state.currentTrick) {
         // Start new trick
         const newTrick: Trick = {
-          id: uuidv4(),
+          id: crypto.randomUUID(),
           cards: [{ card, playerId }],
           leaderId: playerId
         };
@@ -576,6 +575,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'SYNC_STATE': {
       const { gameState, playerHand, receivingPlayerId } = action.payload;
+
 
       return {
         ...state,

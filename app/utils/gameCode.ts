@@ -9,7 +9,6 @@
  */
 
 // Characters that are easy to read and type, avoiding confusion (no 0/O, 1/I/l, etc.)
-const GAME_CODE_CHARS = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
 const GAME_CODE_LENGTH = 6;
 const PEER_ID_PREFIX = 'euchre-';
 const PEER_ID_SUFFIX = '-host';
@@ -18,13 +17,13 @@ const PEER_ID_SUFFIX = '-host';
  * Generates a new random game code
  * @returns A short, user-friendly game code (e.g., "A3K7M2")
  */
-export function generateGameCode(): string {
-  let code = '';
-  for (let i = 0; i < GAME_CODE_LENGTH; i++) {
-    const randomIndex = Math.floor(Math.random() * GAME_CODE_CHARS.length);
-    code += GAME_CODE_CHARS[randomIndex];
-  }
-  return code;
+export function generateGameCode(length = GAME_CODE_LENGTH): string {
+  return generateShortUUID(length);
+}
+
+function generateShortUUID(length: number): string {
+  const uuid = crypto.randomUUID().replace(/-/g, '');
+  return parseInt(uuid.slice(0, 12), 16).toString(32).toUpperCase().slice(0, length);
 }
 
 /**
@@ -56,18 +55,7 @@ export function hostIdToGameCode(hostId: string): string | null {
  * @returns True if the game code is valid, false otherwise
  */
 export function isValidGameCode(gameCode: string): boolean {
-  if (typeof gameCode !== 'string' || gameCode.length !== GAME_CODE_LENGTH) {
-    return false;
-  }
-
-  // Check that all characters are valid
-  for (let i = 0; i < gameCode.length; i++) {
-    if (!GAME_CODE_CHARS.includes(gameCode[i].toUpperCase())) {
-      return false;
-    }
-  }
-
-  return true;
+  return typeof gameCode === 'string' && gameCode.length === GAME_CODE_LENGTH;
 }
 
 /**

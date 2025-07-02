@@ -1,6 +1,5 @@
 import Peer from "peerjs";
 import type { DataConnection } from "peerjs";
-import { v4 as uuidv4 } from "uuid";
 import type { GameMessage } from "../types/messages";
 import {
   encodeMessage,
@@ -49,7 +48,7 @@ export class NetworkManager {
   async initialize(isHost: boolean, gameId?: string): Promise<string> {
     this._isHost = isHost;
 
-    const peerId = isHost ? gameId || uuidv4() : uuidv4();
+    const peerId = isHost ? gameId || crypto.randomUUID() : crypto.randomUUID();
 
     // Notify that we're connecting
     this.notifyStatusChange("connecting");

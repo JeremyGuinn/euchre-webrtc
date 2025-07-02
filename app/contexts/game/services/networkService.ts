@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
 import type { GameMessage } from "../../../types/messages";
 import { NetworkManager } from "../../../utils/networking";
 import { createMessageId } from "../../../utils/protocol";
@@ -25,7 +24,7 @@ export class GameNetworkService {
   async hostGame(): Promise<{ gameCode: string; hostId: string; gameUuid: string }> {
     const gameCode = generateGameCode();
     const hostId = gameCodeToHostId(gameCode);
-    const gameUuid = uuidv4(); // Keep internal UUID for game state management
+    const gameUuid = crypto.randomUUID(); // Keep internal UUID for game state management
 
     await this.networkManager.initialize(true, hostId);
 

@@ -23,10 +23,12 @@ export default function Host() {
   const [gameId, setGameId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isRetrying, setIsRetrying] = useState(false);
   const hasHostedRef = useRef(false);
 
   const handleHostGame = async (hostGameFn: typeof hostGame) => {
     setIsLoading(true);
+    setIsRetrying(true);
     setError("");
 
     try {
@@ -42,6 +44,7 @@ export default function Host() {
       setError("Failed to create game. Please try again.");
     } finally {
       setIsLoading(false);
+      setIsRetrying(false);
     }
   };
 
@@ -93,8 +96,15 @@ export default function Host() {
           <Button onClick={() => {
             hasHostedRef.current = false;
             handleHostGame(hostGame);
-          }}>
-            Try Again
+          }} disabled={isRetrying}>
+            {isRetrying ? (
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Retrying...
+              </div>
+            ) : (
+              "Try Again"
+            )}
           </Button>
         </div>
       </div>
