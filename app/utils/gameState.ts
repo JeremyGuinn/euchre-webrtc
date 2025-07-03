@@ -495,7 +495,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const { card, playerId } = action.payload;
 
       if (!state.currentTrick) {
-        // Start new trick
         const newTrick: Trick = {
           id: crypto.randomUUID(),
           cards: [{ card, playerId }],
@@ -511,72 +510,51 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           },
           currentPlayerId: getNextPlayer(playerId, state.players),
         };
-      } else {
-        // Add to existing trick
-        const updatedTrick = {
-          ...state.currentTrick,
-          cards: [...state.currentTrick.cards, { card, playerId }],
-        };
-
-        const newHands = {
-          ...state.hands,
-          [playerId]: state.hands[playerId].filter(c => c.id !== card.id),
-        };
-
-        // Check if trick is complete (4 cards)
-        if (updatedTrick.cards.length === 4) {
-          const leadSuit = state.trump
-            ? getEffectiveSuit(updatedTrick.cards[0].card, state.trump)
-            : updatedTrick.cards[0].card.suit;
-
-          const winningPlay = getWinningCard(
-            updatedTrick.cards,
-            state.trump!,
-            leadSuit
-          );
-          updatedTrick.winnerId = winningPlay.playerId;
-
-          const newCompletedTricks = [...state.completedTricks, updatedTrick];
-
-          // Check if hand is complete (5 tricks)
-          if (newCompletedTricks.length === 5) {
-            return {
-              ...state,
-              hands: newHands,
-              currentTrick: undefined,
-              completedTricks: newCompletedTricks,
-              phase: 'hand_complete',
-              currentPlayerId: winningPlay.playerId,
-            };
-          } else {
-            return {
-              ...state,
-              hands: newHands,
-              currentTrick: undefined,
-              completedTricks: newCompletedTricks,
-              phase: 'trick_complete',
-              currentPlayerId: winningPlay.playerId,
-            };
-          }
-        } else {
-          // Continue trick
-          return {
-            ...state,
-            hands: newHands,
-            currentTrick: updatedTrick,
-            currentPlayerId: getNextPlayer(playerId, state.players),
-          };
-        }
       }
-    }
 
-    case 'COMPLETE_TRICK':
-      return {
-        ...state,
-        phase: 'playing',
+      const updatedTrick = {
+        ...state.currentTrick,
+        cards: [...state.currentTrick.cards, { card, playerId }],
       };
 
-    case 'COMPLETE_HAND': {
+      const newHands = {
+        ...state.hands,
+        [playerId]: state.hands[playerId].filter(c => c.id !== card.id),
+      };
+
+      if (updatedTrick.cards.length !== 4) {
+        return {
+          ...state,
+          hands: newHands,
+          currentTrick: updatedTrick,
+          currentPlayerId: getNextPlayer(playerId, state.players),
+        };
+      }
+
+      const leadSuit = state.trump
+        ? getEffectiveSuit(updatedTrick.cards[0].card, state.trump)
+        : updatedTrick.cards[0].card.suit;
+
+      const winningPlay = getWinningCard(
+        updatedTrick.cards,
+        state.trump!,
+        leadSuit
+      );
+      updatedTrick.winnerId = winningPlay.playerId;
+
+      const newCompletedTricks = [...state.completedTricks, updatedTrick];
+
+      if (newCompletedTricks.length !== 5) {
+        return {
+          ...state,
+          hands: newHands,
+          currentTrick: undefined,
+          completedTricks: newCompletedTricks,
+          phase: 'trick_complete',
+          currentPlayerId: winningPlay.playerId,
+        };
+      }
+
       if (!state.maker) return state;
 
       const handScores = calculateHandScore(
@@ -596,16 +574,37 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       return {
         ...state,
-        scores: newScores,
         handScores,
-        phase: gameComplete ? 'game_complete' : 'dealing_animation',
+        hands: newHands,
+        currentTrick: undefined,
+        completedTricks: newCompletedTricks,
+        currentPlayerId: winningPlay.playerId,
+        scores: newScores,
+        phase: gameComplete ? 'game_complete' : 'hand_complete',
+      };
+    }
+
+    case 'COMPLETE_TRICK':
+      return {
+        ...state,
+        phase: 'playing',
+      };
+
+    case 'COMPLETE_HAND': {
+      // Scores should already be calculated in CALCULATE_HAND_SCORE
+      // This action now just transitions to the next hand or keeps the current state
+      return {
+        ...state,
+        phase: 'dealing_animation',
         currentDealerId: getNextDealer(state.currentDealerId, state.players),
         completedTricks: [],
         trump: undefined,
         maker: undefined,
         bids: [],
-        hands: gameComplete ? state.hands : {},
+        hands: state.phase === 'game_complete' ? state.hands : {},
         currentTrick: undefined,
+        turnedDownSuit: undefined,
+        handScores: { team0: 0, team1: 0 },
       };
     }
 
