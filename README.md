@@ -36,7 +36,7 @@ Play the game online at: [https://yourusername.github.io/euchre-webrtc](https://
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - pnpm (preferred) or npm
 
 ### Installation
@@ -68,17 +68,20 @@ pnpm start
 ## 🎯 Game Features
 
 ### Core Gameplay
+
 - **4-Player Support**: Exactly 4 players required (2 teams of 2)
 - **Traditional Euchre Rules**: 24-card deck, trump bidding, 5-card hands
 - **Smart Card Validation**: Automatic enforcement of suit-following rules
 - **Real-time Scoring**: Live score tracking and game state updates
 
 ### Networking Features
+
 - **Instant Connection**: No registration or accounts needed
 - **Session Recovery**: Rejoin games after page refresh or network issues
 - **Connection Health**: Real-time status monitoring and heartbeat system
 
 ### User Experience
+
 - **Intuitive Interface**: Drag-and-drop or click-to-play cards
 - **Visual Feedback**: Clear indicators for turns, trump suit, and game state
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
@@ -87,6 +90,7 @@ pnpm start
 ## 🏗️ Architecture
 
 ### Client-Side Architecture
+
 ```
 app/
 ├── components/          # Reusable UI components
@@ -110,6 +114,7 @@ app/
 ```
 
 ### Network Protocol
+
 - **Binary Encoding**: MessagePack for efficient data transmission
 - **Message Validation**: Origin validation and timestamp checking
 - **Connection Management**: Automatic heartbeat
@@ -134,6 +139,7 @@ pnpm format       # Format code (if configured)
 ### Project Structure
 
 The application follows modern React patterns:
+
 - **Functional Components**: All components use React hooks
 - **Context + useReducer**: Centralized state management
 - **TypeScript**: Full type safety throughout
@@ -150,24 +156,28 @@ The application follows modern React patterns:
 ## 🎲 Game Rules
 
 ### Euchre Basics
+
 - **Players**: 4 players in 2 partnerships
 - **Deck**: 24 cards (9, 10, J, Q, K, A of each suit)
 - **Objective**: First team to 10 points wins
 - **Hand Size**: 5 cards per player
 
 ### Bidding Phase
+
 - One card is turned up as potential trump
 - Players bid to make that suit trump or pass
 - Bidder's team must win at least 3 of 5 tricks
 - Option to play "alone" for higher scoring
 
 ### Playing Phase
+
 - Must follow suit if possible
 - Trump cards beat non-trump cards
 - Jack of trump suit is highest card
 - Jack of same color as trump is second highest
 
 ### Scoring
+
 - **Made bid (3-4 tricks)**: 1 point
 - **Made all 5 tricks**: 2 points (4 if alone)
 - **Failed bid**: Opponents get 2 points
@@ -211,6 +221,7 @@ If you encounter issues:
 <!-- 4. Use the reconnect feature if you lose connection -->
 
 For persistent issues, please open a GitHub issue with:
+
 - Browser type and version
 - Error messages from console
 - Steps to reproduce the problem

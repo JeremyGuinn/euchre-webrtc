@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.react-router/
+
+# Config files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Environment files
+.env*
+
+# Generated files
+*.log
+*.tgz
+*.tar.gz
+
+# Public assets
+public/
+
+# OS generated files
+.DS_Store
+Thumbs.db
