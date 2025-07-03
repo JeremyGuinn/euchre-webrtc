@@ -1,5 +1,9 @@
 import type { GameState } from '../../types/game';
-import type { BaseMessage, GameMessage, MessageType } from '../../types/messages';
+import type {
+  BaseMessage,
+  GameMessage,
+  MessageType,
+} from '../../types/messages';
 import type { GameAction } from '../../utils/gameState';
 
 import type { ConnectionStatus, NetworkManager } from '~/utils/networking';
@@ -68,7 +72,6 @@ export type MessageHandlers = {
   [K in MessageType]: MessageHandler<ExtractMessageType<K>>;
 };
 
-
 export type PeerMessageHandlers = {
   [K in MessageType]: PeerMessageHandlers;
-}
+};

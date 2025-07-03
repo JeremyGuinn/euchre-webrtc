@@ -45,7 +45,9 @@ export function useNetworkHandlers(
   };
 
   const handleWithContext = useCallback(
-    <T extends GameMessage>(handler: MessageHandler<T>): PeerMessageHandler<T> => {
+    <T extends GameMessage>(
+      handler: MessageHandler<T>
+    ): PeerMessageHandler<T> => {
       return (message: T, senderId: string) => {
         const networkManager = networkService.getNetworkManager();
         if (!networkManager) return;
@@ -59,9 +61,9 @@ export function useNetworkHandlers(
           broadcastGameState: stateRef.current.broadcastGameState,
           onKicked: stateRef.current.onKicked,
           setConnectionStatus:
-            stateRef.current.setConnectionStatus || (() => { }),
-          setMyPlayerId: stateRef.current.setMyPlayerId || (() => { }),
-          setIsHost: stateRef.current.setIsHost || (() => { }),
+            stateRef.current.setConnectionStatus || (() => {}),
+          setMyPlayerId: stateRef.current.setMyPlayerId || (() => {}),
+          setIsHost: stateRef.current.setIsHost || (() => {}),
         });
       };
     },
@@ -90,7 +92,7 @@ export function useNetworkHandlers(
     Object.entries(messageHandlers).forEach(([messageType, handler]) => {
       networkService.registerMessageHandler(
         messageType,
-        handleWithContext(handler as MessageHandler<GameMessage>),
+        handleWithContext(handler as MessageHandler<GameMessage>)
       );
     });
   }, [networkService, handleWithContext]);

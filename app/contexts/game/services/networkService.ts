@@ -1,6 +1,11 @@
 import type { GameMessage } from '../../../types/messages';
 import { gameCodeToHostId, generateGameCode } from '../../../utils/gameCode';
-import { NetworkManager, type PeerConnectionHandler, type PeerMessageHandler, type PeerStatusHandler } from '../../../utils/networking';
+import {
+  NetworkManager,
+  type PeerConnectionHandler,
+  type PeerMessageHandler,
+  type PeerStatusHandler,
+} from '../../../utils/networking';
 import { createMessageId } from '../../../utils/protocol';
 
 export class GameNetworkService {

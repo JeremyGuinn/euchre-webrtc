@@ -173,7 +173,7 @@ export function DealingAnimation({
   };
 
   const getCardTargetPosition = (
-    playerId: string,
+    playerId: string
   ): { x: number; y: number; rotation: number } => {
     const player = players.find(p => p.id === playerId);
     if (!player) return { x: 0, y: 0, rotation: 0 };
@@ -254,9 +254,7 @@ export function DealingAnimation({
 
           {/* Animating cards */}
           {animatingCards.map(card => {
-            const targetPos = getCardTargetPosition(
-              card.playerId,
-            );
+            const targetPos = getCardTargetPosition(card.playerId);
 
             return (
               <div

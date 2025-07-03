@@ -11,7 +11,7 @@ import type { MessageHandler } from '../types';
  */
 export const handleHeartbeat: MessageHandler<HeartbeatMessage> = (
   message,
-  senderId,
+  senderId
 ) => {
   // Heartbeat messages are used to maintain connection awareness
   // Log for debugging purposes, but generally no action needed

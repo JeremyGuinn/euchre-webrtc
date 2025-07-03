@@ -21,8 +21,14 @@ export interface PeerConnection {
   lastHeartbeat: number;
 }
 
-export type PeerMessageHandler<T extends GameMessage = GameMessage> = (message: T, senderId: string) => void;
-export type PeerConnectionHandler = (peerId: string, connected: boolean) => void;
+export type PeerMessageHandler<T extends GameMessage = GameMessage> = (
+  message: T,
+  senderId: string
+) => void;
+export type PeerConnectionHandler = (
+  peerId: string,
+  connected: boolean
+) => void;
 export type PeerStatusHandler = (status: ConnectionStatus) => void;
 
 export class NetworkManager {

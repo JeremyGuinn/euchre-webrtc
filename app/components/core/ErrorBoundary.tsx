@@ -74,8 +74,8 @@ export class ErrorBoundary extends Component<
                 Oops! Something went wrong
               </h1>
               <p className='text-gray-600 mb-4'>
-                It looks like you&apos;ve been dealt a bad hand! The game encountered
-                an unexpected error.
+                It looks like you&apos;ve been dealt a bad hand! The game
+                encountered an unexpected error.
               </p>
 
               {process.env.NODE_ENV === 'development' && this.state.error && (

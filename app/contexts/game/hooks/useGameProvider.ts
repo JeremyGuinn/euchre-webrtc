@@ -39,7 +39,8 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
     handScores: { team0: 0, team1: 0 },
   });
 
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
+  const [connectionStatus, setConnectionStatus] =
+    useState<ConnectionStatus>('disconnected');
   const [myPlayerId, setMyPlayerId] = useState('');
   const [isHost, setIsHost] = useState(false);
 

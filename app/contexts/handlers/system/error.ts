@@ -11,7 +11,7 @@ import type { MessageHandler } from '../types';
  */
 export const handleError: MessageHandler<ErrorMessage> = (
   message,
-  senderId,
+  senderId
 ) => {
   const { message: errorText, code } = message.payload;
 

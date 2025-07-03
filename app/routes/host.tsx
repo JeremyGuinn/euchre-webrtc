@@ -28,27 +28,30 @@ export default function Host() {
   const [isRetrying, setIsRetrying] = useState(false);
   const hasHostedRef = useRef(false);
 
-  const handleHostGame = useCallback(async (hostGameFn: typeof hostGame) => {
-    setIsLoading(true);
-    setIsRetrying(true);
-    setError('');
+  const handleHostGame = useCallback(
+    async (hostGameFn: typeof hostGame) => {
+      setIsLoading(true);
+      setIsRetrying(true);
+      setError('');
 
-    try {
-      const newGameId = await hostGameFn();
-      setGameId(newGameId);
+      try {
+        const newGameId = await hostGameFn();
+        setGameId(newGameId);
 
-      // Navigate to lobby
-      setTimeout(() => {
-        navigate(`/lobby/${newGameId}`);
-      }, 2000);
-    } catch (err) {
-      console.error('Failed to host game:', err);
-      setError('Failed to create game. Please try again.');
-    } finally {
-      setIsLoading(false);
-      setIsRetrying(false);
-    }
-  }, [setIsLoading, setIsRetrying, setError, setGameId, navigate]);
+        // Navigate to lobby
+        setTimeout(() => {
+          navigate(`/lobby/${newGameId}`);
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to host game:', err);
+        setError('Failed to create game. Please try again.');
+      } finally {
+        setIsLoading(false);
+        setIsRetrying(false);
+      }
+    },
+    [setIsLoading, setIsRetrying, setError, setGameId, navigate]
+  );
 
   useEffect(() => {
     if (!hasHostedRef.current) {
