@@ -89,7 +89,7 @@ export function DealingAnimation({
     // Start the animation sequence
     const timer = setTimeout(() => {
       setCurrentStep(0);
-    }, 500); // Initial delay before starting
+    }, 250); // Initial delay before starting
 
     return () => clearTimeout(timer);
   }, [dealingSteps, isVisible]);
@@ -133,7 +133,7 @@ export function DealingAnimation({
           onComplete();
         }, 300);
       }
-    }, 350); // Faster card animation - reduced from 800ms
+    }, 150);
 
     return () => {
       clearTimeout(startAnimationTimer);
@@ -220,7 +220,7 @@ export function DealingAnimation({
           {/* Deck of cards in center */}
           <div className='relative w-20 h-28'>
             <div
-              className='absolute top-0 left-0 opacity-60 transition-transform duration-200'
+              className='absolute top-0 left-0 opacity-60 transition-transform duration-100'
               style={{
                 transform:
                   animatingCards.length > 0
@@ -231,7 +231,7 @@ export function DealingAnimation({
               <CardBack size='medium' />
             </div>
             <div
-              className='absolute top-0.5 left-0.5 opacity-80 transition-transform duration-200'
+              className='absolute top-0.5 left-0.5 opacity-80 transition-transform duration-100'
               style={{
                 transform:
                   animatingCards.length > 0
@@ -242,7 +242,7 @@ export function DealingAnimation({
               <CardBack size='medium' />
             </div>
             <div
-              className='absolute top-1 left-1 transition-transform duration-200'
+              className='absolute top-1 left-1 transition-transform duration-100'
               style={{
                 transform:
                   animatingCards.length > 0 ? 'translateY(-0.2px)' : 'none',
@@ -267,7 +267,7 @@ export function DealingAnimation({
                     ? `translate(${targetPos.x}px, ${targetPos.y}px) scale(0.8) rotate(${targetPos.rotation}deg)`
                     : `translate(0px, 0px) scale(1) rotate(0deg)`,
                   transition: card.isAnimating
-                    ? 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                    ? 'transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
                     : 'none',
                 }}
               >
