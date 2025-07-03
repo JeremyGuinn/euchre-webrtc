@@ -178,8 +178,8 @@ export function getWinningCard(
       isWinningTrump = true;
       isWinningLeadSuit = currentIsLeadSuit;
     }
-    // If both trump or both non-trump, higher value wins
-    else if (currentIseTrump === isWinningTrump) {
+    // If both trump
+    else if (currentIseTrump && isWinningTrump) {
       if (currentValue > highestValue) {
         winningPlay = currentPlay;
         highestValue = currentValue;
@@ -191,11 +191,13 @@ export function getWinningCard(
       !currentIseTrump &&
       !isWinningTrump &&
       currentIsLeadSuit &&
-      !isWinningLeadSuit
+      isWinningLeadSuit
     ) {
-      winningPlay = currentPlay;
-      highestValue = currentValue;
-      isWinningLeadSuit = true;
+      if (currentValue > highestValue) {
+        winningPlay = currentPlay;
+        highestValue = currentValue;
+        isWinningLeadSuit = true;
+      }
     }
   }
 
