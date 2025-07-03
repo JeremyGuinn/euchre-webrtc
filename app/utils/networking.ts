@@ -59,7 +59,35 @@ export class NetworkManager {
     this.notifyStatusChange('connecting');
 
     return new Promise((resolve, reject) => {
-      this.peer = new Peer(peerId);
+      this.peer = new Peer(peerId, {
+        config: {
+          iceServers: [
+            {
+              urls: "stun:stun.relay.metered.ca:80",
+            },
+            {
+              urls: "turn:standard.relay.metered.ca:80",
+              username: "8e5b8fea70e449812126a7b2",
+              credential: "pTkcFGDZ+qSj51xI",
+            },
+            {
+              urls: "turn:standard.relay.metered.ca:80?transport=tcp",
+              username: "8e5b8fea70e449812126a7b2",
+              credential: "pTkcFGDZ+qSj51xI",
+            },
+            {
+              urls: "turn:standard.relay.metered.ca:443",
+              username: "8e5b8fea70e449812126a7b2",
+              credential: "pTkcFGDZ+qSj51xI",
+            },
+            {
+              urls: "turns:standard.relay.metered.ca:443?transport=tcp",
+              username: "8e5b8fea70e449812126a7b2",
+              credential: "pTkcFGDZ+qSj51xI",
+            },
+          ],
+        }
+      });
 
       this.peer.on('open', id => {
         this._myId = id;
