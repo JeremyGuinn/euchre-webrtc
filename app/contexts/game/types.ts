@@ -19,6 +19,8 @@ export interface GameContextType {
   placeBid: (suit: Card['suit'] | 'pass', alone?: boolean) => void;
   playCard: (card: Card) => void;
   dealerDiscard: (card: Card) => void;
+  continueTrick: () => void;
+  completeHand: () => void;
   disconnect: () => void;
 
   renamePlayer: (playerId: string, newName: string) => void;

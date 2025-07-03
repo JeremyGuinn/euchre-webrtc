@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 
-import type { Card, Bid, GameState, GameOptions } from '../../../types/game';
+import type { Bid, Card, GameOptions, GameState } from '../../../types/game';
 import type { GameAction } from '../../../utils/gameState';
 import { makeNameUnique } from '../../../utils/playerUtils';
 import { createMessageId } from '../../../utils/protocol';
@@ -250,6 +250,20 @@ export function useGameActions(
     [isHost, gameState.phase, dispatch]
   );
 
+  const continueTrick = useCallback(() => {
+    if (!isHost) return;
+    if (gameState.phase !== 'trick_complete') return;
+
+    dispatch({ type: 'COMPLETE_TRICK' });
+  }, [isHost, gameState.phase, dispatch]);
+
+  const completeHand = useCallback(() => {
+    if (!isHost) return;
+    if (gameState.phase !== 'hand_complete') return;
+
+    dispatch({ type: 'COMPLETE_HAND' });
+  }, [isHost, gameState.phase, dispatch]);
+
   return {
     startGame,
     selectDealer,
@@ -264,5 +278,7 @@ export function useGameActions(
     kickPlayer,
     movePlayer,
     updateGameOptions,
+    continueTrick,
+    completeHand,
   };
 }

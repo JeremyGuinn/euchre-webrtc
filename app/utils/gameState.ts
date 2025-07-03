@@ -40,7 +40,6 @@ export type GameAction =
   | { type: 'DRAW_DEALER_CARD'; payload: { playerId: string; card: Card } }
   | { type: 'COMPLETE_DEALER_SELECTION' }
   | { type: 'PROCEED_TO_DEALING' }
-  | { type: 'COMPLETE_DEALING_ANIMATION' }
   | { type: 'DEAL_CARDS' }
   | { type: 'PLACE_BID'; payload: { bid: Bid } }
   | { type: 'DEALER_DISCARD'; payload: { card: Card } }
@@ -102,14 +101,14 @@ function getTeamId(position: number): 0 | 1 {
 
 function calculateHandScore(
   tricks: Trick[],
+  players: Player[],
   makingTeam: 0 | 1,
   alone: boolean
 ): { team0: number; team1: number } {
   const makingTeamTricks = tricks.filter(trick => {
-    const winnerPosition = trick.winnerId
-      ? parseInt(trick.winnerId.split('-')[1]) || 0
-      : 0;
-    return getTeamId(winnerPosition) === makingTeam;
+    if (!trick.winnerId) return false;
+    const winner = players.find(p => p.id === trick.winnerId);
+    return winner?.teamId === makingTeam;
   }).length;
 
   const scores = { team0: 0, team1: 0 };
@@ -337,12 +336,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         phase: 'dealing_animation',
       };
 
-    case 'COMPLETE_DEALING_ANIMATION':
-      return {
-        ...state,
-        phase: 'dealing',
-      };
-
     case 'DEAL_CARDS': {
       const deck = createDeck();
       const { hands, kitty, remainingDeck } = dealHands(deck);
@@ -445,7 +438,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
           if (currentPlayerIndex === dealerIndex) {
             // All players passed both rounds, deal new hand
-            newPhase = 'dealing';
+            newPhase = 'dealing_animation';
             currentPlayer = getNextDealer(state.currentDealerId, state.players);
           } else {
             // Continue round 2
@@ -463,7 +456,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         turnedDownSuit,
         currentPlayerId: currentPlayer,
         currentDealerId:
-          newPhase === 'dealing'
+          newPhase === 'dealing_animation'
             ? currentPlayer || state.currentDealerId
             : state.currentDealerId,
         hands: newHands,
@@ -593,6 +586,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       const handScores = calculateHandScore(
         state.completedTricks,
+        state.players,
         state.maker.teamId,
         state.maker.alone
       );
@@ -609,7 +603,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         scores: newScores,
         handScores,
-        phase: gameComplete ? 'game_complete' : 'dealing',
+        phase: gameComplete ? 'game_complete' : 'dealing_animation',
         currentDealerId: getNextDealer(state.currentDealerId, state.players),
         completedTricks: [],
         trump: undefined,
@@ -629,7 +623,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'NEXT_HAND':
       return {
         ...state,
-        phase: 'dealing',
+        phase: 'dealing_animation',
         currentDealerId: getNextDealer(state.currentDealerId, state.players),
         completedTricks: [],
         trump: undefined,

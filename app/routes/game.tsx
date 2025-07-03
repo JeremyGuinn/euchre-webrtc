@@ -49,6 +49,8 @@ export default function Game({ params }: Route.ComponentProps) {
     proceedToDealing,
     completeDealingAnimation,
     selectDealer,
+    continueTrick,
+    completeHand,
     disconnect,
   } = useGame();
   const { gameId } = params;
@@ -85,6 +87,17 @@ export default function Game({ params }: Route.ComponentProps) {
     gameState.currentDealerId,
     myHand.length,
   ]);
+
+  useEffect(() => {
+    // Auto-advance from trick_complete phase after 3 seconds if host
+    if (gameState.phase === 'trick_complete' && isHost) {
+      const timer = setTimeout(() => {
+        continueTrick();
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [gameState.phase, isHost, continueTrick]);
 
   const handleCardClick = (card: CardType) => {
     if (!isMyTurn() || gameState.phase !== 'playing') return;
@@ -895,6 +908,318 @@ export default function Game({ params }: Route.ComponentProps) {
           onComplete={completeDealingAnimation}
         />
       )}
+
+      {/* Trick Complete - Show winner and continue */}
+      {gameState.phase === 'trick_complete' && (
+        <div className='absolute inset-0 bg-black/40 z-40'>
+          <div className='flex flex-col items-center justify-center h-full p-8'>
+            <div className='bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8 max-w-md w-full mx-4'>
+              <div className='text-center'>
+                <h2 className='text-2xl font-bold text-gray-800 mb-4'>
+                  Trick Complete!
+                </h2>
+
+                {(() => {
+                  const lastTrick = gameState.completedTricks[gameState.completedTricks.length - 1];
+                  const winner = lastTrick ? gameState.players.find(p => p.id === lastTrick.winnerId) : null;
+                  const winningCard = lastTrick?.cards.find(playedCard => playedCard.playerId === lastTrick.winnerId);
+
+                  return (
+                    <div className='mb-6'>
+                      {winner && winningCard && (
+                        <>
+                          <p className='text-lg text-gray-700 mb-3'>
+                            <span className='font-semibold text-blue-600'>{winner.name}</span>
+                            {winner.id === myPlayer.id && ' (You)'} won the trick!
+                          </p>
+                          
+                          <div className='flex justify-center mb-4'>
+                            <Card card={winningCard.card} size='medium' />
+                          </div>
+
+                          <p className='text-sm text-gray-600 mb-2'>
+                            Winning card: <span className={`font-medium ${suitColors[winningCard.card.suit]}`}>
+                              {suitSymbols[winningCard.card.suit]} {winningCard.card.value}
+                            </span>
+                          </p>
+
+                          <div className='text-xs text-gray-500'>
+                            Tricks completed: {gameState.completedTricks.length} / 5
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {isHost ? (
+                  <Button onClick={continueTrick} size='lg' className='w-full'>
+                    Continue to Next Trick
+                  </Button>
+                ) : (
+                  <div className='text-gray-600'>
+                    <div className='inline-flex items-center space-x-2'>
+                      <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600'></div>
+                      <span>Waiting for host to continue...</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hand Complete - Show hand results */}
+      {gameState.phase === 'hand_complete' && (
+        <div className='absolute inset-0 bg-black/40 z-40'>
+          <div className='flex flex-col items-center justify-center h-full p-8'>
+            <div className='bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8 max-w-lg w-full mx-4'>
+              <div className='text-center'>
+                <h2 className='text-3xl font-bold text-gray-800 mb-6'>
+                  Hand Complete!
+                </h2>
+
+                {(() => {
+                  const maker = gameState.maker;
+                  const makerPlayer = maker ? gameState.players.find(p => p.id === maker.playerId) : null;
+                  const makerTeam = maker?.teamId;
+                  const handScores = gameState.handScores;
+                  
+                  // Count tricks won by each team
+                  const team0Tricks = gameState.completedTricks.filter(trick => {
+                    const winner = gameState.players.find(p => p.id === trick.winnerId);
+                    return winner?.teamId === 0;
+                  }).length;
+                  
+                  const team1Tricks = gameState.completedTricks.filter(trick => {
+                    const winner = gameState.players.find(p => p.id === trick.winnerId);
+                    return winner?.teamId === 1;
+                  }).length;
+
+                  const makerTeamTricks = makerTeam === 0 ? team0Tricks : team1Tricks;
+                  const madeBid = makerTeamTricks >= 3;
+
+                  return (
+                    <div className='mb-6'>
+                      {/* Trump and Maker Info */}
+                      <div className='mb-6 p-4 bg-gray-50 rounded-lg'>
+                        <div className='flex items-center justify-center space-x-4 mb-2'>
+                          <span className='text-sm text-gray-600'>Trump:</span>
+                          {gameState.trump && (
+                            <span className={`text-xl ${suitColors[gameState.trump]}`}>
+                              {suitSymbols[gameState.trump]} {gameState.trump}
+                            </span>
+                          )}
+                        </div>
+                        {makerPlayer && (
+                          <p className='text-sm text-gray-700'>
+                            <span className='font-medium'>{makerPlayer.name}</span>
+                            {makerPlayer.id === myPlayer.id && ' (You)'} called trump
+                            {maker?.alone && ' and went alone'}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Tricks Won */}
+                      <div className='grid grid-cols-2 gap-4 mb-6'>
+                        <div className={`p-4 rounded-lg ${makerTeam === 0 ? 'bg-blue-100 border-2 border-blue-300' : 'bg-gray-100'}`}>
+                          <h3 className='font-semibold text-gray-800 mb-1'>Team 1</h3>
+                          <div className='text-2xl font-bold text-blue-600'>{team0Tricks}</div>
+                          <div className='text-xs text-gray-600'>tricks won</div>
+                        </div>
+                        <div className={`p-4 rounded-lg ${makerTeam === 1 ? 'bg-red-100 border-2 border-red-300' : 'bg-gray-100'}`}>
+                          <h3 className='font-semibold text-gray-800 mb-1'>Team 2</h3>
+                          <div className='text-2xl font-bold text-red-600'>{team1Tricks}</div>
+                          <div className='text-xs text-gray-600'>tricks won</div>
+                        </div>
+                      </div>
+
+                      {/* Hand Result */}
+                      <div className='mb-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200'>
+                        {madeBid ? (
+                          <div>
+                            <p className='text-lg font-semibold text-green-700 mb-2'>
+                              {makerTeamTricks === 5 ? 'Sweep!' : 'Bid Made!'}
+                            </p>
+                            <p className='text-sm text-gray-700'>
+                              Team {makerTeam! + 1} made their bid with {makerTeamTricks} trick{makerTeamTricks !== 1 ? 's' : ''}
+                              {makerTeamTricks === 5 && maker?.alone && ' (going alone)'}
+                            </p>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className='text-lg font-semibold text-red-700 mb-2'>
+                              Bid Failed!
+                            </p>
+                            <p className='text-sm text-gray-700'>
+                              Team {makerTeam! + 1} only won {makerTeamTricks} trick{makerTeamTricks !== 1 ? 's' : ''} - other team gets 2 points
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Points Awarded */}
+                      <div className='grid grid-cols-2 gap-4 mb-6'>
+                        <div className='text-center'>
+                          <div className={`text-3xl font-bold ${handScores.team0 > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                            +{handScores.team0}
+                          </div>
+                          <div className='text-sm text-gray-600'>Team 1 Points</div>
+                        </div>
+                        <div className='text-center'>
+                          <div className={`text-3xl font-bold ${handScores.team1 > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                            +{handScores.team1}
+                          </div>
+                          <div className='text-sm text-gray-600'>Team 2 Points</div>
+                        </div>
+                      </div>
+
+                      {/* Total Scores */}
+                      <div className='grid grid-cols-2 gap-4 mb-6'>
+                        <div className='text-center p-3 bg-blue-50 rounded-lg'>
+                          <div className='text-2xl font-bold text-blue-600'>{gameState.scores.team0}</div>
+                          <div className='text-sm text-gray-600'>Team 1 Total</div>
+                        </div>
+                        <div className='text-center p-3 bg-red-50 rounded-lg'>
+                          <div className='text-2xl font-bold text-red-600'>{gameState.scores.team1}</div>
+                          <div className='text-sm text-gray-600'>Team 2 Total</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {isHost ? (
+                  <Button onClick={completeHand} size='lg' className='w-full'>
+                    {gameState.scores.team0 >= 10 || gameState.scores.team1 >= 10 
+                      ? 'End Game' 
+                      : 'Start Next Hand'
+                    }
+                  </Button>
+                ) : (
+                  <div className='text-gray-600'>
+                    <div className='inline-flex items-center space-x-2'>
+                      <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600'></div>
+                      <span>Waiting for host...</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Game Complete - Show final results */}
+      {gameState.phase === 'game_complete' && (
+        <div className='absolute inset-0 bg-black/40 z-40'>
+          <div className='flex flex-col items-center justify-center h-full p-8'>
+            <div className='bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8 max-w-lg w-full mx-4'>
+              <div className='text-center'>
+                <h2 className='text-4xl font-bold text-gray-800 mb-6'>
+                  🎉 Game Complete! 🎉
+                </h2>
+
+                {(() => {
+                  const team0Won = gameState.scores.team0 >= 10;
+                  const team1Won = gameState.scores.team1 >= 10;
+                  const winningTeam = team0Won ? 0 : 1;
+                  const myTeam = myPlayer.teamId;
+                  const iWon = myTeam === winningTeam;
+
+                  return (
+                    <div className='mb-8'>
+                      {/* Winner Announcement */}
+                      <div className={`mb-6 p-6 rounded-lg ${iWon ? 'bg-green-100 border-green-300' : 'bg-gray-100 border-gray-300'} border-2`}>
+                        <h3 className={`text-2xl font-bold mb-2 ${iWon ? 'text-green-800' : 'text-gray-800'}`}>
+                          {iWon ? 'You Won!' : `Team ${winningTeam + 1} Wins!`}
+                        </h3>
+                        <div className='space-y-1'>
+                          {gameState.players
+                            .filter(p => p.teamId === winningTeam)
+                            .map(player => (
+                              <p key={player.id} className={`text-lg ${iWon ? 'text-green-700' : 'text-gray-700'}`}>
+                                🏆 {player.name}{player.id === myPlayer.id && ' (You)'}
+                              </p>
+                            ))}
+                        </div>
+                      </div>
+
+                      {/* Final Scores */}
+                      <div className='grid grid-cols-2 gap-6 mb-6'>
+                        <div className={`text-center p-6 rounded-lg ${team0Won ? 'bg-yellow-100 border-yellow-400 border-2' : 'bg-blue-50'}`}>
+                          <h3 className='text-lg font-semibold text-gray-800 mb-2'>Team 1</h3>
+                          <div className={`text-4xl font-bold ${team0Won ? 'text-yellow-600' : 'text-blue-600'}`}>
+                            {gameState.scores.team0}
+                          </div>
+                          {team0Won && <div className='text-sm text-yellow-700 mt-1'>🏆 Winners!</div>}
+                          <div className='mt-2 space-y-1'>
+                            {gameState.players
+                              .filter(p => p.teamId === 0)
+                              .map(player => (
+                                <div key={player.id} className='text-sm text-gray-600'>
+                                  {player.name}{player.id === myPlayer.id && ' (You)'}
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                        
+                        <div className={`text-center p-6 rounded-lg ${team1Won ? 'bg-yellow-100 border-yellow-400 border-2' : 'bg-red-50'}`}>
+                          <h3 className='text-lg font-semibold text-gray-800 mb-2'>Team 2</h3>
+                          <div className={`text-4xl font-bold ${team1Won ? 'text-yellow-600' : 'text-red-600'}`}>
+                            {gameState.scores.team1}
+                          </div>
+                          {team1Won && <div className='text-sm text-yellow-700 mt-1'>🏆 Winners!</div>}
+                          <div className='mt-2 space-y-1'>
+                            {gameState.players
+                              .filter(p => p.teamId === 1)
+                              .map(player => (
+                                <div key={player.id} className='text-sm text-gray-600'>
+                                  {player.name}{player.id === myPlayer.id && ' (You)'}
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Game Stats */}
+                      <div className='mb-6 p-4 bg-gray-50 rounded-lg'>
+                        <h4 className='font-semibold text-gray-800 mb-2'>Game Summary</h4>
+                        <div className='text-sm text-gray-600 space-y-1'>
+                          <p>Final Score: {gameState.scores.team0} - {gameState.scores.team1}</p>
+                          <p>Game ID: {gameState.gameCode || gameState.id}</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Action Buttons */}
+                <div className='space-y-3'>
+                  <Button onClick={handleLeaveGame} size='lg' className='w-full'>
+                    Return to Home
+                  </Button>
+                  {isHost && (
+                    <Button 
+                      variant='secondary' 
+                      size='lg' 
+                      className='w-full'
+                      onClick={() => {
+                        // Reset game for new game - you might want to implement this
+                        navigate(`/lobby/${gameId}`);
+                      }}
+                    >
+                      Start New Game
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </GameContainer>
   );
 }
