@@ -94,8 +94,6 @@ export function useGameActions(
   const completeDealingAnimation = useCallback(() => {
     if (!isHost) return;
 
-    dispatch({ type: 'COMPLETE_DEALING_ANIMATION' });
-
     // Brief delay before dealing actual cards
     setTimeout(() => {
       dispatch({ type: 'DEAL_CARDS' });

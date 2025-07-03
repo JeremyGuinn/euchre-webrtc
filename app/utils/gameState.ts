@@ -50,7 +50,6 @@ export type GameAction =
   | { type: 'PLAY_CARD'; payload: { card: Card; playerId: string } }
   | { type: 'COMPLETE_TRICK' }
   | { type: 'COMPLETE_HAND' }
-  | { type: 'UPDATE_SCORES'; payload: { team0: number; team1: number } }
   | { type: 'NEXT_HAND' }
   | { type: 'SET_CURRENT_PLAYER'; payload: { playerId: string } }
   | { type: 'SET_PHASE'; payload: { phase: GameState['phase'] } }
@@ -382,19 +381,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             alone: bid.alone || false,
           };
 
-          // If dealer took it up, they need to discard
-          if (bid.playerId === state.currentDealerId) {
-            // Add kitty to dealer's hand (will be handled in UI)
-            if (newHands[bid.playerId]) {
-              newHands = {
-                ...newHands,
-                [bid.playerId]: [...newHands[bid.playerId], state.kitty!],
-              };
-            }
+          if (newHands[state.currentDealerId]) {
+            newHands = {
+              ...newHands,
+              [state.currentDealerId]: [...newHands[state.currentDealerId], state.kitty!],
+            };
           }
-
-          newPhase = 'playing';
-          currentPlayer = getNextPlayer(state.currentDealerId, state.players);
+          // Go to dealer discard phase
+          newPhase = 'dealer_discard';
+          currentPlayer = state.currentDealerId;
         } else {
           // Player passed, check if round 1 is complete
           const currentPlayerIndex = state.players.findIndex(
@@ -613,12 +608,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         currentTrick: undefined,
       };
     }
-
-    case 'UPDATE_SCORES':
-      return {
-        ...state,
-        scores: action.payload,
-      };
 
     case 'NEXT_HAND':
       return {

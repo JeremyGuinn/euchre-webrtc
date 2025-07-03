@@ -43,7 +43,6 @@ export default function Game({ params }: Route.ComponentProps) {
     canPlay,
     playCard,
     placeBid,
-    dealerDiscard,
     drawDealerCard,
     completeDealerSelection,
     proceedToDealing,
@@ -51,12 +50,13 @@ export default function Game({ params }: Route.ComponentProps) {
     selectDealer,
     continueTrick,
     completeHand,
+    dealerDiscard,
     disconnect,
   } = useGame();
   const { gameId } = params;
 
   const [selectedCard] = useState<CardType | null>(null);
-  const [showDealerDiscard, setShowDealerDiscard] = useState(false);
+  const [hoveredDiscardCard, setHoveredDiscardCard] = useState<CardType | null>(null);
 
   const myPlayer = getMyPlayer();
   const myHand = getMyHand();
@@ -70,23 +70,6 @@ export default function Game({ params }: Route.ComponentProps) {
       navigate(`/lobby/${gameId}`);
     }
   }, [gameState.phase, gameId, navigate]);
-
-  useEffect(() => {
-    // Show dealer discard interface when dealer took up the kitty and needs to discard
-    setShowDealerDiscard(
-      gameState.phase === 'playing' &&
-        myPlayer?.id === gameState.currentDealerId &&
-        gameState.trump === gameState.kitty?.suit &&
-        myHand.length === 6 // Dealer has 6 cards (5 + kitty)
-    );
-  }, [
-    gameState.phase,
-    gameState.trump,
-    gameState.kitty,
-    myPlayer?.id,
-    gameState.currentDealerId,
-    myHand.length,
-  ]);
 
   useEffect(() => {
     // Auto-advance from trick_complete phase after 3 seconds if host
@@ -167,6 +150,7 @@ export default function Game({ params }: Route.ComponentProps) {
     return (
       gameState.phase === 'bidding_round1' ||
       gameState.phase === 'bidding_round2' ||
+      gameState.phase === 'dealer_discard' ||
       gameState.phase === 'playing' ||
       gameState.phase === 'trick_complete'
     );
@@ -334,33 +318,74 @@ export default function Game({ params }: Route.ComponentProps) {
                 <div className='flex space-x-1'>
                   {player.id === myPlayer.id
                     ? // My hand - show actual cards
-                      myHand.map(card => (
-                        <Card
-                          key={card.id}
-                          card={card}
-                          onClick={() => handleCardClick(card)}
-                          disabled={
-                            !isMyTurn() ||
-                            gameState.phase !== 'playing' ||
-                            !canPlay(card)
-                          }
-                          className={`
-                          ${
-                            selectedCard?.id === card.id
-                              ? 'ring-2 ring-yellow-400'
-                              : ''
-                          }
-                          ${
-                            !canPlay(card) &&
-                            isMyTurn() &&
-                            gameState.phase === 'playing'
-                              ? 'opacity-50'
-                              : ''
-                          }
-                        `}
-                          size='medium'
-                        />
-                      ))
+                      myHand.map(card => {
+                        const isInDealerDiscardPhase = gameState.phase === 'dealer_discard' && myPlayer.id === gameState.currentDealerId;
+                        const isKittyCard = isInDealerDiscardPhase && gameState.kitty && card.id === gameState.kitty.id;
+                        const canDiscard = isInDealerDiscardPhase && !isKittyCard;
+                        const isHovered = isInDealerDiscardPhase && hoveredDiscardCard?.id === card.id;
+                        
+                        return (
+                          <div 
+                            key={card.id} 
+                            className='relative'
+                            role="presentation"
+                            onMouseEnter={() => isInDealerDiscardPhase && canDiscard && setHoveredDiscardCard(card)}
+                            onMouseLeave={() => isInDealerDiscardPhase && setHoveredDiscardCard(null)}
+                          >
+                            <Card
+                              card={card}
+                              onClick={() => {
+                                if (isInDealerDiscardPhase && canDiscard) {
+                                  dealerDiscard(card);
+                                } else if (!isInDealerDiscardPhase) {
+                                  handleCardClick(card);
+                                }
+                              }}
+                              disabled={
+                                isInDealerDiscardPhase ? !canDiscard :
+                                (!isMyTurn() ||
+                                gameState.phase !== 'playing' ||
+                                !canPlay(card))
+                              }
+                              className={`
+                                ${
+                                  selectedCard?.id === card.id
+                                    ? 'ring-2 ring-yellow-400'
+                                    : ''
+                                }
+                                ${
+                                  !canPlay(card) &&
+                                  isMyTurn() &&
+                                  gameState.phase === 'playing'
+                                    ? 'opacity-50'
+                                    : ''
+                                }
+                                ${
+                                  isInDealerDiscardPhase && canDiscard
+                                    ? 'cursor-pointer hover:scale-105 hover:-translate-y-1'
+                                    : ''
+                                }
+                                ${
+                                  isInDealerDiscardPhase && !canDiscard
+                                    ? 'opacity-60'
+                                    : ''
+                                }
+                                ${isHovered ? 'ring-2 ring-red-400' : ''}
+                                transition-all duration-200
+                              `}
+                              size='medium'
+                            />
+                            {/* Discard overlay when hovering */}
+                            {isHovered && canDiscard && (
+                              <div className='absolute scale-110 inset-0 bg-red-500/20 rounded-lg flex items-center justify-center pointer-events-none'>
+                                <div className='bg-red-600 text-white text-xs font-bold px-2 py-1 rounded transform -rotate-12 shadow-lg'>
+                                  DISCARD
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
                     : // Other players - show card backs only after cards are dealt
                       (() => {
                         // Only show cards after dealing phase is complete
@@ -408,10 +433,30 @@ export default function Game({ params }: Route.ComponentProps) {
         {currentPlayer && (
           <div className='absolute bottom-48 left-1/2 transform -translate-x-1/2 text-white text-center z-20'>
             <div className='bg-black/70 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg border border-white/20'>
-              {currentPlayer.id === myPlayer.id ? (
-                <span className='font-medium text-yellow-400'>Your turn!</span>
+              {currentPlayer.id === myPlayer.id 
+                && gameState.phase !== 'dealing_animation' ? (
+                <>
+                { gameState.phase === 'dealer_discard' && (
+                  <>
+                  <span className='font-medium text-yellow-400'>
+                    {/* If they were ordered up add text */}
+                    {gameState.maker?.playerId !== myPlayer.id
+                      ? 'You were ordered up!'
+                      : 'You took it up!'}
+                  </span>
+                  <br/>
+                  </>
+                )}
+                  <span className='font-medium text-yellow-400'>
+                    {gameState.phase === 'dealer_discard' ? `Choose a card to discard.` : 'Your turn!'}
+                  </span>
+                </>
               ) : (
-                <span>Waiting for {currentPlayer.name}...</span>
+                <span>
+                  {gameState.phase === 'dealer_discard'
+                    ? `Waiting for ${currentPlayer.name} to discard...` 
+                    : `Waiting for ${currentPlayer.name}...`}
+                </span>
               )}
             </div>
           </div>
@@ -700,48 +745,6 @@ export default function Game({ params }: Route.ComponentProps) {
         </div>
       )}
 
-      {/* Dealer Discard Modal */}
-      {showDealerDiscard && (
-        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
-          <div className='bg-white rounded-lg p-6 max-w-md w-full mx-4'>
-            <h2 className='text-xl font-bold text-gray-800 mb-4 text-center'>
-              Discard a Card
-            </h2>
-
-            <p className='text-sm text-gray-600 mb-4 text-center'>
-              You picked up the{' '}
-              {gameState.kitty && (
-                <span
-                  className={`font-bold ${suitColors[gameState.kitty.suit]}`}
-                >
-                  {suitSymbols[gameState.kitty.suit]} {gameState.kitty.value}
-                </span>
-              )}
-              . Choose a card to discard:
-            </p>
-
-            <div className='grid grid-cols-3 gap-2 max-h-60 overflow-y-auto'>
-              {myHand.map(card => (
-                <button
-                  key={card.id}
-                  onClick={() => {
-                    dealerDiscard(card);
-                    setShowDealerDiscard(false);
-                  }}
-                  className='hover:scale-105 transform transition-transform'
-                >
-                  <Card card={card} size='small' />
-                </button>
-              ))}
-            </div>
-
-            <div className='mt-4 text-xs text-gray-500 text-center'>
-              Click a card to discard it and start play
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Connection status indicator */}
       {connectionStatus !== 'connected' && (
         <div className='fixed top-20 right-4 bg-red-600 text-white px-4 py-2 rounded-lg text-sm z-50'>
@@ -862,22 +865,6 @@ export default function Game({ params }: Route.ComponentProps) {
                   </p>
                 </div>
               )}
-
-              {/* Scores */}
-              <div className='flex justify-center space-x-8 mb-6'>
-                <div className='text-center'>
-                  <div className='text-2xl font-bold text-blue-600'>
-                    {gameState.scores.team0}
-                  </div>
-                  <div className='text-sm text-gray-600'>Team 1 Score</div>
-                </div>
-                <div className='text-center'>
-                  <div className='text-2xl font-bold text-red-600'>
-                    {gameState.scores.team1}
-                  </div>
-                  <div className='text-sm text-gray-600'>Team 2 Score</div>
-                </div>
-              </div>
 
               {/* Continue Button */}
               <div className='text-center'>

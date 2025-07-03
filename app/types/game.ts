@@ -21,6 +21,7 @@ export type GamePhase =
   | 'dealing' // Cards being dealt (internal state)
   | 'bidding_round1' // First round: can order up/assist the turned up card
   | 'bidding_round2' // Second round: can call any suit except the turned up suit
+  | 'dealer_discard' // Dealer must discard a card after taking up the kitty
   | 'playing'
   | 'trick_complete'
   | 'hand_complete'
