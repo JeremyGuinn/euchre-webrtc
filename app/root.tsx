@@ -13,7 +13,7 @@ import type { Route } from "./+types/root";
 import { GameProvider } from "./contexts/GameContext";
 import "./app.css";
 
-import { ErrorBoundary } from "./components/ErrorBoundary";
+import { ErrorBoundary } from "./components/core/ErrorBoundary";
 import type { Config } from "@react-router/dev/config";
 
 declare global {

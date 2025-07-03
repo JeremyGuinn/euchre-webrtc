@@ -4,9 +4,9 @@ import { useNavigate } from "react-router";
 import { useGame } from "../contexts/GameContext";
 import { useIsClient } from "../hooks/useClientOnly";
 import { isValidGameCode, normalizeGameCode } from "../utils/gameCode";
-import Button from "../components/Button";
-import LinkButton from "../components/LinkButton";
-import Input from "../components/Input";
+import Button from "../components/ui/Button";
+import LinkButton from "../components/ui/LinkButton";
+import Input from "../components/ui/Input";
 
 export function meta({ params }: Route.MetaArgs) {
   return [

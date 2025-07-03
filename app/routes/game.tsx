@@ -2,8 +2,9 @@ import type { Route } from "./+types/game";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useGame } from "../contexts/GameContext";
-import { Card, CardBack } from "../components/Card";
-import Button from "../components/Button";
+import { Card, CardBack } from "../components/ui/Card";
+import { DealingAnimation } from "../components/game/DealingAnimation";
+import Button from "../components/ui/Button";
 import type { Card as CardType } from "../types/game";
 
 export function meta({ params }: Route.MetaArgs) {
@@ -43,6 +44,7 @@ export default function Game({ params }: Route.ComponentProps) {
     drawDealerCard,
     completeDealerSelection,
     proceedToDealing,
+    completeDealingAnimation,
     selectDealer,
     disconnect,
   } = useGame();
@@ -291,7 +293,7 @@ export default function Game({ params }: Route.ComponentProps) {
                 className={`text-center ${position === "top" || position === "bottom" ? "" : "transform"
                   }`}
               >
-                <div
+                {gameState.phase !== 'dealing_animation' && (<div
                   className={`
                     inline-block px-3 py-1 rounded-lg text-sm font-medium mb-2
                     ${isCurrentPlayer
@@ -304,7 +306,7 @@ export default function Game({ params }: Route.ComponentProps) {
                   {player.name} {player.id === myPlayer.id && "(You)"}
                   {!player.isConnected && " (Disconnected)"}
                   {gameState.currentDealerId === player.id && " (Dealer)"}
-                </div>
+                </div>)}
 
                 {/* Player's cards (face down for others, face up for self) */}
                 <div className="flex space-x-1">
@@ -810,6 +812,16 @@ export default function Game({ params }: Route.ComponentProps) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Dealing Animation */}
+      {gameState.phase === "dealing_animation" && (
+        <DealingAnimation
+          players={gameState.players}
+          myPlayer={myPlayer}
+          isVisible={true}
+          onComplete={completeDealingAnimation}
+        />
       )}
     </div>
   );

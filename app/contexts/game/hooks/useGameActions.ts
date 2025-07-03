@@ -75,10 +75,17 @@ export function useGameActions(
     if (!isHost) return;
 
     dispatch({ type: "PROCEED_TO_DEALING" });
+  }, [isHost, dispatch]);
 
+  const completeDealingAnimation = useCallback(() => {
+    if (!isHost) return;
+
+    dispatch({ type: "COMPLETE_DEALING_ANIMATION" });
+
+    // Brief delay before dealing actual cards
     setTimeout(() => {
       dispatch({ type: "DEAL_CARDS" });
-    }, 500);
+    }, 200);
   }, [isHost, dispatch]);
 
   const placeBid = useCallback(
@@ -228,6 +235,7 @@ export function useGameActions(
     drawDealerCard,
     completeDealerSelection,
     proceedToDealing,
+    completeDealingAnimation,
     placeBid,
     playCard,
     dealerDiscard,

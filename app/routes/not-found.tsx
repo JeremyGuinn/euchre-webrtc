@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import LinkButton from "../components/LinkButton";
+import LinkButton from "../components/ui/LinkButton";
 import ButtonDivider from "../components/ButtonDivider";
 
 export function meta() {
@@ -28,7 +28,7 @@ export default function NotFound() {
             Page Not Found
           </h2>
           <p className="text-gray-600 mb-2">
-            Looks like you've played your hand wrong! 
+            Looks like you've played your hand wrong!
           </p>
           <p className="text-gray-600">
             The page you're looking for doesn't exist.
@@ -43,7 +43,7 @@ export default function NotFound() {
           >
             🏠 Go Home
           </LinkButton>
-          
+
           <ButtonDivider />
 
           <LinkButton
@@ -57,7 +57,7 @@ export default function NotFound() {
         {/* Fun euchre-themed message */}
         <div className="mt-8 p-4 bg-gray-50 rounded-lg border-l-4 border-green-500">
           <p className="text-sm text-gray-600 italic">
-            "In Euchre, sometimes you have to go alone. 
+            "In Euchre, sometimes you have to go alone.
             But you don't have to navigate this website alone!"
           </p>
         </div>

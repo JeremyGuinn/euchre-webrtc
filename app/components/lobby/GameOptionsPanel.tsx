@@ -1,5 +1,4 @@
-import React from 'react';
-import type { GameOptions } from '../types/game';
+import type { GameOptions } from '../../types/game';
 
 interface GameOptionsProps {
     options: GameOptions;

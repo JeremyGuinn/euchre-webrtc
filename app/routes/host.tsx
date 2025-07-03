@@ -3,8 +3,8 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useGame } from "../contexts/GameContext";
 import { useIsClient } from "../hooks/useClientOnly";
-import Button from "../components/Button";
-import Input from "../components/Input";
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
 
 export function meta({ }: Route.MetaArgs) {
   return [

@@ -17,7 +17,8 @@ export type GamePhase =
   | 'lobby'
   | 'dealer_selection'
   | 'team_summary' // Show dealer and team assignments before dealing
-  | 'dealing'
+  | 'dealing_animation' // Showing the dealing animation
+  | 'dealing' // Cards being dealt (internal state)
   | 'bidding_round1' // First round: can order up/assist the turned up card
   | 'bidding_round2' // Second round: can call any suit except the turned up suit
   | 'playing'

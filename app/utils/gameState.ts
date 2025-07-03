@@ -25,6 +25,7 @@ export type GameAction =
   | { type: 'DRAW_DEALER_CARD'; payload: { playerId: string; card: Card } }
   | { type: 'COMPLETE_DEALER_SELECTION' }
   | { type: 'PROCEED_TO_DEALING' }
+  | { type: 'COMPLETE_DEALING_ANIMATION' }
   | { type: 'DEAL_CARDS' }
   | { type: 'PLACE_BID'; payload: { bid: Bid } }
   | { type: 'DEALER_DISCARD'; payload: { card: Card } }
@@ -277,6 +278,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'PROCEED_TO_DEALING':
+      return {
+        ...state,
+        phase: 'dealing_animation'
+      };
+
+    case 'COMPLETE_DEALING_ANIMATION':
       return {
         ...state,
         phase: 'dealing'

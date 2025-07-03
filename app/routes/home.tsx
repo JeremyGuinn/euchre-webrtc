@@ -2,9 +2,9 @@ import type { Route } from "./+types/home";
 import { useLocation } from "react-router";
 import { useState, useEffect } from "react";
 import { isValidGameCode, normalizeGameCode } from "../utils/gameCode";
-import LinkButton from "../components/LinkButton";
-import ButtonDivider from "../components/ButtonDivider";
-import Input from "../components/Input";
+import LinkButton from "../components/ui/LinkButton";
+import ButtonDivider from "../components/ui/ButtonDivider";
+import Input from "../components/ui/Input";
 
 export function meta({ }: Route.MetaArgs) {
   return [

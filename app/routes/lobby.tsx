@@ -3,11 +3,11 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useGame } from "../contexts/GameContext";
 import { useIsClient } from "../hooks/useClientOnly";
-import Button from "../components/Button";
-import PlayerCard from "../components/PlayerCard";
-import HostControlsInfo from "../components/HostControlsInfo";
-import GameOptionsPanel from "../components/GameOptionsPanel";
-import Input from "../components/Input";
+import Button from "../components/ui/Button";
+import PlayerCard from "../components/lobby/PlayerCard";
+import HostControlsInfo from "../components/lobby/HostControlsInfo";
+import GameOptionsPanel from "../components/lobby/GameOptionsPanel";
+import Input from "../components/ui/Input";
 import { normalizeGameCode } from "~/utils/gameCode";
 
 export function meta({ params }: Route.MetaArgs) {
