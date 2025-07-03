@@ -71,6 +71,16 @@ export function useGameActions(
     [gameState, myPlayerId, isHost, dispatch, networkService]
   );
 
+  const dealerSelectionCardDealt = useCallback(
+    (playerId: string, card: Card) => {
+      dispatch({
+        type: 'DEALER_SELECTION_CARD_DEALT',
+        payload: { playerId, card },
+      });
+    },
+    [dispatch]
+  );
+
   const completeDealerSelection = useCallback(() => {
     if (!isHost || !gameState.dealerSelectionCards) return;
 
@@ -266,6 +276,7 @@ export function useGameActions(
     startGame,
     selectDealer,
     drawDealerCard,
+    dealerSelectionCardDealt,
     completeDealerSelection,
     proceedToDealing,
     completeDealingAnimation,

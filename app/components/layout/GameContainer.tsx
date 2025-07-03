@@ -11,9 +11,9 @@ export default function GameContainer({
 }: GameContainerProps) {
   return (
     <div
-      className={`min-h-screen bg-gradient-to-br from-green-800 to-green-600 p-4 ${className}`}
+      className={`min-h-screen bg-gradient-to-br from-green-800 to-green-600 ${className}`}
     >
-      <div className='max-w-6xl mx-auto'>{children}</div>
+      {children}
     </div>
   );
 }

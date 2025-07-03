@@ -38,6 +38,7 @@ export type GameAction =
   | { type: 'START_GAME' }
   | { type: 'SELECT_DEALER' }
   | { type: 'DRAW_DEALER_CARD'; payload: { playerId: string; card: Card } }
+  | { type: 'DEALER_SELECTION_CARD_DEALT'; payload: { playerId: string; card: Card } }
   | { type: 'COMPLETE_DEALER_SELECTION' }
   | { type: 'PROCEED_TO_DEALING' }
   | { type: 'DEAL_CARDS' }
@@ -188,45 +189,23 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         return state; // Need exactly 4 players
       }
 
-      // If using predetermined teams and first black jack, skip dealer selection phase
-      if (
-        state.options.teamSelection === 'predetermined' &&
-        state.options.dealerSelection === 'first_black_jack'
-      ) {
-        const { dealer, arrangedPlayers } = findFirstBlackJackDealer(
-          state.players
-        );
-
-        return {
-          ...state,
-          players: arrangedPlayers,
-          currentDealerId: dealer.id,
-          phase: 'team_summary',
-        };
-      } else {
-        // Go to dealer selection phase for card-based selection
-        return {
-          ...state,
-          phase: 'dealer_selection',
-        };
-      }
+      // Always go to dealer selection phase to show the dealing animation
+      return {
+        ...state,
+        phase: 'dealer_selection',
+      };
 
     case 'SELECT_DEALER': {
-      // For first black jack method, we handle dealer selection immediately in START_GAME
-      // This action is only used for random card selection method
-      if (state.options.dealerSelection === 'first_black_jack') {
-        return state; // This shouldn't happen
-      }
-
-      // Create a shuffled deck for card drawing
+      // Create a shuffled deck for card drawing/dealing
       const deck = createDeck();
 
+      // Initialize dealer selection cards state for both methods
       return {
         ...state,
         deck,
         dealerSelectionCards: {},
       };
-    }
+    };
 
     case 'DRAW_DEALER_CARD': {
       const { playerId, card } = action.payload;
@@ -275,9 +254,23 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
+    case 'DEALER_SELECTION_CARD_DEALT': {
+      const { playerId, card } = action.payload;
+
+      const newDealerSelectionCards = {
+        ...state.dealerSelectionCards,
+        [playerId]: card,
+      };
+
+      return {
+        ...state,
+        dealerSelectionCards: newDealerSelectionCards,
+      };
+    }
+
     case 'COMPLETE_DEALER_SELECTION': {
       if (state.options.dealerSelection === 'first_black_jack') {
-        // Use first black jack method
+        // Use first black jack method - this will be called after the dealing animation
         const { dealer, arrangedPlayers } = findFirstBlackJackDealer(
           state.players
         );

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { Card, CardBack } from '../components/game/Card';
+import { DealerSelectionAnimation } from '../components/game/DealerSelectionAnimation';
 import { DealingAnimation } from '../components/game/DealingAnimation';
 import GameContainer from '../components/layout/GameContainer';
 import Button from '../components/ui/Button';
@@ -44,6 +45,7 @@ export default function Game({ params }: Route.ComponentProps) {
     playCard,
     placeBid,
     drawDealerCard,
+    dealerSelectionCardDealt,
     completeDealerSelection,
     proceedToDealing,
     completeDealingAnimation,
@@ -56,7 +58,9 @@ export default function Game({ params }: Route.ComponentProps) {
   const { gameId } = params;
 
   const [selectedCard] = useState<CardType | null>(null);
-  const [hoveredDiscardCard, setHoveredDiscardCard] = useState<CardType | null>(null);
+  const [hoveredDiscardCard, setHoveredDiscardCard] = useState<CardType | null>(
+    null
+  );
 
   const myPlayer = getMyPlayer();
   const myHand = getMyHand();
@@ -124,26 +128,16 @@ export default function Game({ params }: Route.ComponentProps) {
   const getPositionClasses = (position: string) => {
     switch (position) {
       case 'bottom':
-        return 'absolute bottom-8 left-1/2 transform -translate-x-1/2';
+        return 'absolute bottom-2 left-1/2 transform -translate-x-1/2';
       case 'left':
-        return 'absolute left-4 top-1/2 transform -translate-y-1/2 -rotate-90';
+        return 'absolute left-0 top-1/2 transform -translate-y-1/2 -rotate-90';
       case 'top':
         return 'absolute top-4 left-1/2 transform -translate-x-1/2 rotate-180';
       case 'right':
-        return 'absolute right-4 top-1/2 transform -translate-y-1/2 rotate-90';
+        return 'absolute right-0 top-1/2 transform -translate-y-1/2 rotate-90';
       default:
         return '';
     }
-  };
-
-  const getAvailableCardsCount = () => {
-    if (!gameState.dealerSelectionCards) return 0;
-
-    // Use the deck array length (which is now always available with placeholders)
-    const totalDeckSize = gameState.deck.length;
-    const drawnCardsCount = Object.keys(gameState.dealerSelectionCards).length;
-
-    return Math.max(0, totalDeckSize - drawnCardsCount);
   };
 
   const shouldShowCards = () => {
@@ -202,87 +196,91 @@ export default function Game({ params }: Route.ComponentProps) {
       </div>
 
       {/* Game Table */}
-      <div className='relative w-full h-screen pt-16'>
+      <div className='relative w-full h-[calc(100vh-4rem)] top-16'>
         {/* Center area for tricks */}
-        <div className='absolute inset-0 flex items-center justify-center'>
-          <div className='w-64 h-64 bg-green-700 rounded-full border-4 border-yellow-600 relative'>
-            {/* Current trick cards */}
-            {gameState.currentTrick &&
-              gameState.currentTrick.cards.map(playedCard => {
-                const player = gameState.players.find(
-                  p => p.id === playedCard.playerId
-                );
-                if (!player) return null;
+        {(gameState.phase === 'playing' ||
+          gameState.phase === 'bidding_round1' ||
+          gameState.phase === 'bidding_round2') && (
+          <div className='absolute inset-0 flex items-center justify-center'>
+            <div className='w-64 h-64 bg-green-700 rounded-full border-4 border-yellow-600 relative'>
+              {/* Current trick cards */}
+              {gameState.currentTrick &&
+                gameState.currentTrick.cards.map(playedCard => {
+                  const player = gameState.players.find(
+                    p => p.id === playedCard.playerId
+                  );
+                  if (!player) return null;
 
-                // Get the relative position of the player who played this card
-                const playerPosition = getPlayerPosition(
-                  player,
-                  myPlayer.position
-                );
+                  // Get the relative position of the player who played this card
+                  const playerPosition = getPlayerPosition(
+                    player,
+                    myPlayer.position
+                  );
 
-                // Map player position to angle for card placement
-                let angle;
-                switch (playerPosition) {
-                  case 'bottom':
-                    angle = 180;
-                    break; // 6 o'clock
-                  case 'left':
-                    angle = 270;
-                    break; // 9 o'clock
-                  case 'top':
-                    angle = 0;
-                    break; // 12 o'clock
-                  case 'right':
-                    angle = 90;
-                    break; // 3 o'clock
-                  default:
-                    angle = 180;
-                }
+                  // Map player position to angle for card placement
+                  let angle;
+                  switch (playerPosition) {
+                    case 'bottom':
+                      angle = 180;
+                      break; // 6 o'clock
+                    case 'left':
+                      angle = 270;
+                      break; // 9 o'clock
+                    case 'top':
+                      angle = 0;
+                      break; // 12 o'clock
+                    case 'right':
+                      angle = 90;
+                      break; // 3 o'clock
+                    default:
+                      angle = 180;
+                  }
 
-                const radius = 80;
-                const x = Math.cos(((angle - 90) * Math.PI) / 180) * radius; // -90 to adjust for 0° being top
-                const y = Math.sin(((angle - 90) * Math.PI) / 180) * radius;
+                  const radius = 80;
+                  const x = Math.cos(((angle - 90) * Math.PI) / 180) * radius; // -90 to adjust for 0° being top
+                  const y = Math.sin(((angle - 90) * Math.PI) / 180) * radius;
 
-                return (
-                  <div
-                    key={playedCard.card.id}
-                    className='absolute transform -translate-x-1/2 -translate-y-1/2'
-                    style={{
-                      left: `calc(50% + ${x}px)`,
-                      top: `calc(50% + ${y}px)`,
-                    }}
-                  >
-                    <Card card={playedCard.card} size='medium' />
-                  </div>
-                );
-              })}
+                  return (
+                    <div
+                      key={playedCard.card.id}
+                      className='absolute transform -translate-x-1/2 -translate-y-1/2'
+                      style={{
+                        left: `calc(50% + ${x}px)`,
+                        top: `calc(50% + ${y}px)`,
+                      }}
+                    >
+                      <Card card={playedCard.card} size='medium' />
+                    </div>
+                  );
+                })}
 
-            {/* Kitty card (during bidding) */}
-            {(gameState.phase === 'bidding_round1' ||
-              gameState.phase === 'bidding_round2') &&
-              gameState.kitty && (
-                <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'>
-                  <CardBack
-                    size='medium'
-                    className='absolute top-0 left-0 opacity-60'
-                  />
-                  <CardBack
-                    size='medium'
-                    className='absolute top-0.5 left-0.5 opacity-80'
-                  />
-                  <CardBack size='medium' className='absolute top-1 left-1' />
-
-                  {(gameState.phase === 'bidding_round1' && (
-                    <Card
-                      card={gameState.kitty}
+              {/* Kitty card (during bidding) */}
+              {(gameState.phase === 'bidding_round1' ||
+                gameState.phase === 'bidding_round2') &&
+                gameState.kitty && (
+                  <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'>
+                    <CardBack
                       size='medium'
-                      className='relative z-10'
+                      className='absolute top-0 left-0 opacity-60'
                     />
-                  )) || <CardBack size='medium' className='relative z-10' />}
-                </div>
-              )}
+                    <CardBack
+                      size='medium'
+                      className='absolute top-0.5 left-0.5 opacity-80'
+                    />
+                    <CardBack size='medium' className='absolute top-1 left-1' />
+
+                    {(gameState.phase === 'bidding_round1' && (
+                      <Card
+                        card={gameState.kitty}
+                        size='medium'
+                        className='relative z-10'
+                      />
+                    )) || <CardBack size='medium' className='relative z-10' />}
+                  </div>
+                )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Players around the table */}
         {gameState.players.map(player => {
@@ -296,9 +294,10 @@ export default function Game({ params }: Route.ComponentProps) {
                   position === 'top' || position === 'bottom' ? '' : 'transform'
                 }`}
               >
-                {gameState.phase !== 'dealing_animation' && (
-                  <div
-                    className={`
+                {gameState.phase !== 'dealing_animation' &&
+                  gameState.phase !== 'dealer_selection' && (
+                    <div
+                      className={`
                     inline-block px-3 py-1 rounded-lg text-sm font-medium mb-2
                     ${
                       isCurrentPlayer
@@ -307,30 +306,45 @@ export default function Game({ params }: Route.ComponentProps) {
                     }
                     ${!player.isConnected ? 'opacity-50' : ''}
                   `}
-                  >
-                    {player.name} {player.id === myPlayer.id && '(You)'}
-                    {!player.isConnected && ' (Disconnected)'}
-                    {gameState.currentDealerId === player.id && ' (Dealer)'}
-                  </div>
-                )}
+                    >
+                      {player.name} {player.id === myPlayer.id && '(You)'}
+                      {!player.isConnected && ' (Disconnected)'}
+                      {gameState.currentDealerId === player.id && ' (Dealer)'}
+                    </div>
+                  )}
 
                 {/* Player's cards (face down for others, face up for self) */}
                 <div className='flex space-x-1'>
                   {player.id === myPlayer.id
                     ? // My hand - show actual cards
                       myHand.map(card => {
-                        const isInDealerDiscardPhase = gameState.phase === 'dealer_discard' && myPlayer.id === gameState.currentDealerId;
-                        const isKittyCard = isInDealerDiscardPhase && gameState.kitty && card.id === gameState.kitty.id;
-                        const canDiscard = isInDealerDiscardPhase && !isKittyCard;
-                        const isHovered = isInDealerDiscardPhase && hoveredDiscardCard?.id === card.id;
-                        
+                        const isInDealerDiscardPhase =
+                          gameState.phase === 'dealer_discard' &&
+                          myPlayer.id === gameState.currentDealerId;
+                        const isKittyCard =
+                          isInDealerDiscardPhase &&
+                          gameState.kitty &&
+                          card.id === gameState.kitty.id;
+                        const canDiscard =
+                          isInDealerDiscardPhase && !isKittyCard;
+                        const isHovered =
+                          isInDealerDiscardPhase &&
+                          hoveredDiscardCard?.id === card.id;
+
                         return (
-                          <div 
-                            key={card.id} 
+                          <div
+                            key={card.id}
                             className='relative'
-                            role="presentation"
-                            onMouseEnter={() => isInDealerDiscardPhase && canDiscard && setHoveredDiscardCard(card)}
-                            onMouseLeave={() => isInDealerDiscardPhase && setHoveredDiscardCard(null)}
+                            role='presentation'
+                            onMouseEnter={() =>
+                              isInDealerDiscardPhase &&
+                              canDiscard &&
+                              setHoveredDiscardCard(card)
+                            }
+                            onMouseLeave={() =>
+                              isInDealerDiscardPhase &&
+                              setHoveredDiscardCard(null)
+                            }
                           >
                             <Card
                               card={card}
@@ -342,10 +356,11 @@ export default function Game({ params }: Route.ComponentProps) {
                                 }
                               }}
                               disabled={
-                                isInDealerDiscardPhase ? !canDiscard :
-                                (!isMyTurn() ||
-                                gameState.phase !== 'playing' ||
-                                !canPlay(card))
+                                isInDealerDiscardPhase
+                                  ? !canDiscard
+                                  : !isMyTurn() ||
+                                    gameState.phase !== 'playing' ||
+                                    !canPlay(card)
                               }
                               className={`
                                 ${
@@ -435,25 +450,27 @@ export default function Game({ params }: Route.ComponentProps) {
             <div className='bg-black/70 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg border border-white/20'>
               {currentPlayer.id === myPlayer.id ? (
                 <>
-                { gameState.phase === 'dealer_discard' && (
-                  <>
+                  {gameState.phase === 'dealer_discard' && (
+                    <>
+                      <span className='font-medium text-yellow-400'>
+                        {/* If they were ordered up add text */}
+                        {gameState.maker?.playerId !== myPlayer.id
+                          ? 'You were ordered up!'
+                          : 'You took it up!'}
+                      </span>
+                      <br />
+                    </>
+                  )}
                   <span className='font-medium text-yellow-400'>
-                    {/* If they were ordered up add text */}
-                    {gameState.maker?.playerId !== myPlayer.id
-                      ? 'You were ordered up!'
-                      : 'You took it up!'}
-                  </span>
-                  <br/>
-                  </>
-                )}
-                  <span className='font-medium text-yellow-400'>
-                    {gameState.phase === 'dealer_discard' ? `Choose a card to discard.` : 'Your turn!'}
+                    {gameState.phase === 'dealer_discard'
+                      ? `Choose a card to discard.`
+                      : 'Your turn!'}
                   </span>
                 </>
               ) : (
                 <span>
                   {gameState.phase === 'dealer_discard'
-                    ? `Waiting for ${currentPlayer.name} to discard...` 
+                    ? `Waiting for ${currentPlayer.name} to discard...`
                     : `Waiting for ${currentPlayer.name}...`}
                 </span>
               )}
@@ -576,172 +593,69 @@ export default function Game({ params }: Route.ComponentProps) {
           )}
       </div>
 
-      {/* Dealer Selection - Spread Deck Interface */}
+      {/* Dealer Selection Animation */}
       {gameState.phase === 'dealer_selection' && (
-        <div className='absolute inset-0 bg-black/40 z-40'>
-          <div className='flex flex-col items-center justify-center h-full p-8'>
-            <div className='text-white text-center mb-8'>
-              <h2 className='text-3xl font-bold mb-4'>Dealer Selection</h2>
-
-              {!gameState.dealerSelectionCards ? (
-                // Initial state - need to start dealer selection
-                <>
-                  <p className='text-lg mb-4'>
-                    {gameState.options.dealerSelection === 'random_cards'
-                      ? 'Each player will draw a card to determine the dealer and teams. The player with the lowest card deals first.'
-                      : 'The dealer will be determined by dealing cards around the table until someone receives a black Jack.'}
-                  </p>
-                  {gameState.options.teamSelection === 'random_cards' &&
-                    gameState.options.dealerSelection === 'random_cards' && (
-                      <p className='text-sm text-gray-300 mb-6'>
-                        The two players with the lowest cards will form one
-                        team.
-                      </p>
-                    )}
-
-                  {isHost ? (
-                    <Button onClick={selectDealer} size='lg'>
-                      {gameState.options.dealerSelection === 'random_cards'
-                        ? 'Start Card Drawing'
-                        : 'Find First Black Jack'}
-                    </Button>
-                  ) : (
-                    <div className='text-gray-400'>
-                      Waiting for host to start...
-                    </div>
-                  )}
-                </>
-              ) : (
-                // Card drawing in progress
-                <>
-                  <p className='text-lg mb-2'>
-                    Each player draws a card to determine dealer and teams
-                  </p>
-                  <p className='text-sm text-gray-300'>
-                    Click on a card from the spread deck below
-                  </p>
-                </>
-              )}
-            </div>
-
-            {/* Show drawn cards for each player - only if selection has started */}
-            {gameState.dealerSelectionCards && (
-              <div className='flex justify-center space-x-8 mb-8'>
-                {gameState.players.map(player => {
-                  const drawnCard = gameState.dealerSelectionCards?.[player.id];
-                  const hasDrawn = !!drawnCard;
-                  const isMyTurn = player.id === myPlayer.id && !hasDrawn;
-
-                  return (
-                    <div
-                      key={player.id}
-                      className='flex flex-col items-center space-y-2'
-                    >
-                      <div
-                        className={`text-sm font-medium ${isMyTurn ? 'text-yellow-400' : 'text-white'}`}
-                      >
-                        {player.name} {player.id === myPlayer.id && '(You)'}
-                      </div>
-                      <div className='w-20 h-28 border-2 border-white/30 rounded-lg flex items-center justify-center bg-green-700/50'>
-                        {hasDrawn ? (
-                          <Card card={drawnCard} size='small' />
-                        ) : isMyTurn ? (
-                          <div className='text-xs text-center text-yellow-400 font-medium'>
-                            Your Turn!
-                            <br />
-                            Pick a Card
-                          </div>
-                        ) : (
-                          <div className='text-xs text-center text-gray-400'>
-                            {player.isConnected ? 'Waiting...' : 'Disconnected'}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Spread Deck - only show if selection has started and cards are available */}
-            {gameState.dealerSelectionCards && getAvailableCardsCount() > 0 && (
-              <div className='relative'>
-                <div className='relative w-full h-48 flex items-center justify-center'>
-                  {/* Create array of face-down cards based on available cards */}
-                  {Array.from({
-                    length: Math.min(24, getAvailableCardsCount()),
-                  }).map((_, index) => {
-                    const canDraw =
-                      !gameState.dealerSelectionCards?.[myPlayer.id];
-                    const totalCards = Math.min(24, getAvailableCardsCount());
-
-                    // Create an arc from -60 degrees to +60 degrees (120 degree spread)
-                    const maxAngle = 60; // degrees
-                    const angleStep =
-                      totalCards > 1 ? (2 * maxAngle) / (totalCards - 1) : 0;
-                    const angle = -maxAngle + index * angleStep;
-
-                    // Position cards along a circular arc
-                    const radius = 180; // Distance from center
-                    const angleRad = (angle * Math.PI) / 180;
-                    const x = Math.sin(angleRad) * radius;
-                    // Use cosine for proper circular positioning, but invert and offset to create downward arc
-                    const y = (1 - Math.cos(angleRad)) * radius * 0.5; // Creates a downward circular arc
-
-                    return (
-                      <button
-                        key={index}
-                        onClick={() => canDraw && drawDealerCard(index)}
-                        disabled={!canDraw}
-                        className={`
-                          absolute transition-all duration-200 hover:scale-110 hover:-translate-y-4 hover:z-30
-                          ${canDraw ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}
-                        `}
-                        style={{
-                          transform: `translate(${x}px, ${y}px) rotate(${angle}deg)`,
-                          transformOrigin: 'center bottom',
-                          zIndex: 10 + index,
-                        }}
-                      >
-                        <CardBack size='medium' />
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {!gameState.dealerSelectionCards?.[myPlayer.id] && (
-                  <div className='text-center text-white mt-4'>
-                    <p className='text-sm animate-pulse'>
-                      Click any card to draw
+        <>
+          {!gameState.dealerSelectionCards ? (
+            // Initial state - show instruction overlay
+            <div className='absolute inset-0 bg-black/60 z-40 flex items-center justify-center'>
+              <div className='text-white text-center p-8 bg-black/40 rounded-lg backdrop-blur-sm border border-white/20'>
+                <h2 className='text-3xl font-bold mb-4'>
+                  {gameState.options.dealerSelection === 'random_cards' &&
+                  gameState.options.teamSelection === 'random_cards'
+                    ? 'Dealer and Team Selection'
+                    : 'Dealer Selection'}
+                </h2>
+                <p className='text-lg mb-4'>
+                  {gameState.options.dealerSelection === 'random_cards' &&
+                    gameState.options.teamSelection === 'predetermined' &&
+                    'Each player will draw a card to determine the dealer.'}
+                  {gameState.options.dealerSelection === 'random_cards' &&
+                    gameState.options.teamSelection === 'random_cards' &&
+                    'Each player will draw a card to determine the dealer and teams.'}
+                  {gameState.options.dealerSelection === 'first_black_jack' &&
+                    gameState.options.teamSelection === 'predetermined' &&
+                    'The player with the first Black Jack will be the dealer.'}
+                  {gameState.options.dealerSelection === 'first_black_jack' &&
+                    gameState.options.teamSelection === 'random_cards' &&
+                    'The player with the first Black Jack will be the dealer, and the two players with the lowest cards will form one team.'}
+                </p>
+                {gameState.options.teamSelection === 'random_cards' &&
+                  gameState.options.dealerSelection === 'random_cards' && (
+                    <p className='text-sm text-gray-300 mb-6'>
+                      The two players with the lowest cards will form one team.
+                      <br />
+                      The player with the lowest card will be the dealer.
                     </p>
+                  )}
+
+                {isHost ? (
+                  <Button onClick={selectDealer} size='lg'>
+                    {gameState.options.dealerSelection === 'random_cards'
+                      ? 'Start Card Drawing'
+                      : 'Find First Black Jack'}
+                  </Button>
+                ) : (
+                  <div className='text-gray-400'>
+                    Waiting for host to start...
                   </div>
                 )}
               </div>
-            )}
-
-            {/* Show completion button for host when all have drawn */}
-            {gameState.dealerSelectionCards &&
-              Object.keys(gameState.dealerSelectionCards).length ===
-                gameState.players.length &&
-              isHost && (
-                <div className='mt-8'>
-                  <Button onClick={completeDealerSelection} size='lg'>
-                    Finalize Teams and Start Game
-                  </Button>
-                </div>
-              )}
-
-            {/* Waiting message for non-host when all have drawn */}
-            {gameState.dealerSelectionCards &&
-              Object.keys(gameState.dealerSelectionCards).length ===
-                gameState.players.length &&
-              !isHost && (
-                <div className='mt-8 text-center text-white'>
-                  <p>All cards drawn! Waiting for host to finalize teams...</p>
-                </div>
-              )}
-          </div>
-        </div>
+            </div>
+          ) : (
+            // Show dealer selection animation
+            <DealerSelectionAnimation
+              players={gameState.players}
+              myPlayer={myPlayer}
+              isVisible={true}
+              method={gameState.options.dealerSelection}
+              dealerSelectionCards={gameState.dealerSelectionCards}
+              onCardDealt={dealerSelectionCardDealt}
+              onCardPicked={drawDealerCard}
+              onComplete={completeDealerSelection}
+            />
+          )}
+        </>
       )}
 
       {/* Connection status indicator */}
@@ -906,31 +820,46 @@ export default function Game({ params }: Route.ComponentProps) {
                 </h2>
 
                 {(() => {
-                  const lastTrick = gameState.completedTricks[gameState.completedTricks.length - 1];
-                  const winner = lastTrick ? gameState.players.find(p => p.id === lastTrick.winnerId) : null;
-                  const winningCard = lastTrick?.cards.find(playedCard => playedCard.playerId === lastTrick.winnerId);
+                  const lastTrick =
+                    gameState.completedTricks[
+                      gameState.completedTricks.length - 1
+                    ];
+                  const winner = lastTrick
+                    ? gameState.players.find(p => p.id === lastTrick.winnerId)
+                    : null;
+                  const winningCard = lastTrick?.cards.find(
+                    playedCard => playedCard.playerId === lastTrick.winnerId
+                  );
 
                   return (
                     <div className='mb-6'>
                       {winner && winningCard && (
                         <>
                           <p className='text-lg text-gray-700 mb-3'>
-                            <span className='font-semibold text-blue-600'>{winner.name}</span>
-                            {winner.id === myPlayer.id && ' (You)'} won the trick!
+                            <span className='font-semibold text-blue-600'>
+                              {winner.name}
+                            </span>
+                            {winner.id === myPlayer.id && ' (You)'} won the
+                            trick!
                           </p>
-                          
+
                           <div className='flex justify-center mb-4'>
                             <Card card={winningCard.card} size='medium' />
                           </div>
 
                           <p className='text-sm text-gray-600 mb-2'>
-                            Winning card: <span className={`font-medium ${suitColors[winningCard.card.suit]}`}>
-                              {suitSymbols[winningCard.card.suit]} {winningCard.card.value}
+                            Winning card:{' '}
+                            <span
+                              className={`font-medium ${suitColors[winningCard.card.suit]}`}
+                            >
+                              {suitSymbols[winningCard.card.suit]}{' '}
+                              {winningCard.card.value}
                             </span>
                           </p>
 
                           <div className='text-xs text-gray-500'>
-                            Tricks completed: {gameState.completedTricks.length} / 5
+                            Tricks completed: {gameState.completedTricks.length}{' '}
+                            / 5
                           </div>
                         </>
                       )}
@@ -968,22 +897,33 @@ export default function Game({ params }: Route.ComponentProps) {
 
                 {(() => {
                   const maker = gameState.maker;
-                  const makerPlayer = maker ? gameState.players.find(p => p.id === maker.playerId) : null;
+                  const makerPlayer = maker
+                    ? gameState.players.find(p => p.id === maker.playerId)
+                    : null;
                   const makerTeam = maker?.teamId;
                   const handScores = gameState.handScores;
-                  
-                  // Count tricks won by each team
-                  const team0Tricks = gameState.completedTricks.filter(trick => {
-                    const winner = gameState.players.find(p => p.id === trick.winnerId);
-                    return winner?.teamId === 0;
-                  }).length;
-                  
-                  const team1Tricks = gameState.completedTricks.filter(trick => {
-                    const winner = gameState.players.find(p => p.id === trick.winnerId);
-                    return winner?.teamId === 1;
-                  }).length;
 
-                  const makerTeamTricks = makerTeam === 0 ? team0Tricks : team1Tricks;
+                  // Count tricks won by each team
+                  const team0Tricks = gameState.completedTricks.filter(
+                    trick => {
+                      const winner = gameState.players.find(
+                        p => p.id === trick.winnerId
+                      );
+                      return winner?.teamId === 0;
+                    }
+                  ).length;
+
+                  const team1Tricks = gameState.completedTricks.filter(
+                    trick => {
+                      const winner = gameState.players.find(
+                        p => p.id === trick.winnerId
+                      );
+                      return winner?.teamId === 1;
+                    }
+                  ).length;
+
+                  const makerTeamTricks =
+                    makerTeam === 0 ? team0Tricks : team1Tricks;
                   const madeBid = makerTeamTricks >= 3;
 
                   return (
@@ -993,15 +933,20 @@ export default function Game({ params }: Route.ComponentProps) {
                         <div className='flex items-center justify-center space-x-4 mb-2'>
                           <span className='text-sm text-gray-600'>Trump:</span>
                           {gameState.trump && (
-                            <span className={`text-xl ${suitColors[gameState.trump]}`}>
+                            <span
+                              className={`text-xl ${suitColors[gameState.trump]}`}
+                            >
                               {suitSymbols[gameState.trump]} {gameState.trump}
                             </span>
                           )}
                         </div>
                         {makerPlayer && (
                           <p className='text-sm text-gray-700'>
-                            <span className='font-medium'>{makerPlayer.name}</span>
-                            {makerPlayer.id === myPlayer.id && ' (You)'} called trump
+                            <span className='font-medium'>
+                              {makerPlayer.name}
+                            </span>
+                            {makerPlayer.id === myPlayer.id && ' (You)'} called
+                            trump
                             {maker?.alone && ' and went alone'}
                           </p>
                         )}
@@ -1009,15 +954,31 @@ export default function Game({ params }: Route.ComponentProps) {
 
                       {/* Tricks Won */}
                       <div className='grid grid-cols-2 gap-4 mb-6'>
-                        <div className={`p-4 rounded-lg ${makerTeam === 0 ? 'bg-blue-100 border-2 border-blue-300' : 'bg-gray-100'}`}>
-                          <h3 className='font-semibold text-gray-800 mb-1'>Team 1</h3>
-                          <div className='text-2xl font-bold text-blue-600'>{team0Tricks}</div>
-                          <div className='text-xs text-gray-600'>tricks won</div>
+                        <div
+                          className={`p-4 rounded-lg ${makerTeam === 0 ? 'bg-blue-100 border-2 border-blue-300' : 'bg-gray-100'}`}
+                        >
+                          <h3 className='font-semibold text-gray-800 mb-1'>
+                            Team 1
+                          </h3>
+                          <div className='text-2xl font-bold text-blue-600'>
+                            {team0Tricks}
+                          </div>
+                          <div className='text-xs text-gray-600'>
+                            tricks won
+                          </div>
                         </div>
-                        <div className={`p-4 rounded-lg ${makerTeam === 1 ? 'bg-red-100 border-2 border-red-300' : 'bg-gray-100'}`}>
-                          <h3 className='font-semibold text-gray-800 mb-1'>Team 2</h3>
-                          <div className='text-2xl font-bold text-red-600'>{team1Tricks}</div>
-                          <div className='text-xs text-gray-600'>tricks won</div>
+                        <div
+                          className={`p-4 rounded-lg ${makerTeam === 1 ? 'bg-red-100 border-2 border-red-300' : 'bg-gray-100'}`}
+                        >
+                          <h3 className='font-semibold text-gray-800 mb-1'>
+                            Team 2
+                          </h3>
+                          <div className='text-2xl font-bold text-red-600'>
+                            {team1Tricks}
+                          </div>
+                          <div className='text-xs text-gray-600'>
+                            tricks won
+                          </div>
                         </div>
                       </div>
 
@@ -1029,8 +990,12 @@ export default function Game({ params }: Route.ComponentProps) {
                               {makerTeamTricks === 5 ? 'Sweep!' : 'Bid Made!'}
                             </p>
                             <p className='text-sm text-gray-700'>
-                              Team {makerTeam! + 1} made their bid with {makerTeamTricks} trick{makerTeamTricks !== 1 ? 's' : ''}
-                              {makerTeamTricks === 5 && maker?.alone && ' (going alone)'}
+                              Team {makerTeam! + 1} made their bid with{' '}
+                              {makerTeamTricks} trick
+                              {makerTeamTricks !== 1 ? 's' : ''}
+                              {makerTeamTricks === 5 &&
+                                maker?.alone &&
+                                ' (going alone)'}
                             </p>
                           </div>
                         ) : (
@@ -1039,7 +1004,9 @@ export default function Game({ params }: Route.ComponentProps) {
                               Bid Failed!
                             </p>
                             <p className='text-sm text-gray-700'>
-                              Team {makerTeam! + 1} only won {makerTeamTricks} trick{makerTeamTricks !== 1 ? 's' : ''} - other team gets 2 points
+                              Team {makerTeam! + 1} only won {makerTeamTricks}{' '}
+                              trick{makerTeamTricks !== 1 ? 's' : ''} - other
+                              team gets 2 points
                             </p>
                           </div>
                         )}
@@ -1048,28 +1015,44 @@ export default function Game({ params }: Route.ComponentProps) {
                       {/* Points Awarded */}
                       <div className='grid grid-cols-2 gap-4 mb-6'>
                         <div className='text-center'>
-                          <div className={`text-3xl font-bold ${handScores.team0 > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                          <div
+                            className={`text-3xl font-bold ${handScores.team0 > 0 ? 'text-green-600' : 'text-gray-400'}`}
+                          >
                             +{handScores.team0}
                           </div>
-                          <div className='text-sm text-gray-600'>Team 1 Points</div>
+                          <div className='text-sm text-gray-600'>
+                            Team 1 Points
+                          </div>
                         </div>
                         <div className='text-center'>
-                          <div className={`text-3xl font-bold ${handScores.team1 > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                          <div
+                            className={`text-3xl font-bold ${handScores.team1 > 0 ? 'text-green-600' : 'text-gray-400'}`}
+                          >
                             +{handScores.team1}
                           </div>
-                          <div className='text-sm text-gray-600'>Team 2 Points</div>
+                          <div className='text-sm text-gray-600'>
+                            Team 2 Points
+                          </div>
                         </div>
                       </div>
 
                       {/* Total Scores */}
                       <div className='grid grid-cols-2 gap-4 mb-6'>
                         <div className='text-center p-3 bg-blue-50 rounded-lg'>
-                          <div className='text-2xl font-bold text-blue-600'>{gameState.scores.team0}</div>
-                          <div className='text-sm text-gray-600'>Team 1 Total</div>
+                          <div className='text-2xl font-bold text-blue-600'>
+                            {gameState.scores.team0}
+                          </div>
+                          <div className='text-sm text-gray-600'>
+                            Team 1 Total
+                          </div>
                         </div>
                         <div className='text-center p-3 bg-red-50 rounded-lg'>
-                          <div className='text-2xl font-bold text-red-600'>{gameState.scores.team1}</div>
-                          <div className='text-sm text-gray-600'>Team 2 Total</div>
+                          <div className='text-2xl font-bold text-red-600'>
+                            {gameState.scores.team1}
+                          </div>
+                          <div className='text-sm text-gray-600'>
+                            Team 2 Total
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1078,10 +1061,10 @@ export default function Game({ params }: Route.ComponentProps) {
 
                 {isHost ? (
                   <Button onClick={completeHand} size='lg' className='w-full'>
-                    {gameState.scores.team0 >= 10 || gameState.scores.team1 >= 10 
-                      ? 'End Game' 
-                      : 'Start Next Hand'
-                    }
+                    {gameState.scores.team0 >= 10 ||
+                    gameState.scores.team1 >= 10
+                      ? 'End Game'
+                      : 'Start Next Hand'}
                   </Button>
                 ) : (
                   <div className='text-gray-600'>
@@ -1117,16 +1100,24 @@ export default function Game({ params }: Route.ComponentProps) {
                   return (
                     <div className='mb-8'>
                       {/* Winner Announcement */}
-                      <div className={`mb-6 p-6 rounded-lg ${iWon ? 'bg-green-100 border-green-300' : 'bg-gray-100 border-gray-300'} border-2`}>
-                        <h3 className={`text-2xl font-bold mb-2 ${iWon ? 'text-green-800' : 'text-gray-800'}`}>
+                      <div
+                        className={`mb-6 p-6 rounded-lg ${iWon ? 'bg-green-100 border-green-300' : 'bg-gray-100 border-gray-300'} border-2`}
+                      >
+                        <h3
+                          className={`text-2xl font-bold mb-2 ${iWon ? 'text-green-800' : 'text-gray-800'}`}
+                        >
                           {iWon ? 'You Won!' : `Team ${winningTeam + 1} Wins!`}
                         </h3>
                         <div className='space-y-1'>
                           {gameState.players
                             .filter(p => p.teamId === winningTeam)
                             .map(player => (
-                              <p key={player.id} className={`text-lg ${iWon ? 'text-green-700' : 'text-gray-700'}`}>
-                                🏆 {player.name}{player.id === myPlayer.id && ' (You)'}
+                              <p
+                                key={player.id}
+                                className={`text-lg ${iWon ? 'text-green-700' : 'text-gray-700'}`}
+                              >
+                                🏆 {player.name}
+                                {player.id === myPlayer.id && ' (You)'}
                               </p>
                             ))}
                         </div>
@@ -1134,35 +1125,63 @@ export default function Game({ params }: Route.ComponentProps) {
 
                       {/* Final Scores */}
                       <div className='grid grid-cols-2 gap-6 mb-6'>
-                        <div className={`text-center p-6 rounded-lg ${team0Won ? 'bg-yellow-100 border-yellow-400 border-2' : 'bg-blue-50'}`}>
-                          <h3 className='text-lg font-semibold text-gray-800 mb-2'>Team 1</h3>
-                          <div className={`text-4xl font-bold ${team0Won ? 'text-yellow-600' : 'text-blue-600'}`}>
+                        <div
+                          className={`text-center p-6 rounded-lg ${team0Won ? 'bg-yellow-100 border-yellow-400 border-2' : 'bg-blue-50'}`}
+                        >
+                          <h3 className='text-lg font-semibold text-gray-800 mb-2'>
+                            Team 1
+                          </h3>
+                          <div
+                            className={`text-4xl font-bold ${team0Won ? 'text-yellow-600' : 'text-blue-600'}`}
+                          >
                             {gameState.scores.team0}
                           </div>
-                          {team0Won && <div className='text-sm text-yellow-700 mt-1'>🏆 Winners!</div>}
+                          {team0Won && (
+                            <div className='text-sm text-yellow-700 mt-1'>
+                              🏆 Winners!
+                            </div>
+                          )}
                           <div className='mt-2 space-y-1'>
                             {gameState.players
                               .filter(p => p.teamId === 0)
                               .map(player => (
-                                <div key={player.id} className='text-sm text-gray-600'>
-                                  {player.name}{player.id === myPlayer.id && ' (You)'}
+                                <div
+                                  key={player.id}
+                                  className='text-sm text-gray-600'
+                                >
+                                  {player.name}
+                                  {player.id === myPlayer.id && ' (You)'}
                                 </div>
                               ))}
                           </div>
                         </div>
-                        
-                        <div className={`text-center p-6 rounded-lg ${team1Won ? 'bg-yellow-100 border-yellow-400 border-2' : 'bg-red-50'}`}>
-                          <h3 className='text-lg font-semibold text-gray-800 mb-2'>Team 2</h3>
-                          <div className={`text-4xl font-bold ${team1Won ? 'text-yellow-600' : 'text-red-600'}`}>
+
+                        <div
+                          className={`text-center p-6 rounded-lg ${team1Won ? 'bg-yellow-100 border-yellow-400 border-2' : 'bg-red-50'}`}
+                        >
+                          <h3 className='text-lg font-semibold text-gray-800 mb-2'>
+                            Team 2
+                          </h3>
+                          <div
+                            className={`text-4xl font-bold ${team1Won ? 'text-yellow-600' : 'text-red-600'}`}
+                          >
                             {gameState.scores.team1}
                           </div>
-                          {team1Won && <div className='text-sm text-yellow-700 mt-1'>🏆 Winners!</div>}
+                          {team1Won && (
+                            <div className='text-sm text-yellow-700 mt-1'>
+                              🏆 Winners!
+                            </div>
+                          )}
                           <div className='mt-2 space-y-1'>
                             {gameState.players
                               .filter(p => p.teamId === 1)
                               .map(player => (
-                                <div key={player.id} className='text-sm text-gray-600'>
-                                  {player.name}{player.id === myPlayer.id && ' (You)'}
+                                <div
+                                  key={player.id}
+                                  className='text-sm text-gray-600'
+                                >
+                                  {player.name}
+                                  {player.id === myPlayer.id && ' (You)'}
                                 </div>
                               ))}
                           </div>
@@ -1171,9 +1190,14 @@ export default function Game({ params }: Route.ComponentProps) {
 
                       {/* Game Stats */}
                       <div className='mb-6 p-4 bg-gray-50 rounded-lg'>
-                        <h4 className='font-semibold text-gray-800 mb-2'>Game Summary</h4>
+                        <h4 className='font-semibold text-gray-800 mb-2'>
+                          Game Summary
+                        </h4>
                         <div className='text-sm text-gray-600 space-y-1'>
-                          <p>Final Score: {gameState.scores.team0} - {gameState.scores.team1}</p>
+                          <p>
+                            Final Score: {gameState.scores.team0} -{' '}
+                            {gameState.scores.team1}
+                          </p>
                           <p>Game ID: {gameState.gameCode || gameState.id}</p>
                         </div>
                       </div>
@@ -1183,13 +1207,17 @@ export default function Game({ params }: Route.ComponentProps) {
 
                 {/* Action Buttons */}
                 <div className='space-y-3'>
-                  <Button onClick={handleLeaveGame} size='lg' className='w-full'>
+                  <Button
+                    onClick={handleLeaveGame}
+                    size='lg'
+                    className='w-full'
+                  >
                     Return to Home
                   </Button>
                   {isHost && (
-                    <Button 
-                      variant='secondary' 
-                      size='lg' 
+                    <Button
+                      variant='secondary'
+                      size='lg'
                       className='w-full'
                       onClick={() => {
                         // Reset game for new game - you might want to implement this
@@ -1205,7 +1233,6 @@ export default function Game({ params }: Route.ComponentProps) {
           </div>
         </div>
       )}
-
     </GameContainer>
   );
 }
