@@ -1,8 +1,9 @@
-import { useEffect, useRef, useCallback } from "react";
-import type { GameState } from "../../../types/game";
-import { createPublicGameState } from "../../../utils/gameState";
-import { createMessageId } from "../../../utils/protocol";
-import { GameNetworkService } from "../services/networkService";
+import { useCallback, useEffect, useRef } from 'react';
+
+import type { GameState, Player } from '../../../types/game';
+import { createPublicGameState } from '../../../utils/gameState';
+import { createMessageId } from '../../../utils/protocol';
+import { GameNetworkService } from '../services/networkService';
 
 export function useGameStateEffects(
   gameState: GameState,
@@ -28,19 +29,29 @@ export function useGameStateEffects(
 
   // Create stable broadcastGameState function
   const broadcastGameState = useCallback(() => {
-    const { gameState: currentGameState, myPlayerId: currentMyPlayerId, networkService: currentNetworkService } = stateRef.current;
+    const {
+      gameState: currentGameState,
+      myPlayerId: currentMyPlayerId,
+      networkService: currentNetworkService,
+    } = stateRef.current;
 
     // Send personalized state to each player
-    currentGameState.players.forEach((player: any) => {
+    currentGameState.players.forEach((player: Player) => {
       if (player.id !== currentMyPlayerId) {
-        const personalizedState = createPublicGameState(currentGameState, player.id);
+        const personalizedState = createPublicGameState(
+          currentGameState,
+          player.id
+        );
 
-        currentNetworkService.sendMessage({
-          type: "GAME_STATE_UPDATE",
-          timestamp: Date.now(),
-          messageId: createMessageId(),
-          payload: { gameState: personalizedState },
-        }, player.id);
+        currentNetworkService.sendMessage(
+          {
+            type: 'GAME_STATE_UPDATE',
+            timestamp: Date.now(),
+            messageId: createMessageId(),
+            payload: { gameState: personalizedState },
+          },
+          player.id
+        );
       }
     });
   }, []); // Empty dependency array - function is stable

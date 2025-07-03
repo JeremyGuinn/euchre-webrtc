@@ -10,7 +10,7 @@ export function createDeck(): Card[] {
       deck.push({
         suit,
         value,
-        id: `${suit}-${value}`
+        id: `${suit}-${value}`,
       });
     }
   }
@@ -53,7 +53,7 @@ export function dealHands(deck: Card[]): {
   return {
     hands,
     kitty,
-    remainingDeck: deck.slice(cardIndex)
+    remainingDeck: deck.slice(cardIndex),
   };
 }
 
@@ -69,38 +69,59 @@ export function getCardValue(card: Card, trump: Card['suit']): number {
   // Handle trump cards
   if (suit === trump) {
     switch (value) {
-      case 'A': return 9;
-      case 'K': return 8;
-      case 'Q': return 7;
-      case '10': return 6;
-      case '9': return 5;
-      default: return 0;
+      case 'A':
+        return 9;
+      case 'K':
+        return 8;
+      case 'Q':
+        return 7;
+      case '10':
+        return 6;
+      case '9':
+        return 5;
+      default:
+        return 0;
     }
   }
 
   // Handle non-trump cards
   switch (value) {
-    case 'A': return 4;
-    case 'K': return 3;
-    case 'Q': return 2;
-    case 'J': return 1; // Non-trump, non-off jack
-    case '10': return 1;
-    case '9': return 0;
-    default: return 0;
+    case 'A':
+      return 4;
+    case 'K':
+      return 3;
+    case 'Q':
+      return 2;
+    case 'J':
+      return 1; // Non-trump, non-off jack
+    case '10':
+      return 1;
+    case '9':
+      return 0;
+    default:
+      return 0;
   }
 }
 
 export function getOffSuit(trump: Card['suit']): Card['suit'] {
   switch (trump) {
-    case 'spades': return 'clubs';
-    case 'clubs': return 'spades';
-    case 'hearts': return 'diamonds';
-    case 'diamonds': return 'hearts';
-    default: return trump;
+    case 'spades':
+      return 'clubs';
+    case 'clubs':
+      return 'spades';
+    case 'hearts':
+      return 'diamonds';
+    case 'diamonds':
+      return 'hearts';
+    default:
+      return trump;
   }
 }
 
-export function getEffectiveSuit(card: Card, trump: Card['suit']): Card['suit'] {
+export function getEffectiveSuit(
+  card: Card,
+  trump: Card['suit']
+): Card['suit'] {
   // Off-jack becomes trump suit
   if (card.value === 'J' && card.suit === getOffSuit(trump)) {
     return trump;
@@ -108,7 +129,12 @@ export function getEffectiveSuit(card: Card, trump: Card['suit']): Card['suit'] 
   return card.suit;
 }
 
-export function canPlayCard(card: Card, hand: Card[], leadSuit?: Card['suit'], trump?: Card['suit']): boolean {
+export function canPlayCard(
+  card: Card,
+  hand: Card[],
+  leadSuit?: Card['suit'],
+  trump?: Card['suit']
+): boolean {
   if (!leadSuit) return true; // First card of trick, any card is valid
   if (!trump) return true; // No trump set yet
 
@@ -125,13 +151,18 @@ export function canPlayCard(card: Card, hand: Card[], leadSuit?: Card['suit'], t
   return true;
 }
 
-export function getWinningCard(cards: Array<{ card: Card; playerId: string }>, trump: Card['suit'], leadSuit: Card['suit']): { card: Card; playerId: string } {
+export function getWinningCard(
+  cards: Array<{ card: Card; playerId: string }>,
+  trump: Card['suit'],
+  leadSuit: Card['suit']
+): { card: Card; playerId: string } {
   if (cards.length === 0) throw new Error('No cards to evaluate');
 
   let winningPlay = cards[0];
   let highestValue = getCardValue(winningPlay.card, trump);
   let isWinningTrump = getEffectiveSuit(winningPlay.card, trump) === trump;
-  let isWinningLeadSuit = getEffectiveSuit(winningPlay.card, trump) === leadSuit;
+  let isWinningLeadSuit =
+    getEffectiveSuit(winningPlay.card, trump) === leadSuit;
 
   for (let i = 1; i < cards.length; i++) {
     const currentPlay = cards[i];
@@ -156,7 +187,12 @@ export function getWinningCard(cards: Array<{ card: Card; playerId: string }>, t
       }
     }
     // Non-trump can only win if current winner is also non-trump and it's lead suit
-    else if (!currentIseTrump && !isWinningTrump && currentIsLeadSuit && !isWinningLeadSuit) {
+    else if (
+      !currentIseTrump &&
+      !isWinningTrump &&
+      currentIsLeadSuit &&
+      !isWinningLeadSuit
+    ) {
       winningPlay = currentPlay;
       highestValue = currentValue;
       isWinningLeadSuit = true;
@@ -172,13 +208,20 @@ export function getWinningCard(cards: Array<{ card: Card; playerId: string }>, t
  */
 export function getDealerSelectionRank(card: Card): number {
   switch (card.value) {
-    case 'A': return 1;  // Aces rank low
-    case '9': return 9;
-    case '10': return 10;
-    case 'J': return 11; // Jacks rank below Queens
-    case 'Q': return 12;
-    case 'K': return 13;
-    default: return 0;
+    case 'A':
+      return 1; // Aces rank low
+    case '9':
+      return 9;
+    case '10':
+      return 10;
+    case 'J':
+      return 11; // Jacks rank below Queens
+    case 'Q':
+      return 12;
+    case 'K':
+      return 13;
+    default:
+      return 0;
   }
 }
 
@@ -186,23 +229,28 @@ export function getDealerSelectionRank(card: Card): number {
  * Select dealer and arrange teams based on drawn cards
  * Returns the player assignments with correct positions and teams
  */
-export function selectDealerAndTeams(players: Player[], drawnCards: Record<string, Card>): {
+export function selectDealerAndTeams(
+  players: Player[],
+  drawnCards: Record<string, Card>
+): {
   dealer: Player;
   arrangedPlayers: Player[];
 } {
   // Sort players by their drawn card rank (lowest first)
-  const playersWithCards = players.map(player => ({
-    player,
-    card: drawnCards[player.id],
-    rank: getDealerSelectionRank(drawnCards[player.id])
-  })).sort((a, b) => {
-    // If ranks are equal, maintain current order (arbitrary but consistent)
-    if (a.rank === b.rank) {
-      // Use card id as tiebreaker for consistency
-      return a.card.id.localeCompare(b.card.id);
-    }
-    return a.rank - b.rank;
-  });
+  const playersWithCards = players
+    .map(player => ({
+      player,
+      card: drawnCards[player.id],
+      rank: getDealerSelectionRank(drawnCards[player.id]),
+    }))
+    .sort((a, b) => {
+      // If ranks are equal, maintain current order (arbitrary but consistent)
+      if (a.rank === b.rank) {
+        // Use card id as tiebreaker for consistency
+        return a.card.id.localeCompare(b.card.id);
+      }
+      return a.rank - b.rank;
+    });
 
   // The player with the lowest card deals first
   const dealer = playersWithCards[0].player;
@@ -218,18 +266,20 @@ export function selectDealerAndTeams(players: Player[], drawnCards: Record<strin
   arrangedPlayers[0] = {
     ...dealer,
     position: 0,
-    teamId: team0Players.includes(dealer) ? 0 : 1
+    teamId: team0Players.includes(dealer) ? 0 : 1,
   };
 
   // Find dealer's partner (same team)
-  const dealerTeam = team0Players.includes(dealer) ? team0Players : team1Players;
+  const dealerTeam = team0Players.includes(dealer)
+    ? team0Players
+    : team1Players;
   const dealerPartner = dealerTeam.find(p => p.id !== dealer.id)!;
 
   // Partner sits opposite (position 2)
   arrangedPlayers[2] = {
     ...dealerPartner,
     position: 2,
-    teamId: arrangedPlayers[0].teamId
+    teamId: arrangedPlayers[0].teamId,
   };
 
   // Remaining two players are opponents
@@ -241,39 +291,44 @@ export function selectDealerAndTeams(players: Player[], drawnCards: Record<strin
   arrangedPlayers[1] = {
     ...opponents[0],
     position: 1,
-    teamId: arrangedPlayers[0].teamId === 0 ? 1 : 0
+    teamId: arrangedPlayers[0].teamId === 0 ? 1 : 0,
   };
 
   arrangedPlayers[3] = {
     ...opponents[1],
     position: 3,
-    teamId: arrangedPlayers[1].teamId
+    teamId: arrangedPlayers[1].teamId,
   };
 
   return {
     dealer: arrangedPlayers[0],
-    arrangedPlayers
+    arrangedPlayers,
   };
 }
 
 /**
  * Select dealer from random cards but keep predetermined teams
  */
-export function selectDealerOnly(players: Player[], drawnCards: Record<string, Card>): {
+export function selectDealerOnly(
+  players: Player[],
+  drawnCards: Record<string, Card>
+): {
   dealer: Player;
   arrangedPlayers: Player[];
 } {
   // Sort players by their drawn card rank (lowest first) to find dealer
-  const playersWithCards = players.map(player => ({
-    player,
-    card: drawnCards[player.id],
-    rank: getDealerSelectionRank(drawnCards[player.id])
-  })).sort((a, b) => {
-    if (a.rank === b.rank) {
-      return a.card.id.localeCompare(b.card.id);
-    }
-    return a.rank - b.rank;
-  });
+  const playersWithCards = players
+    .map(player => ({
+      player,
+      card: drawnCards[player.id],
+      rank: getDealerSelectionRank(drawnCards[player.id]),
+    }))
+    .sort((a, b) => {
+      if (a.rank === b.rank) {
+        return a.card.id.localeCompare(b.card.id);
+      }
+      return a.rank - b.rank;
+    });
 
   // The player with the lowest card deals first
   const dealer = playersWithCards[0].player;
@@ -284,18 +339,22 @@ export function selectDealerOnly(players: Player[], drawnCards: Record<string, C
 
   // Rotate positions so dealer is at position 0
   players.forEach(player => {
-    const newPosition = ((player.position - dealerOriginalPosition + 4) % 4) as 0 | 1 | 2 | 3;
+    const newPosition = ((player.position - dealerOriginalPosition + 4) % 4) as
+      | 0
+      | 1
+      | 2
+      | 3;
     arrangedPlayers[newPosition] = {
       ...player,
       position: newPosition,
       // Keep original team assignments based on new positions
-      teamId: (newPosition % 2) as 0 | 1
+      teamId: (newPosition % 2) as 0 | 1,
     };
   });
 
   return {
     dealer: arrangedPlayers[0],
-    arrangedPlayers
+    arrangedPlayers,
   };
 }
 
@@ -316,7 +375,10 @@ export function findFirstBlackJackDealer(players: Player[]): {
     const currentPlayer = players[currentPlayerIndex];
 
     // Check if this is a black Jack (Jack of Spades or Jack of Clubs)
-    if (card.value === 'J' && (card.suit === 'spades' || card.suit === 'clubs')) {
+    if (
+      card.value === 'J' &&
+      (card.suit === 'spades' || card.suit === 'clubs')
+    ) {
       // This player becomes the dealer
       const dealer = currentPlayer;
       const dealerOriginalPosition = dealer.position;
@@ -324,17 +386,18 @@ export function findFirstBlackJackDealer(players: Player[]): {
       // Arrange players so dealer is at position 0
       const arrangedPlayers: Player[] = [];
       players.forEach(player => {
-        const newPosition = ((player.position - dealerOriginalPosition + 4) % 4) as 0 | 1 | 2 | 3;
+        const newPosition = ((player.position - dealerOriginalPosition + 4) %
+          4) as 0 | 1 | 2 | 3;
         arrangedPlayers[newPosition] = {
           ...player,
           position: newPosition,
-          teamId: (newPosition % 2) as 0 | 1
+          teamId: (newPosition % 2) as 0 | 1,
         };
       });
 
       return {
         dealer: arrangedPlayers[0],
-        arrangedPlayers
+        arrangedPlayers,
       };
     }
 
@@ -344,16 +407,15 @@ export function findFirstBlackJackDealer(players: Player[]): {
   }
 
   // Fallback: if no black Jack found, first player deals
-  const dealer = players[0];
   const arrangedPlayers = players.map((player, index) => ({
     ...player,
     position: index as 0 | 1 | 2 | 3,
-    teamId: (index % 2) as 0 | 1
+    teamId: (index % 2) as 0 | 1,
   }));
 
   return {
     dealer: arrangedPlayers[0],
-    arrangedPlayers
+    arrangedPlayers,
   };
 }
 

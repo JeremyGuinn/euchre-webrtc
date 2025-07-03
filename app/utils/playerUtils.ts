@@ -1,4 +1,4 @@
-import type { Player } from "../types/game";
+import type { Player } from '../types/game';
 
 /**
  * Ensures a player name is unique among existing players by appending a number if needed
@@ -8,39 +8,41 @@ import type { Player } from "../types/game";
  * @returns A unique name
  */
 export function makeNameUnique(
-    desiredName: string,
-    existingPlayers: Player[],
-    excludePlayerId?: string
+  desiredName: string,
+  existingPlayers: Player[],
+  excludePlayerId?: string
 ): string {
-    const trimmedName = desiredName.trim();
-    if (!trimmedName) {
-        return "Player";
-    }
+  const trimmedName = desiredName.trim();
+  if (!trimmedName) {
+    return 'Player';
+  }
 
-    // Filter out the player being renamed if applicable
-    const playersToCheck = excludePlayerId
-        ? existingPlayers.filter(p => p.id !== excludePlayerId)
-        : existingPlayers;
+  // Filter out the player being renamed if applicable
+  const playersToCheck = excludePlayerId
+    ? existingPlayers.filter(p => p.id !== excludePlayerId)
+    : existingPlayers;
 
-    // Check if the name is already unique
-    const isNameTaken = playersToCheck.some(
-        player => player.name.toLowerCase() === trimmedName.toLowerCase()
-    );
+  // Check if the name is already unique
+  const isNameTaken = playersToCheck.some(
+    player => player.name.toLowerCase() === trimmedName.toLowerCase()
+  );
 
-    if (!isNameTaken) {
-        return trimmedName;
-    }
+  if (!isNameTaken) {
+    return trimmedName;
+  }
 
-    // Find a unique name by appending a number
-    let counter = 2;
-    let uniqueName = `${trimmedName} (${counter})`;
+  // Find a unique name by appending a number
+  let counter = 2;
+  let uniqueName = `${trimmedName} (${counter})`;
 
-    while (playersToCheck.some(
-        player => player.name.toLowerCase() === uniqueName.toLowerCase()
-    )) {
-        counter++;
-        uniqueName = `${trimmedName} (${counter})`;
-    }
+  while (
+    playersToCheck.some(
+      player => player.name.toLowerCase() === uniqueName.toLowerCase()
+    )
+  ) {
+    counter++;
+    uniqueName = `${trimmedName} (${counter})`;
+  }
 
-    return uniqueName;
+  return uniqueName;
 }

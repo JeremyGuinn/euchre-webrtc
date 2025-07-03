@@ -1,22 +1,26 @@
-import type { Route } from "./+types/home";
-import { useLocation } from "react-router";
-import { useState, useEffect } from "react";
-import { isValidGameCode, normalizeGameCode } from "../utils/gameCode";
-import LinkButton from "../components/ui/LinkButton";
-import ButtonDivider from "../components/ui/ButtonDivider";
-import Input from "../components/ui/Input";
-import PageContainer from "../components/layout/PageContainer";
-import NotificationBanner from "../components/ui/NotificationBanner";
+import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router';
 
-export function meta({ }: Route.MetaArgs) {
+import PageContainer from '../components/layout/PageContainer';
+import ButtonDivider from '../components/ui/ButtonDivider';
+import Input from '../components/ui/Input';
+import LinkButton from '../components/ui/LinkButton';
+import NotificationBanner from '../components/ui/NotificationBanner';
+import { isValidGameCode, normalizeGameCode } from '../utils/gameCode';
+
+export function meta() {
   return [
-    { title: "Euchre Online - Play with Friends" },
-    { name: "description", content: "Play Euchre online with friends using peer-to-peer connections. No servers, no registration required!" },
+    { title: 'Euchre Online - Play with Friends' },
+    {
+      name: 'description',
+      content:
+        'Play Euchre online with friends using peer-to-peer connections. No servers, no registration required!',
+    },
   ];
 }
 
 export default function Home() {
-  const [gameCode, setGameCode] = useState("");
+  const [gameCode, setGameCode] = useState('');
   const location = useLocation();
   const [kickMessage, setKickMessage] = useState<string | null>(null);
 
@@ -38,44 +42,43 @@ export default function Home() {
       {kickMessage && (
         <NotificationBanner
           message={kickMessage}
-          type="error"
+          type='error'
           onDismiss={() => setKickMessage(null)}
-          className="mb-6"
+          className='mb-6'
         />
       )}
 
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">♠️ Euchre Online ♥️</h1>
-        <p className="text-gray-600">Play the classic card game with friends</p>
+      <div className='text-center mb-8'>
+        <h1 className='text-3xl font-bold text-gray-800 mb-2'>
+          ♠️ Euchre Online ♥️
+        </h1>
+        <p className='text-gray-600'>Play the classic card game with friends</p>
       </div>
 
-      <div className="space-y-4">
-        <LinkButton
-          to="/host"
-          variant="primary"
-        >
+      <div className='space-y-4'>
+        <LinkButton to='/host' variant='primary'>
           Host a New Game
         </LinkButton>
 
         <ButtonDivider />
 
-        <div className="space-y-2">
+        <div className='space-y-2'>
           <Input
-            placeholder="Enter game code (e.g., A3K7M2)"
+            placeholder='Enter game code (e.g., A3K7M2)'
             value={gameCode}
-            onChange={(e) => {
+            onChange={e => {
               const normalized = normalizeGameCode(e.target.value);
               setGameCode(normalized);
             }}
-            className="font-mono text-center"
+            className='font-mono text-center'
             maxLength={6}
             fullWidth
           />
           <LinkButton
-            to={isValidGameCode(gameCode) ? `/join/${gameCode}` : "#"}
-            variant="success"
+            to={isValidGameCode(gameCode) ? `/join/${gameCode}` : '#'}
+            variant='success'
             disabled={!isValidGameCode(gameCode)}
-            onClick={(e) => {
+            onClick={e => {
               if (!gameCode) {
                 e.preventDefault();
               }
@@ -86,8 +89,8 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="mt-8 text-center">
-        <div className="text-sm text-gray-600 space-y-1">
+      <div className='mt-8 text-center'>
+        <div className='text-sm text-gray-600 space-y-1'>
           <p>🔒 No registration required</p>
           <p>🌐 Peer-to-peer connection</p>
           <p>👥 4 players needed</p>

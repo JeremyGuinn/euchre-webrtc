@@ -1,9 +1,9 @@
 /**
  * Game Code Management System
- * 
+ *
  * Provides a clean abstraction for generating and managing user-friendly game codes.
  * Game codes are short, easy to type, and avoid confusing characters.
- * 
+ *
  * Internal implementation uses a prefix/suffix system to create valid PeerJS IDs
  * while maintaining short, readable codes for users.
  */
@@ -23,7 +23,10 @@ export function generateGameCode(length = GAME_CODE_LENGTH): string {
 
 function generateShortUUID(length: number): string {
   const uuid = crypto.randomUUID().replace(/-/g, '');
-  return parseInt(uuid.slice(0, 12), 16).toString(32).toUpperCase().slice(0, length);
+  return parseInt(uuid.slice(0, 12), 16)
+    .toString(32)
+    .toUpperCase()
+    .slice(0, length);
 }
 
 /**

@@ -1,19 +1,21 @@
-import { useCallback } from "react";
-import { SessionStorageService } from "../services/sessionService";
-import { GameNetworkService } from "../services/networkService";
-import type { GameAction } from "../../../utils/gameState";
+import { useCallback } from 'react';
+
+import type { ConnectionStatus } from '~/utils/networking';
+import type { GameAction } from '../../../utils/gameState';
+import { GameNetworkService } from '../services/networkService';
+import { SessionStorageService } from '../services/sessionService';
 
 export function useConnectionActions(
   networkService: GameNetworkService,
-  connectionStatus: "disconnected" | "connecting" | "connected" | "error",
+  connectionStatus: ConnectionStatus,
   setMyPlayerId: (id: string) => void,
   setIsHost: (isHost: boolean) => void,
-  setConnectionStatus: (status: "disconnected" | "connecting" | "connected" | "error") => void,
+  setConnectionStatus: (status: ConnectionStatus) => void,
   dispatch: React.Dispatch<GameAction>
 ) {
   const hostGame = useCallback(async (): Promise<string> => {
-    if (connectionStatus === "connected") {
-      throw new Error("Cannot host game: already connected to a game");
+    if (connectionStatus === 'connected') {
+      throw new Error('Cannot host game: already connected to a game');
     }
 
     SessionStorageService.clearSession();
@@ -24,7 +26,7 @@ export function useConnectionActions(
     setIsHost(true);
 
     dispatch({
-      type: "INIT_GAME",
+      type: 'INIT_GAME',
       payload: { hostId, gameId: gameUuid, gameCode },
     });
 
@@ -33,9 +35,12 @@ export function useConnectionActions(
 
   const joinGame = useCallback(
     async (gameCode: string, playerName: string): Promise<void> => {
-      if (connectionStatus === "connected" || connectionStatus === "connecting") {
-        const error = "Cannot join game: already connected to a game";
-        console.error("useConnectionActions:", error);
+      if (
+        connectionStatus === 'connected' ||
+        connectionStatus === 'connecting'
+      ) {
+        const error = 'Cannot join game: already connected to a game';
+        console.error('useConnectionActions:', error);
         throw new Error(error);
       }
 
@@ -45,13 +50,13 @@ export function useConnectionActions(
       setMyPlayerId(playerId);
       setIsHost(false);
     },
-    [connectionStatus, networkService, setMyPlayerId, setIsHost, dispatch]
+    [connectionStatus, networkService, setMyPlayerId, setIsHost]
   );
 
   const disconnect = useCallback(() => {
     networkService.disconnect();
-    setConnectionStatus("disconnected");
-    setMyPlayerId("");
+    setConnectionStatus('disconnected');
+    setMyPlayerId('');
     setIsHost(false);
     SessionStorageService.clearSession();
   }, [networkService, setConnectionStatus, setMyPlayerId, setIsHost]);

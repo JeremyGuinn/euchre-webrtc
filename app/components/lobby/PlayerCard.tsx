@@ -1,5 +1,6 @@
-import { useState } from "react";
-import Input from "../ui/Input";
+import { useState } from 'react';
+
+import Input from '../ui/Input';
 
 interface PlayerCardProps {
   player: {
@@ -26,7 +27,7 @@ export function PlayerCard({
   canDrag,
   onRename,
   onKick,
-  onDragStart
+  onDragStart,
 }: PlayerCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(player.name);
@@ -58,74 +59,110 @@ export function PlayerCard({
 
   return (
     <div
-      className={`group relative p-4 rounded-lg border-2 transition-all duration-200 ${player.isConnected
-        ? "bg-white border-gray-200 hover:border-gray-300"
-        : "bg-gray-50 border-gray-300 opacity-75"
-        } ${canDrag ? "cursor-move hover:shadow-md pl-10" : ""}`}
+      className={`group relative p-4 rounded-lg border-2 transition-all duration-200 ${
+        player.isConnected
+          ? 'bg-white border-gray-200 hover:border-gray-300'
+          : 'bg-gray-50 border-gray-300 opacity-75'
+      } ${canDrag ? 'cursor-move hover:shadow-md pl-10' : ''}`}
       draggable={canDrag}
       onDragStart={() => onDragStart?.(player.id)}
     >
       {/* Drag indicator */}
       {canDrag && (
-        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-50 transition-opacity">
-          <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M7 2a1 1 0 000 2h6a1 1 0 100-2H7zM7 8a1 1 0 000 2h6a1 1 0 100-2H7zM7 14a1 1 0 000 2h6a1 1 0 100-2H7z" />
+        <div className='absolute left-3 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-50 transition-opacity'>
+          <svg
+            className='w-4 h-4 text-gray-400'
+            fill='currentColor'
+            viewBox='0 0 20 20'
+          >
+            <path d='M7 2a1 1 0 000 2h6a1 1 0 100-2H7zM7 8a1 1 0 000 2h6a1 1 0 100-2H7zM7 14a1 1 0 000 2h6a1 1 0 100-2H7z' />
           </svg>
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <div className="flex-1 min-w-0">
+      <div className='flex items-center justify-between'>
+        <div className='flex-1 min-w-0'>
           {isEditing ? (
-            <div className="flex items-center space-x-2">
+            <div className='flex items-center space-x-2'>
               <Input
                 value={newName}
-                onChange={(e) => setNewName(e.target.value)}
+                onChange={e => setNewName(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="flex-1 text-sm"
+                className='flex-1 text-sm'
                 maxLength={20}
-                autoFocus
-                placeholder="Enter name..."
+                placeholder='Enter name...'
                 fullWidth
               />
-              <div className="flex space-x-1">
+              <div className='flex space-x-1'>
                 <button
                   onClick={handleSave}
                   disabled={!newName.trim()}
-                  className="p-1.5 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Save"
+                  className='p-1.5 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                  title='Save'
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    className='w-4 h-4'
+                    fill='none'
+                    stroke='currentColor'
+                    viewBox='0 0 24 24'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M5 13l4 4L19 7'
+                    />
                   </svg>
                 </button>
                 <button
                   onClick={handleCancel}
-                  className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
-                  title="Cancel"
+                  className='p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors'
+                  title='Cancel'
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className='w-4 h-4'
+                    fill='none'
+                    stroke='currentColor'
+                    viewBox='0 0 24 24'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M6 18L18 6M6 6l12 12'
+                    />
                   </svg>
                 </button>
               </div>
             </div>
           ) : (
-            <div className="flex items-center space-x-2">
-              <span className="font-medium text-gray-900 truncate">
+            <div className='flex items-center space-x-2'>
+              <span className='font-medium text-gray-900 truncate'>
                 {player.name}
                 {isCurrentUser && (
-                  <span className="ml-1 text-sm text-gray-500 font-normal">(You)</span>
+                  <span className='ml-1 text-sm text-gray-500 font-normal'>
+                    (You)
+                  </span>
                 )}
               </span>
               {canEdit && (
                 <button
                   onClick={handleStartEdit}
-                  className="opacity-0 group-hover:opacity-100 p-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-all"
-                  title={isCurrentUser ? "Edit your name" : "Rename player"}
+                  className='opacity-0 group-hover:opacity-100 p-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-all'
+                  title={isCurrentUser ? 'Edit your name' : 'Rename player'}
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  <svg
+                    className='w-3.5 h-3.5'
+                    fill='none'
+                    stroke='currentColor'
+                    viewBox='0 0 24 24'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'
+                    />
                   </svg>
                 </button>
               )}
@@ -133,12 +170,20 @@ export function PlayerCard({
           )}
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className='flex items-center space-x-3'>
           {/* Host badge */}
           {player.isHost && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-              <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" clipRule="evenodd" />
+            <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800'>
+              <svg
+                className='w-3 h-3 mr-1'
+                fill='currentColor'
+                viewBox='0 0 20 20'
+              >
+                <path
+                  fillRule='evenodd'
+                  d='M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z'
+                  clipRule='evenodd'
+                />
               </svg>
               Host
             </span>
@@ -148,20 +193,31 @@ export function PlayerCard({
           {canKick && !isEditing && (
             <button
               onClick={() => onKick(player.id)}
-              className="opacity-0 group-hover:opacity-100 p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-all"
-              title="Remove player"
+              className='opacity-0 group-hover:opacity-100 p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-all'
+              title='Remove player'
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              <svg
+                className='w-4 h-4'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16'
+                />
               </svg>
             </button>
           )}
 
           {/* Connection status */}
           <div
-            className={`w-3 h-3 rounded-full ${player.isConnected ? "bg-green-500" : "bg-red-500"
-              }`}
-            title={player.isConnected ? "Connected" : "Disconnected"}
+            className={`w-3 h-3 rounded-full ${
+              player.isConnected ? 'bg-green-500' : 'bg-red-500'
+            }`}
+            title={player.isConnected ? 'Connected' : 'Disconnected'}
           />
         </div>
       </div>

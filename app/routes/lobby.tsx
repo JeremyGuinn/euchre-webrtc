@@ -1,31 +1,29 @@
-import type { Route } from "./+types/lobby";
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
-import { useGame } from "../contexts/GameContext";
-import { useIsClient } from "../hooks/useClientOnly";
-import Button from "../components/ui/Button";
-import PlayerCard from "../components/lobby/PlayerCard";
-import HostControlsInfo from "../components/lobby/HostControlsInfo";
-import GameOptionsPanel from "../components/lobby/GameOptionsPanel";
-import Input from "../components/ui/Input";
-import { normalizeGameCode } from "~/utils/gameCode";
-import GameContainer from "../components/layout/GameContainer";
-import GameCodeSharing from "../components/lobby/GameCodeSharing";
-import ConnectionStatusDisplay from "../components/ui/ConnectionStatusDisplay";
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
+
+import GameContainer from '../components/layout/GameContainer';
+import GameCodeSharing from '../components/lobby/GameCodeSharing';
+import GameOptionsPanel from '../components/lobby/GameOptionsPanel';
+import HostControlsInfo from '../components/lobby/HostControlsInfo';
+import PlayerCard from '../components/lobby/PlayerCard';
+import Button from '../components/ui/Button';
+import ConnectionStatusDisplay from '../components/ui/ConnectionStatusDisplay';
+import { useGame } from '../contexts/GameContext';
+
+import type { Route } from './+types/lobby';
 
 export function meta({ params }: Route.MetaArgs) {
   return [
     { title: `Game Lobby ${params.gameId} - Euchre Online` },
     {
-      name: "description",
-      content: "Waiting for players to join the Euchre game",
+      name: 'description',
+      content: 'Waiting for players to join the Euchre game',
     },
   ];
 }
 
 export default function Lobby({ params }: Route.ComponentProps) {
   const navigate = useNavigate();
-  const isClientSide = useIsClient();
   const {
     gameState,
     isHost,
@@ -43,18 +41,18 @@ export default function Lobby({ params }: Route.ComponentProps) {
   const [draggedPlayer, setDraggedPlayer] = useState<string | null>(null);
 
   const myPlayer = getMyPlayer();
-  const connectedPlayers = gameState.players.filter((p) => p.isConnected);
+  const connectedPlayers = gameState.players.filter(p => p.isConnected);
   const canStartGame = isHost && connectedPlayers.length === 4;
 
   useEffect(() => {
-    if (connectionStatus === "disconnected") {
+    if (connectionStatus === 'disconnected') {
       navigate(`/`);
     }
   }, [connectionStatus, navigate]);
 
   useEffect(() => {
     // Redirect to game if it has started
-    if (gameState.phase !== "lobby") {
+    if (gameState.phase !== 'lobby') {
       navigate(`/game/${gameId}`);
     }
   }, [gameState.phase, gameId, navigate]);
@@ -67,7 +65,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
 
   const handleLeaveGame = () => {
     disconnect();
-    navigate("/");
+    navigate('/');
   };
 
   const handleRenamePlayer = (playerId: string, newName: string) => {
@@ -109,59 +107,58 @@ export default function Lobby({ params }: Route.ComponentProps) {
   return (
     <GameContainer>
       {/* Header */}
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold text-gray-800">Game Lobby</h1>
-          <div className="flex items-center space-x-4">
+      <div className='bg-white rounded-lg shadow-lg p-6 mb-6'>
+        <div className='flex justify-between items-center mb-4'>
+          <h1 className='text-2xl font-bold text-gray-800'>Game Lobby</h1>
+          <div className='flex items-center space-x-4'>
             <ConnectionStatusDisplay status={connectionStatus} />
-            <Button
-              variant="danger"
-              onClick={handleLeaveGame}
-              size="sm"
-            >
+            <Button variant='danger' onClick={handleLeaveGame} size='sm'>
               Leave Game
             </Button>
           </div>
         </div>
 
-        <GameCodeSharing gameId={gameId} layout="horizontal" />
+        <GameCodeSharing gameId={gameId} layout='horizontal' />
       </div>
 
       {/* Main content - responsive layout */}
-      <div className="space-y-6">
-        <div className="space-y-6">
+      <div className='space-y-6'>
+        <div className='space-y-6'>
           {/* Left Column - Players (takes up 2/3 on large screens) */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <div className='lg:col-span-2 space-y-6'>
+            <div className='bg-white rounded-lg shadow-lg p-6'>
+              <h2 className='text-xl font-semibold text-gray-800 mb-4'>
                 Players ({connectedPlayers.length}/4)
               </h2>
 
-              <div className="space-y-3">
+              <div className='space-y-3'>
                 {gameState.options?.teamSelection === 'predetermined' ? (
                   // Team-based layout for predetermined teams
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                     {/* Team 0 */}
-                    <div className="bg-blue-50 rounded-lg p-4">
-                      <h3 className="font-medium text-blue-800 mb-3 text-center">
+                    <div className='bg-blue-50 rounded-lg p-4'>
+                      <h3 className='font-medium text-blue-800 mb-3 text-center'>
                         Team 1
                       </h3>
-                      <div className="space-y-2">
-                        {[0, 2].map((position) => {
+                      <div className='space-y-2'>
+                        {[0, 2].map(position => {
                           const player = gameState.players.find(
-                            (p) => p.position === position
+                            p => p.position === position
                           );
                           return (
                             <div
                               key={position}
-                              className={`transition-all ${player
-                                ? player.isConnected
-                                  ? ""
-                                  : "opacity-75"
-                                : "border-dashed border-gray-300 bg-gray-50"
-                                } ${isHost && !player ? "hover:border-blue-400" : ""}`}
+                              className={`transition-all ${
+                                player
+                                  ? player.isConnected
+                                    ? ''
+                                    : 'opacity-75'
+                                  : 'border-dashed border-gray-300 bg-gray-50'
+                              } ${isHost && !player ? 'hover:border-blue-400' : ''}`}
                               onDragOver={handleDragOver}
-                              onDrop={(e) => handleDrop(e, position as 0 | 1 | 2 | 3)}
+                              onDrop={e =>
+                                handleDrop(e, position as 0 | 1 | 2 | 3)
+                              }
                             >
                               {player ? (
                                 <PlayerCard
@@ -176,9 +173,11 @@ export default function Lobby({ params }: Route.ComponentProps) {
                                   onDragStart={handleDragStart}
                                 />
                               ) : (
-                                <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                                  <div className="flex items-center justify-center text-gray-500">
-                                    <span className="text-sm font-medium">Waiting for player...</span>
+                                <div className='p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50'>
+                                  <div className='flex items-center justify-center text-gray-500'>
+                                    <span className='text-sm font-medium'>
+                                      Waiting for player...
+                                    </span>
                                   </div>
                                 </div>
                               )}
@@ -189,26 +188,29 @@ export default function Lobby({ params }: Route.ComponentProps) {
                     </div>
 
                     {/* Team 1 */}
-                    <div className="bg-red-50 rounded-lg p-4">
-                      <h3 className="font-medium text-red-800 mb-3 text-center">
+                    <div className='bg-red-50 rounded-lg p-4'>
+                      <h3 className='font-medium text-red-800 mb-3 text-center'>
                         Team 2
                       </h3>
-                      <div className="space-y-2">
-                        {[1, 3].map((position) => {
+                      <div className='space-y-2'>
+                        {[1, 3].map(position => {
                           const player = gameState.players.find(
-                            (p) => p.position === position
+                            p => p.position === position
                           );
                           return (
                             <div
                               key={position}
-                              className={`transition-all ${player
-                                ? player.isConnected
-                                  ? ""
-                                  : "opacity-75"
-                                : "border-dashed border-gray-300 bg-gray-50"
-                                } ${isHost && !player ? "hover:border-red-400" : ""}`}
+                              className={`transition-all ${
+                                player
+                                  ? player.isConnected
+                                    ? ''
+                                    : 'opacity-75'
+                                  : 'border-dashed border-gray-300 bg-gray-50'
+                              } ${isHost && !player ? 'hover:border-red-400' : ''}`}
                               onDragOver={handleDragOver}
-                              onDrop={(e) => handleDrop(e, position as 0 | 1 | 2 | 3)}
+                              onDrop={e =>
+                                handleDrop(e, position as 0 | 1 | 2 | 3)
+                              }
                             >
                               {player ? (
                                 <PlayerCard
@@ -223,9 +225,11 @@ export default function Lobby({ params }: Route.ComponentProps) {
                                   onDragStart={handleDragStart}
                                 />
                               ) : (
-                                <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                                  <div className="flex items-center justify-center text-gray-500">
-                                    <span className="text-sm font-medium">Waiting for player...</span>
+                                <div className='p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50'>
+                                  <div className='flex items-center justify-center text-gray-500'>
+                                    <span className='text-sm font-medium'>
+                                      Waiting for player...
+                                    </span>
                                   </div>
                                 </div>
                               )}
@@ -237,24 +241,30 @@ export default function Lobby({ params }: Route.ComponentProps) {
                   </div>
                 ) : (
                   // Simple list layout for random card teams
-                  <div className="space-y-3">
-                    <div className="text-sm text-gray-600 text-center mb-4">
-                      Teams will be determined by card selection when the game starts
+                  <div className='space-y-3'>
+                    <div className='text-sm text-gray-600 text-center mb-4'>
+                      Teams will be determined by card selection when the game
+                      starts
                     </div>
 
                     {gameState.players.length === 0 ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+                      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3'>
                         {Array.from({ length: 4 }).map((_, index) => (
-                          <div key={index} className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                            <div className="flex items-center justify-center text-gray-500">
-                              <span className="text-sm font-medium">Waiting for player...</span>
+                          <div
+                            key={index}
+                            className='p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50'
+                          >
+                            <div className='flex items-center justify-center text-gray-500'>
+                              <span className='text-sm font-medium'>
+                                Waiting for player...
+                              </span>
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
-                        {gameState.players.map((player) => (
+                      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3'>
+                        {gameState.players.map(player => (
                           <PlayerCard
                             key={player.id}
                             player={player}
@@ -269,10 +279,17 @@ export default function Lobby({ params }: Route.ComponentProps) {
                           />
                         ))}
                         {/* Show empty slots for remaining players */}
-                        {Array.from({ length: Math.max(0, 4 - gameState.players.length) }).map((_, index) => (
-                          <div key={`empty-${index}`} className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                            <div className="flex items-center justify-center text-gray-500">
-                              <span className="text-sm font-medium">Waiting for player...</span>
+                        {Array.from({
+                          length: Math.max(0, 4 - gameState.players.length),
+                        }).map((_, index) => (
+                          <div
+                            key={`empty-${index}`}
+                            className='p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50'
+                          >
+                            <div className='flex items-center justify-center text-gray-500'>
+                              <span className='text-sm font-medium'>
+                                Waiting for player...
+                              </span>
                             </div>
                           </div>
                         ))}
@@ -294,26 +311,26 @@ export default function Lobby({ params }: Route.ComponentProps) {
             />
 
             {/* Game Controls */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <div className="text-center">
+            <div className='bg-white rounded-lg shadow-lg p-6'>
+              <div className='text-center'>
                 {connectedPlayers.length < 4 ? (
                   <div>
-                    <p className="text-gray-600 mb-4">
+                    <p className='text-gray-600 mb-4'>
                       Waiting for {4 - connectedPlayers.length} more player
-                      {4 - connectedPlayers.length !== 1 ? "s" : ""} to join...
+                      {4 - connectedPlayers.length !== 1 ? 's' : ''} to join...
                     </p>
-                    <div className="text-sm text-gray-500">
+                    <div className='text-sm text-gray-500'>
                       Share the game code or invite link with your friends
                     </div>
                   </div>
                 ) : isHost ? (
                   <div>
-                    <p className="text-green-600 font-medium mb-4">
+                    <p className='text-green-600 font-medium mb-4'>
                       All players connected! Ready to start the game.
                     </p>
                     <Button
-                      variant="success"
-                      size="lg"
+                      variant='success'
+                      size='lg'
                       onClick={handleStartGame}
                     >
                       Start Game
@@ -321,7 +338,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
                   </div>
                 ) : (
                   <div>
-                    <p className="text-green-600 font-medium">
+                    <p className='text-green-600 font-medium'>
                       All players connected! Waiting for host to start the game.
                     </p>
                   </div>

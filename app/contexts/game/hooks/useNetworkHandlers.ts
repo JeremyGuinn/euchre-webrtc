@@ -1,9 +1,12 @@
-import { useEffect, useRef, useCallback } from "react";
-import { GameNetworkService } from "../services/networkService";
-import { createMessageHandlers } from "../../handlers";
-import type { GameMessage } from "../../../types/messages";
-import type { GameState } from "../../../types/game";
-import type { GameAction } from "../../../utils/gameState";
+import { useCallback, useEffect, useRef } from 'react';
+
+import type { MessageHandler } from '~/contexts/handlers/types';
+import type { ConnectionStatus, PeerMessageHandler } from '~/utils/networking';
+import type { GameState } from '../../../types/game';
+import type { GameMessage } from '../../../types/messages';
+import type { GameAction } from '../../../utils/gameState';
+import { createMessageHandlers } from '../../handlers';
+import { GameNetworkService } from '../services/networkService';
 
 export function useNetworkHandlers(
   networkService: GameNetworkService,
@@ -13,7 +16,7 @@ export function useNetworkHandlers(
   dispatch: React.Dispatch<GameAction>,
   broadcastGameState: () => void,
   onKicked?: (message: string) => void,
-  setConnectionStatus?: (status: "disconnected" | "connecting" | "connected" | "error") => void,
+  setConnectionStatus?: (status: ConnectionStatus) => void,
   setMyPlayerId?: (id: string) => void,
   setIsHost?: (isHost: boolean) => void
 ) {
@@ -41,34 +44,38 @@ export function useNetworkHandlers(
     setIsHost,
   };
 
-  const handleMessage = useCallback((messageType: string, handler: any) => {
-    return (message: GameMessage, senderId: string) => {
-      const networkManager = networkService.getNetworkManager();
-      if (!networkManager) return;
+  const handleWithContext = useCallback(
+    <T extends GameMessage>(handler: MessageHandler<T>): PeerMessageHandler<T> => {
+      return (message: T, senderId: string) => {
+        const networkManager = networkService.getNetworkManager();
+        if (!networkManager) return;
 
-      handler(message, senderId, {
-        gameState: stateRef.current.gameState,
-        myPlayerId: stateRef.current.myPlayerId,
-        isHost: stateRef.current.isHost,
-        dispatch: stateRef.current.dispatch,
-        networkManager,
-        broadcastGameState: stateRef.current.broadcastGameState,
-        onKicked: stateRef.current.onKicked,
-        setConnectionStatus: stateRef.current.setConnectionStatus || (() => { }),
-        setMyPlayerId: stateRef.current.setMyPlayerId || (() => { }),
-        setIsHost: stateRef.current.setIsHost || (() => { }),
-      });
-    };
-  }, [networkService]);
+        handler(message, senderId, {
+          gameState: stateRef.current.gameState,
+          myPlayerId: stateRef.current.myPlayerId,
+          isHost: stateRef.current.isHost,
+          dispatch: stateRef.current.dispatch,
+          networkManager,
+          broadcastGameState: stateRef.current.broadcastGameState,
+          onKicked: stateRef.current.onKicked,
+          setConnectionStatus:
+            stateRef.current.setConnectionStatus || (() => { }),
+          setMyPlayerId: stateRef.current.setMyPlayerId || (() => { }),
+          setIsHost: stateRef.current.setIsHost || (() => { }),
+        });
+      };
+    },
+    [networkService]
+  );
 
   useEffect(() => {
-    networkService.setStatusChangeHandler((status) => {
+    networkService.setStatusChangeHandler(status => {
       stateRef.current.setConnectionStatus?.(status);
     });
 
     networkService.setConnectionChangeHandler((peerId, connected) => {
       stateRef.current.dispatch({
-        type: "UPDATE_PLAYER_CONNECTION",
+        type: 'UPDATE_PLAYER_CONNECTION',
         payload: { playerId: peerId, isConnected: connected },
       });
     });
@@ -81,7 +88,10 @@ export function useNetworkHandlers(
     const messageHandlers = createMessageHandlers();
 
     Object.entries(messageHandlers).forEach(([messageType, handler]) => {
-      networkService.registerMessageHandler(messageType, handleMessage(messageType, handler));
+      networkService.registerMessageHandler(
+        messageType,
+        handleWithContext(handler as MessageHandler<GameMessage>),
+      );
     });
-  }, [networkService, handleMessage]);
+  }, [networkService, handleWithContext]);
 }

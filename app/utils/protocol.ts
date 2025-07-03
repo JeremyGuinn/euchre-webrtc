@@ -1,8 +1,12 @@
-import { encode, decode } from '@msgpack/msgpack';
+import { decode, encode } from '@msgpack/msgpack';
+
 import type { GameMessage } from '../types/messages';
 
 export class ProtocolError extends Error {
-  constructor(message: string, public code?: string) {
+  constructor(
+    message: string,
+    public code?: string
+  ) {
     super(message);
     this.name = 'ProtocolError';
   }
@@ -11,7 +15,7 @@ export class ProtocolError extends Error {
 export function encodeMessage(message: GameMessage): Uint8Array {
   try {
     return encode(message);
-  } catch (error) {
+  } catch {
     throw new ProtocolError('Failed to encode message', 'ENCODE_ERROR');
   }
 }
@@ -19,12 +23,12 @@ export function encodeMessage(message: GameMessage): Uint8Array {
 export function decodeMessage(data: Uint8Array): GameMessage {
   try {
     const decoded = decode(data);
-    
+
     // Validate that the decoded object has the required structure
     if (!isValidMessage(decoded)) {
       throw new ProtocolError('Invalid message structure', 'INVALID_MESSAGE');
     }
-    
+
     return decoded as GameMessage;
   } catch (error) {
     if (error instanceof ProtocolError) {
@@ -34,6 +38,7 @@ export function decodeMessage(data: Uint8Array): GameMessage {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isValidMessage(obj: any): obj is GameMessage {
   return (
     obj &&
@@ -45,9 +50,12 @@ function isValidMessage(obj: any): obj is GameMessage {
   );
 }
 
-export function isRecentMessage(message: GameMessage, maxAgeMs: number = 30000): boolean {
+export function isRecentMessage(
+  message: GameMessage,
+  maxAgeMs: number = 30000
+): boolean {
   const now = Date.now();
-  return (now - message.timestamp) <= maxAgeMs;
+  return now - message.timestamp <= maxAgeMs;
 }
 
 export function createMessageId(): string {

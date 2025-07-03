@@ -1,10 +1,8 @@
-import type { NetworkManager } from "~/utils/networking";
-import type { GameState } from "../../types/game";
-import type {
-  GameMessage,
-  MessageType
-} from "../../types/messages";
-import type { GameAction } from "../../utils/gameState";
+import type { GameState } from '../../types/game';
+import type { BaseMessage, GameMessage, MessageType } from '../../types/messages';
+import type { GameAction } from '../../utils/gameState';
+
+import type { ConnectionStatus, NetworkManager } from '~/utils/networking';
 
 /**
  * Context object that contains all the necessary state and functions
@@ -33,7 +31,7 @@ export interface HandlerContext {
   onKicked?: (message: string) => void;
 
   /** Function to update the connection status in the UI */
-  setConnectionStatus: (status: "disconnected" | "connecting" | "connected" | "error") => void;
+  setConnectionStatus: (status: ConnectionStatus) => void;
 
   /** Function to update the current player's ID */
   setMyPlayerId: (id: string) => void;
@@ -46,7 +44,7 @@ export interface HandlerContext {
  * Generic message handler type that can handle any GameMessage.
  * It takes a message of type T, the sender's ID, and the context in which the handler is executed.
  */
-export type MessageHandler<T extends GameMessage = GameMessage> = (
+export type MessageHandler<T extends BaseMessage> = (
   message: T,
   senderId: string,
   context: HandlerContext
@@ -55,7 +53,10 @@ export type MessageHandler<T extends GameMessage = GameMessage> = (
 /**
  * Extract specific message type from GameMessage union based on the 'type' property
  */
-type ExtractMessageType<T extends MessageType> = Extract<GameMessage, { type: T }>;
+type ExtractMessageType<T extends MessageType> = Extract<
+  GameMessage,
+  { type: T }
+>;
 
 /**
  * Generate handler types automatically from all message types.
@@ -66,3 +67,8 @@ type ExtractMessageType<T extends MessageType> = Extract<GameMessage, { type: T 
 export type MessageHandlers = {
   [K in MessageType]: MessageHandler<ExtractMessageType<K>>;
 };
+
+
+export type PeerMessageHandlers = {
+  [K in MessageType]: PeerMessageHandlers;
+}

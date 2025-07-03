@@ -1,5 +1,5 @@
-import type { DrawDealerCardMessage } from "../../../types/messages";
-import type { MessageHandler } from "../types";
+import type { DrawDealerCardMessage } from '../../../types/messages';
+import type { MessageHandler } from '../types';
 
 /**
  * Handles DRAW_DEALER_CARD messages when a player requests to draw a card for dealer selection.
@@ -15,7 +15,7 @@ export const handleDrawDealerCard: MessageHandler<DrawDealerCardMessage> = (
   senderId,
   context
 ) => {
-  const { dispatch, myPlayerId, isHost, gameState } = context;
+  const { dispatch, isHost, gameState } = context;
 
   if (!isHost) return; // Only the host processes draw dealer card messages
 
@@ -26,9 +26,9 @@ export const handleDrawDealerCard: MessageHandler<DrawDealerCardMessage> = (
   if (!gameState.deck || gameState.deck.length === 0) return;
 
   const availableCards = gameState.deck.filter(
-    (card) =>
+    card =>
       !Object.values(gameState.dealerSelectionCards || {}).some(
-        (drawnCard) => drawnCard.id === card.id
+        drawnCard => drawnCard.id === card.id
       )
   );
 
@@ -37,7 +37,11 @@ export const handleDrawDealerCard: MessageHandler<DrawDealerCardMessage> = (
   let drawnCard;
   const { cardIndex } = message.payload;
 
-  if (cardIndex !== undefined && cardIndex >= 0 && cardIndex < availableCards.length) {
+  if (
+    cardIndex !== undefined &&
+    cardIndex >= 0 &&
+    cardIndex < availableCards.length
+  ) {
     drawnCard = availableCards[cardIndex];
   } else {
     const randomIndex = Math.floor(Math.random() * availableCards.length);
@@ -45,7 +49,7 @@ export const handleDrawDealerCard: MessageHandler<DrawDealerCardMessage> = (
   }
 
   dispatch({
-    type: "DRAW_DEALER_CARD",
+    type: 'DRAW_DEALER_CARD',
     payload: { playerId: senderId, card: drawnCard },
   });
 };

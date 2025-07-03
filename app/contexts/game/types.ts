@@ -1,12 +1,12 @@
-import type { GameState, Player, Card, GameOptions } from "../../types/game";
-import type { NetworkManager } from "../../utils/networking";
+import type { Card, GameOptions, GameState, Player } from '../../types/game';
+import type { ConnectionStatus, NetworkManager } from '../../utils/networking';
 
 export interface GameContextType {
   gameState: GameState;
   networkManager: NetworkManager | null;
   myPlayerId: string;
   isHost: boolean;
-  connectionStatus: "disconnected" | "connecting" | "connected" | "error";
+  connectionStatus: ConnectionStatus;
 
   hostGame: () => Promise<string>;
   joinGame: (gameCode: string, playerName: string) => Promise<void>;
@@ -16,7 +16,7 @@ export interface GameContextType {
   completeDealerSelection: () => void;
   proceedToDealing: () => void;
   completeDealingAnimation: () => void;
-  placeBid: (suit: Card["suit"] | "pass", alone?: boolean) => void;
+  placeBid: (suit: Card['suit'] | 'pass', alone?: boolean) => void;
   playCard: (card: Card) => void;
   dealerDiscard: (card: Card) => void;
   disconnect: () => void;

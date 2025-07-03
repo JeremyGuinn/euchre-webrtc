@@ -1,44 +1,44 @@
-import type { Card as CardType } from "../../types/game";
+import type { Card as CardType } from '../../types/game';
 
 interface CardProps {
   card: CardType;
   onClick?: () => void;
   disabled?: boolean;
   className?: string;
-  size?: "small" | "medium" | "large";
+  size?: 'small' | 'medium' | 'large';
 }
 
 const suitSymbols = {
-  spades: "♠",
-  hearts: "♥",
-  diamonds: "♦",
-  clubs: "♣",
+  spades: '♠',
+  hearts: '♥',
+  diamonds: '♦',
+  clubs: '♣',
 };
 
 const suitColors = {
-  spades: "text-black",
-  hearts: "text-red-600",
-  diamonds: "text-red-600",
-  clubs: "text-black",
+  spades: 'text-black',
+  hearts: 'text-red-600',
+  diamonds: 'text-red-600',
+  clubs: 'text-black',
 };
 
 export function Card({
   card,
   onClick,
   disabled = false,
-  className = "",
-  size = "medium",
+  className = '',
+  size = 'medium',
 }: CardProps) {
   const sizeClasses = {
-    small: "w-12 h-16",
-    medium: "w-16 h-24",
-    large: "w-20 h-28",
+    small: 'w-12 h-16',
+    medium: 'w-16 h-24',
+    large: 'w-20 h-28',
   };
 
   const textSizes = {
-    small: { value: "text-xs", suit: "text-md" },
-    medium: { value: "text-sm", suit: "text-2xl" },
-    large: { value: "text-base", suit: "text-3xl" },
+    small: { value: 'text-xs', suit: 'text-md' },
+    medium: { value: 'text-sm', suit: 'text-2xl' },
+    large: { value: 'text-base', suit: 'text-3xl' },
   };
 
   const isClickable = onClick && !disabled;
@@ -49,18 +49,20 @@ export function Card({
         ${sizeClasses[size]}
         bg-white border border-gray-300 rounded-lg shadow-sm
         flex flex-col items-center justify-between p-1
-        ${isClickable
-          ? "cursor-pointer hover:shadow-md hover:scale-105 transition-all duration-200"
-          : ""
+        ${
+          isClickable
+            ? 'cursor-pointer hover:shadow-md hover:scale-105 transition-all duration-200'
+            : ''
         }
-        ${disabled ? "opacity-50 cursor-not-allowed" : ""}
+        ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
         ${className}
       `}
       onClick={isClickable ? onClick : undefined}
     >
       <div
-        className={`font-bold ${suitColors[card.suit]} ${textSizes[size].value
-          }`}
+        className={`font-bold ${suitColors[card.suit]} ${
+          textSizes[size].value
+        }`}
       >
         {card.value}
       </div>
@@ -68,8 +70,9 @@ export function Card({
         {suitSymbols[card.suit]}
       </div>
       <div
-        className={`font-bold ${suitColors[card.suit]} transform rotate-180 ${textSizes[size].value
-          }`}
+        className={`font-bold ${suitColors[card.suit]} transform rotate-180 ${
+          textSizes[size].value
+        }`}
       >
         {card.value}
       </div>
@@ -79,20 +82,20 @@ export function Card({
 
 interface CardBackProps {
   className?: string;
-  size?: "small" | "medium" | "large";
+  size?: 'small' | 'medium' | 'large';
 }
 
-export function CardBack({ className = "", size = "medium" }: CardBackProps) {
+export function CardBack({ className = '', size = 'medium' }: CardBackProps) {
   const sizeClasses = {
-    small: "w-12 h-16",
-    medium: "w-16 h-24",
-    large: "w-20 h-28",
+    small: 'w-12 h-16',
+    medium: 'w-16 h-24',
+    large: 'w-20 h-28',
   };
 
   const textSizes = {
-    small: { value: "text-[.625rem]" },
-    medium: { value: "text-sm" },
-    large: { value: "text-base" },
+    small: { value: 'text-[.625rem]' },
+    medium: { value: 'text-sm' },
+    large: { value: 'text-base' },
   };
 
   return (

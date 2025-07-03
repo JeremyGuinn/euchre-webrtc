@@ -5,11 +5,11 @@ import { useState, useEffect } from 'react';
  * This prevents hydration mismatches when content differs between server and client.
  */
 export function useIsClient(): boolean {
-    const [hasMounted, setHasMounted] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
 
-    useEffect(() => {
-        setHasMounted(true);
-    }, []);
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
-    return hasMounted;
+  return hasMounted;
 }

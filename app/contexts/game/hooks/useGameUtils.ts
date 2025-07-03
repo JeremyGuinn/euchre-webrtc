@@ -1,6 +1,7 @@
-import { useCallback } from "react";
-import type { Card, Player, GameState } from "../../../types/game";
-import { canPlayCardWithOptions } from "../../../utils/gameLogic";
+import { useCallback } from 'react';
+
+import type { Card, Player, GameState } from '../../../types/game';
+import { canPlayCardWithOptions } from '../../../utils/gameLogic';
 
 export function useGameUtils(gameState: GameState, myPlayerId: string) {
   const canPlay = useCallback(
@@ -15,7 +16,13 @@ export function useGameUtils(gameState: GameState, myPlayerId: string) {
         gameState.options.allowReneging
       );
     },
-    [gameState.hands, gameState.currentTrick, gameState.trump, gameState.options.allowReneging, myPlayerId]
+    [
+      gameState.hands,
+      gameState.currentTrick,
+      gameState.trump,
+      gameState.options.allowReneging,
+      myPlayerId,
+    ]
   );
 
   const isMyTurn = useCallback((): boolean => {
@@ -23,7 +30,7 @@ export function useGameUtils(gameState: GameState, myPlayerId: string) {
   }, [gameState.currentPlayerId, myPlayerId]);
 
   const getMyPlayer = useCallback((): Player | undefined => {
-    return gameState.players.find((p) => p.id === myPlayerId);
+    return gameState.players.find(p => p.id === myPlayerId);
   }, [gameState.players, myPlayerId]);
 
   const getMyHand = useCallback((): Card[] => {

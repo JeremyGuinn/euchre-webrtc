@@ -1,12 +1,12 @@
 export class SessionStorageService {
   private static readonly KEYS = {
-    PLAYER_ID: "euchre-player-id",
-    GAME_ID: "euchre-game-id",
+    PLAYER_ID: 'euchre-player-id',
+    GAME_ID: 'euchre-game-id',
   } as const;
 
   static saveSession(playerId: string, gameId: string) {
-    // sessionStorage.setItem(this.KEYS.PLAYER_ID, playerId);
-    // sessionStorage.setItem(this.KEYS.GAME_ID, uuidToGameCode(gameId));
+    sessionStorage.setItem(this.KEYS.PLAYER_ID, playerId);
+    sessionStorage.setItem(this.KEYS.GAME_ID, gameId);
   }
 
   static getSession() {

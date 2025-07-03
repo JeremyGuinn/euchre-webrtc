@@ -1,5 +1,5 @@
-import type { DealerDiscardMessage } from "../../../types/messages";
-import type { MessageHandler } from "../types";
+import type { DealerDiscardMessage } from '../../../types/messages';
+import type { MessageHandler } from '../types';
 
 /**
  * Handles DEALER_DISCARD messages when the dealer discards a card after taking up the kitty.
@@ -25,7 +25,7 @@ export const handleDealerDiscard: MessageHandler<DealerDiscardMessage> = (
   }
 
   dispatch({
-    type: "DEALER_DISCARD",
+    type: 'DEALER_DISCARD',
     payload: { card: message.payload.card },
   });
 };

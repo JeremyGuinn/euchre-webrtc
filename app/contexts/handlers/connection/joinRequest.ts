@@ -1,8 +1,9 @@
-import { createMessageId } from "~/utils/protocol";
-import { makeNameUnique } from "~/utils/playerUtils";
-import type { Player } from "../../../types/game";
-import type { JoinRequestMessage } from "../../../types/messages";
-import type { MessageHandler } from "../types";
+import type { Player } from '../../../types/game';
+import type { JoinRequestMessage } from '../../../types/messages';
+import type { MessageHandler } from '../types';
+
+import { makeNameUnique } from '~/utils/playerUtils';
+import { createMessageId } from '~/utils/protocol';
 
 /**
  * Handles JOIN_REQUEST messages sent by players trying to join the game.
@@ -28,11 +29,11 @@ export const handleJoinRequest: MessageHandler<JoinRequestMessage> = (
   if (gameState.players.length >= 4) {
     networkManager?.sendMessage(
       {
-        type: "ERROR",
+        type: 'ERROR',
         timestamp: Date.now(),
         messageId: createMessageId(),
         payload: {
-          message: "Game is full",
+          message: 'Game is full',
         },
       },
       senderId
@@ -49,18 +50,21 @@ export const handleJoinRequest: MessageHandler<JoinRequestMessage> = (
     teamId: (gameState.players.length % 2) as 0 | 1,
   };
 
-  dispatch({ type: "ADD_PLAYER", payload: { player: newPlayer } });
+  dispatch({ type: 'ADD_PLAYER', payload: { player: newPlayer } });
 
-  networkManager?.sendMessage({
-    type: "JOIN_RESPONSE",
-    timestamp: Date.now(),
-    messageId: createMessageId(),
-    payload: {
-      success: true,
-      gameState,
-      player: newPlayer,
+  networkManager?.sendMessage(
+    {
+      type: 'JOIN_RESPONSE',
+      timestamp: Date.now(),
+      messageId: createMessageId(),
+      payload: {
+        success: true,
+        gameState,
+        player: newPlayer,
+      },
     },
-  }, senderId);
+    senderId
+  );
 
   const updatedGameState = {
     ...gameState,
@@ -68,7 +72,7 @@ export const handleJoinRequest: MessageHandler<JoinRequestMessage> = (
   };
 
   networkManager?.sendMessage({
-    type: "PLAYER_JOINED",
+    type: 'PLAYER_JOINED',
     timestamp: Date.now(),
     messageId: createMessageId(),
     payload: {

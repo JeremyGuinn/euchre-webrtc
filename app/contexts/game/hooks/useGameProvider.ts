@@ -1,12 +1,15 @@
-import { useReducer, useState, useMemo } from "react";
-import { gameReducer } from "../../../utils/gameState";
-import { GameNetworkService } from "../services/networkService";
-import { useConnectionActions } from "./useConnectionActions";
-import { useGameActions } from "./useGameActions";
-import { useGameUtils } from "./useGameUtils";
-import { useGameStateEffects } from "./useGameStateEffects";
-import { useNetworkHandlers } from "./useNetworkHandlers";
-import type { GameContextType } from "../types";
+import { useMemo, useReducer, useState } from 'react';
+
+import { gameReducer } from '../../../utils/gameState';
+import { GameNetworkService } from '../services/networkService';
+import type { GameContextType } from '../types';
+
+import type { ConnectionStatus } from '~/utils/networking';
+import { useConnectionActions } from './useConnectionActions';
+import { useGameActions } from './useGameActions';
+import { useGameStateEffects } from './useGameStateEffects';
+import { useGameUtils } from './useGameUtils';
+import { useNetworkHandlers } from './useNetworkHandlers';
 
 interface UseGameProviderOptions {
   onKicked?: (message: string) => void;
@@ -17,17 +20,17 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
 
   // Core state
   const [gameState, dispatch] = useReducer(gameReducer, {
-    id: "",
+    id: '',
     players: [],
     options: {
       allowReneging: false,
-      teamSelection: "predetermined",
-      dealerSelection: "first_black_jack",
+      teamSelection: 'predetermined',
+      dealerSelection: 'first_black_jack',
       screwTheDealer: false,
-      farmersHand: false
+      farmersHand: false,
     },
-    phase: "lobby",
-    currentDealerId: "",
+    phase: 'lobby',
+    currentDealerId: '',
     deck: [],
     hands: {},
     bids: [],
@@ -36,10 +39,8 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
     handScores: { team0: 0, team1: 0 },
   });
 
-  const [connectionStatus, setConnectionStatus] = useState<
-    "disconnected" | "connecting" | "connected" | "error"
-  >("disconnected");
-  const [myPlayerId, setMyPlayerId] = useState("");
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
+  const [myPlayerId, setMyPlayerId] = useState('');
   const [isHost, setIsHost] = useState(false);
 
   const networkService = useMemo(() => new GameNetworkService(), []);

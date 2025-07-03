@@ -1,20 +1,20 @@
-import type { Route } from "./+types/host";
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router";
-import { useGame } from "../contexts/GameContext";
-import Button from "../components/ui/Button";
-import PageContainer from "../components/layout/PageContainer";
-import LoadingScreen from "../components/ui/LoadingScreen";
-import ErrorDisplay from "../components/ui/ErrorDisplay";
-import GameCodeSharing from "../components/lobby/GameCodeSharing";
-import ConnectionStatusDisplay from "../components/ui/ConnectionStatusDisplay";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router';
 
-export function meta({ }: Route.MetaArgs) {
+import PageContainer from '../components/layout/PageContainer';
+import GameCodeSharing from '../components/lobby/GameCodeSharing';
+import Button from '../components/ui/Button';
+import ConnectionStatusDisplay from '../components/ui/ConnectionStatusDisplay';
+import ErrorDisplay from '../components/ui/ErrorDisplay';
+import LoadingScreen from '../components/ui/LoadingScreen';
+import { useGame } from '../contexts/GameContext';
+
+export function meta() {
   return [
-    { title: "Host Game - Euchre Online" },
+    { title: 'Host Game - Euchre Online' },
     {
-      name: "description",
-      content: "Host a new Euchre game and invite friends to join",
+      name: 'description',
+      content: 'Host a new Euchre game and invite friends to join',
     },
   ];
 }
@@ -22,16 +22,16 @@ export function meta({ }: Route.MetaArgs) {
 export default function Host() {
   const navigate = useNavigate();
   const { hostGame, connectionStatus } = useGame();
-  const [gameId, setGameId] = useState("");
+  const [gameId, setGameId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [isRetrying, setIsRetrying] = useState(false);
   const hasHostedRef = useRef(false);
 
-  const handleHostGame = async (hostGameFn: typeof hostGame) => {
+  const handleHostGame = useCallback(async (hostGameFn: typeof hostGame) => {
     setIsLoading(true);
     setIsRetrying(true);
-    setError("");
+    setError('');
 
     try {
       const newGameId = await hostGameFn();
@@ -42,27 +42,27 @@ export default function Host() {
         navigate(`/lobby/${newGameId}`);
       }, 2000);
     } catch (err) {
-      console.error("Failed to host game:", err);
-      setError("Failed to create game. Please try again.");
+      console.error('Failed to host game:', err);
+      setError('Failed to create game. Please try again.');
     } finally {
       setIsLoading(false);
       setIsRetrying(false);
     }
-  };
+  }, [setIsLoading, setIsRetrying, setError, setGameId, navigate]);
 
   useEffect(() => {
     if (!hasHostedRef.current) {
       hasHostedRef.current = true;
       handleHostGame(hostGame);
     }
-  }, [hostGame, navigate]);
+  }, [hostGame, navigate, handleHostGame]);
 
   if (isLoading) {
     return (
       <PageContainer>
         <LoadingScreen
-          title="Creating Game..."
-          message="Setting up your Euchre table"
+          title='Creating Game...'
+          message='Setting up your Euchre table'
         />
       </PageContainer>
     );
@@ -70,21 +70,24 @@ export default function Host() {
 
   if (error) {
     return (
-      <PageContainer className="text-center">
-        <div className="text-red-500 text-4xl mb-4">⚠️</div>
-        <h2 className="text-xl font-semibold text-gray-800 mb-2">Error</h2>
-        <ErrorDisplay error={error} className="mb-4" />
-        <Button onClick={() => {
-          hasHostedRef.current = false;
-          handleHostGame(hostGame);
-        }} disabled={isRetrying}>
+      <PageContainer className='text-center'>
+        <div className='text-red-500 text-4xl mb-4'>⚠️</div>
+        <h2 className='text-xl font-semibold text-gray-800 mb-2'>Error</h2>
+        <ErrorDisplay error={error} className='mb-4' />
+        <Button
+          onClick={() => {
+            hasHostedRef.current = false;
+            handleHostGame(hostGame);
+          }}
+          disabled={isRetrying}
+        >
           {isRetrying ? (
-            <div className="flex items-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+            <div className='flex items-center'>
+              <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2'></div>
               Retrying...
             </div>
           ) : (
-            "Try Again"
+            'Try Again'
           )}
         </Button>
       </PageContainer>
@@ -93,23 +96,23 @@ export default function Host() {
 
   return (
     <PageContainer>
-      <div className="text-center mb-6">
-        <div className="text-green-500 text-4xl mb-4">✅</div>
-        <h2 className="text-xl font-semibold text-gray-800 mb-2">
+      <div className='text-center mb-6'>
+        <div className='text-green-500 text-4xl mb-4'>✅</div>
+        <h2 className='text-xl font-semibold text-gray-800 mb-2'>
           Game Created!
         </h2>
-        <p className="text-gray-600">Share this code with your friends</p>
+        <p className='text-gray-600'>Share this code with your friends</p>
       </div>
 
-      <GameCodeSharing gameId={gameId} className="mb-6" />
+      <GameCodeSharing gameId={gameId} className='mb-6' />
 
-      <div className="mt-6">
+      <div className='mt-6'>
         <ConnectionStatusDisplay
           status={connectionStatus}
-          className="justify-between mb-4"
+          className='justify-between mb-4'
         />
 
-        <p className="text-sm text-gray-600 text-center">
+        <p className='text-sm text-gray-600 text-center'>
           Redirecting to lobby in a moment...
         </p>
       </div>
