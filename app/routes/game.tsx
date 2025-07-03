@@ -430,11 +430,10 @@ export default function Game({ params }: Route.ComponentProps) {
         })}
 
         {/* Current turn indicator */}
-        {currentPlayer && (
+        {currentPlayer && gameState.phase !== 'dealing_animation' && (
           <div className='absolute bottom-48 left-1/2 transform -translate-x-1/2 text-white text-center z-20'>
             <div className='bg-black/70 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg border border-white/20'>
-              {currentPlayer.id === myPlayer.id 
-                && gameState.phase !== 'dealing_animation' ? (
+              {currentPlayer.id === myPlayer.id ? (
                 <>
                 { gameState.phase === 'dealer_discard' && (
                   <>
