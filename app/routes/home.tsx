@@ -5,6 +5,8 @@ import { isValidGameCode, normalizeGameCode } from "../utils/gameCode";
 import LinkButton from "../components/ui/LinkButton";
 import ButtonDivider from "../components/ui/ButtonDivider";
 import Input from "../components/ui/Input";
+import PageContainer from "../components/layout/PageContainer";
+import NotificationBanner from "../components/ui/NotificationBanner";
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -31,72 +33,66 @@ export default function Home() {
   }, [location.state]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-800 to-green-600 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-        {/* Kick Message Alert */}
-        {kickMessage && (
-          <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <span className="text-red-400">⚠️</span>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium">{kickMessage}</p>
-              </div>
-            </div>
-          </div>
-        )}
+    <PageContainer>
+      {/* Kick Message Alert */}
+      {kickMessage && (
+        <NotificationBanner
+          message={kickMessage}
+          type="error"
+          onDismiss={() => setKickMessage(null)}
+          className="mb-6"
+        />
+      )}
 
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">♠️ Euchre Online ♥️</h1>
-          <p className="text-gray-600">Play the classic card game with friends</p>
-        </div>
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">♠️ Euchre Online ♥️</h1>
+        <p className="text-gray-600">Play the classic card game with friends</p>
+      </div>
 
-        <div className="space-y-4">
+      <div className="space-y-4">
+        <LinkButton
+          to="/host"
+          variant="primary"
+        >
+          Host a New Game
+        </LinkButton>
+
+        <ButtonDivider />
+
+        <div className="space-y-2">
+          <Input
+            placeholder="Enter game code (e.g., A3K7M2)"
+            value={gameCode}
+            onChange={(e) => {
+              const normalized = normalizeGameCode(e.target.value);
+              setGameCode(normalized);
+            }}
+            className="font-mono text-center"
+            maxLength={6}
+            fullWidth
+          />
           <LinkButton
-            to="/host"
-            variant="primary"
+            to={isValidGameCode(gameCode) ? `/join/${gameCode}` : "#"}
+            variant="success"
+            disabled={!isValidGameCode(gameCode)}
+            onClick={(e) => {
+              if (!gameCode) {
+                e.preventDefault();
+              }
+            }}
           >
-            Host a New Game
+            Join Game
           </LinkButton>
-
-          <ButtonDivider />
-
-          <div className="space-y-2">
-            <Input
-              placeholder="Enter game code (e.g., A3K7M2)"
-              value={gameCode}
-              onChange={(e) => {
-                const normalized = normalizeGameCode(e.target.value);
-                setGameCode(normalized);
-              }}
-              className="font-mono text-center"
-              maxLength={6}
-              fullWidth
-            />
-            <LinkButton
-              to={isValidGameCode(gameCode) ? `/join/${gameCode}` : "#"}
-              variant="success"
-              disabled={!isValidGameCode(gameCode)}
-              onClick={(e) => {
-                if (!gameCode) {
-                  e.preventDefault();
-                }
-              }}
-            >
-              Join Game
-            </LinkButton>
-          </div>
-        </div>
-
-        <div className="mt-8 text-center">
-          <div className="text-sm text-gray-600 space-y-1">
-            <p>🔒 No registration required</p>
-            <p>🌐 Peer-to-peer connection</p>
-            <p>👥 4 players needed</p>
-          </div>
         </div>
       </div>
-    </div>
+
+      <div className="mt-8 text-center">
+        <div className="text-sm text-gray-600 space-y-1">
+          <p>🔒 No registration required</p>
+          <p>🌐 Peer-to-peer connection</p>
+          <p>👥 4 players needed</p>
+        </div>
+      </div>
+    </PageContainer>
   );
 }

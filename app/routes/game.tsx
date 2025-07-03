@@ -6,6 +6,7 @@ import { Card, CardBack } from "../components/ui/Card";
 import { DealingAnimation } from "../components/game/DealingAnimation";
 import Button from "../components/ui/Button";
 import type { Card as CardType } from "../types/game";
+import GameContainer from "../components/layout/GameContainer";
 
 export function meta({ params }: Route.MetaArgs) {
   return [
@@ -156,18 +157,17 @@ export default function Game({ params }: Route.ComponentProps) {
 
   if (!myPlayer) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-800 to-green-600 flex items-center justify-center">
+      <GameContainer className="flex items-center justify-center">
         <div className="text-white text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
           <p>Loading game...</p>
         </div>
-      </div>
+      </GameContainer>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-800 to-green-600 relative overflow-hidden">
-      {/* Header */}
+    <GameContainer className="relative overflow-hidden">{/* Header */}
       <div className="absolute top-0 left-0 right-0 bg-black/20 p-4 z-10">
         <div className="flex justify-between items-center text-white">
           <div className="flex items-center space-x-6">
@@ -823,6 +823,6 @@ export default function Game({ params }: Route.ComponentProps) {
           onComplete={completeDealingAnimation}
         />
       )}
-    </div>
+    </GameContainer>
   );
 }

@@ -7,6 +7,9 @@ import { isValidGameCode, normalizeGameCode } from "../utils/gameCode";
 import Button from "../components/ui/Button";
 import LinkButton from "../components/ui/LinkButton";
 import Input from "../components/ui/Input";
+import PageContainer from "../components/layout/PageContainer";
+import ErrorDisplay from "../components/ui/ErrorDisplay";
+import ConnectionStatusDisplay from "../components/ui/ConnectionStatusDisplay";
 
 export function meta({ params }: Route.MetaArgs) {
   return [
@@ -82,70 +85,52 @@ export default function Join({ params }: Route.ComponentProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-800 to-green-600 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Join Game</h1>
-          <p className="text-gray-600">
-            Game Code: <span className="font-mono font-semibold">{gameId}</span>
-          </p>
-        </div>
-
-        <form onSubmit={handleJoinGame} className="space-y-6">
-          <Input
-            label="Your Name"
-            id="playerName"
-            value={playerName}
-            onChange={(e) => setPlayerName(e.target.value)}
-            placeholder="Enter your name"
-            maxLength={20}
-            required
-            disabled={isJoining}
-            fullWidth
-          />
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <div className="flex items-center">
-                <div className="text-red-500 mr-2">⚠️</div>
-                <p className="text-red-700 text-sm">{error}</p>
-              </div>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-            <span>Connection Status:</span>
-            <span className={`font-medium ${connectionStatus === 'connected' ? 'text-green-600' :
-              connectionStatus === 'connecting' ? 'text-yellow-600' :
-                connectionStatus === 'error' ? 'text-red-600' :
-                  'text-gray-600'
-              }`}>
-              {connectionStatus}
-            </span>
-          </div>
-
-          <Button
-            type="submit"
-            variant="success"
-            size="lg"
-            fullWidth
-            disabled={!playerName.trim()}
-            loading={isJoining}
-          >
-            {isJoining ? "Joining..." : "Join Game"}
-          </Button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <LinkButton
-            to="/"
-            variant="text"
-            size="sm"
-          >
-            ← Back to Home
-          </LinkButton>
-        </div>
+    <PageContainer>
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">Join Game</h1>
+        <p className="text-gray-600">
+          Game Code: <span className="font-mono font-semibold">{gameId}</span>
+        </p>
       </div>
-    </div>
+
+      <form onSubmit={handleJoinGame} className="space-y-6">
+        <Input
+          label="Your Name"
+          id="playerName"
+          value={playerName}
+          onChange={(e) => setPlayerName(e.target.value)}
+          placeholder="Enter your name"
+          maxLength={20}
+          required
+          disabled={isJoining}
+          fullWidth
+        />
+
+        {error && <ErrorDisplay error={error} />}
+
+        <ConnectionStatusDisplay status={connectionStatus} className="justify-between mb-4" />
+
+        <Button
+          type="submit"
+          variant="success"
+          size="lg"
+          fullWidth
+          disabled={!playerName.trim()}
+          loading={isJoining}
+        >
+          {isJoining ? "Joining..." : "Join Game"}
+        </Button>
+      </form>
+
+      <div className="mt-6 text-center">
+        <LinkButton
+          to="/"
+          variant="text"
+          size="sm"
+        >
+          ← Back to Home
+        </LinkButton>
+      </div>
+    </PageContainer>
   );
 }

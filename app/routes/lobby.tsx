@@ -9,6 +9,9 @@ import HostControlsInfo from "../components/lobby/HostControlsInfo";
 import GameOptionsPanel from "../components/lobby/GameOptionsPanel";
 import Input from "../components/ui/Input";
 import { normalizeGameCode } from "~/utils/gameCode";
+import GameContainer from "../components/layout/GameContainer";
+import GameCodeSharing from "../components/lobby/GameCodeSharing";
+import ConnectionStatusDisplay from "../components/ui/ConnectionStatusDisplay";
 
 export function meta({ params }: Route.MetaArgs) {
   return [
@@ -67,19 +70,6 @@ export default function Lobby({ params }: Route.ComponentProps) {
     navigate("/");
   };
 
-  const copyGameLink = () => {
-    if (isClientSide && typeof window !== "undefined") {
-      const gameLink = `${window.location.origin}${window.__reactRouterContext?.basename || ""}join/${gameId}`;
-      navigator.clipboard.writeText(gameLink);
-    }
-  };
-
-  const copyGameCode = () => {
-    if (isClientSide && typeof navigator !== "undefined") {
-      navigator.clipboard.writeText(gameId);
-    }
-  };
-
   const handleRenamePlayer = (playerId: string, newName: string) => {
     if ((isHost || playerId === myPlayer?.id) && newName.trim()) {
       renamePlayer(playerId, newName.trim());
@@ -117,72 +107,28 @@ export default function Lobby({ params }: Route.ComponentProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-800 to-green-600 p-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold text-gray-800">Game Lobby</h1>
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-600">
-                Status:{" "}
-                <span
-                  className={`font-medium ${connectionStatus === "connected"
-                    ? "text-green-600"
-                    : connectionStatus === "connecting"
-                      ? "text-yellow-600"
-                      : connectionStatus === "error"
-                        ? "text-red-600"
-                        : "text-gray-600"
-                    }`}
-                >
-                  {connectionStatus}
-                </span>
-              </div>
-              <Button
-                variant="danger"
-                onClick={handleLeaveGame}
-                size="sm"
-              >
-                Leave Game
-              </Button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <Input
-                label="Game Code"
-                value={normalizeGameCode(gameId)}
-                readOnly
-                variant="readonly"
-                className="text-center font-mono"
-                fullWidth
-                copyButton
-                onCopy={copyGameCode}
-              />
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-4">
-              <Input
-                label="Invite Link"
-                value={
-                  isClientSide && typeof window !== "undefined"
-                    ? `${window.location.origin}${window.__reactRouterContext?.basename || ""}join/${gameId}`
-                    : ""
-                }
-                readOnly
-                variant="readonly"
-                className="text-sm"
-                fullWidth
-                copyButton
-                onCopy={copyGameLink}
-              />
-            </div>
+    <GameContainer>
+      {/* Header */}
+      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold text-gray-800">Game Lobby</h1>
+          <div className="flex items-center space-x-4">
+            <ConnectionStatusDisplay status={connectionStatus} />
+            <Button
+              variant="danger"
+              onClick={handleLeaveGame}
+              size="sm"
+            >
+              Leave Game
+            </Button>
           </div>
         </div>
 
-        {/* Main content - responsive layout */}
+        <GameCodeSharing gameId={gameId} layout="horizontal" />
+      </div>
+
+      {/* Main content - responsive layout */}
+      <div className="space-y-6">
         <div className="space-y-6">
           {/* Left Column - Players (takes up 2/3 on large screens) */}
           <div className="lg:col-span-2 space-y-6">
@@ -385,6 +331,6 @@ export default function Lobby({ params }: Route.ComponentProps) {
           </div>
         </div>
       </div>
-    </div>
+    </GameContainer>
   );
 }
