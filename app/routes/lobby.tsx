@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import GameContainer from '../components/layout/GameContainer';
 import GameCodeSharing from '../components/lobby/GameCodeSharing';
 import GameOptionsPanel from '../components/lobby/GameOptionsPanel';
 import HostControlsInfo from '../components/lobby/HostControlsInfo';
@@ -10,6 +9,7 @@ import Button from '../components/ui/Button';
 import ConnectionStatusDisplay from '../components/ui/ConnectionStatusDisplay';
 import { useGame } from '../contexts/GameContext';
 
+import PageContainer from '~/components/layout/PageContainer';
 import type { Route } from './+types/lobby';
 
 export function meta({ params }: Route.MetaArgs) {
@@ -105,7 +105,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
   };
 
   return (
-    <GameContainer>
+    <PageContainer maxWidth='full'>
       {/* Header */}
       <div className='bg-white rounded-lg shadow-lg p-6 mb-6'>
         <div className='flex justify-between items-center mb-4'>
@@ -348,6 +348,6 @@ export default function Lobby({ params }: Route.ComponentProps) {
           </div>
         </div>
       </div>
-    </GameContainer>
+    </PageContainer>
   );
 }
