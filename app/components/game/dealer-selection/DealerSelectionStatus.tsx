@@ -11,7 +11,6 @@ export default function DealerSelectionStatus({
   dealerFound,
   currentStep,
   totalSteps,
-  currentPlayerName,
 }: DealerSelectionStatusProps) {
   const getStatusText = () => {
     if (dealerFound) return 'Dealer found!';
@@ -21,7 +20,7 @@ export default function DealerSelectionStatus({
     if (method === 'first_black_jack') {
       return 'Dealing cards until first black jack...';
     } else {
-      return 'Dealing one card to each player...';
+      return 'Waiting for each player to pick a card...';
     }
   };
 
@@ -33,16 +32,7 @@ export default function DealerSelectionStatus({
             ? 'Finding Dealer'
             : 'Selecting Dealer'}
         </div>
-        <div className='text-sm text-gray-300'>
-          {getStatusText()}
-          {currentPlayerName &&
-            currentStep >= 0 &&
-            currentStep < totalSteps && (
-              <div className='mt-1'>
-                Card {currentStep + 1} • {currentPlayerName}&apos;s turn
-              </div>
-            )}
-        </div>
+        <div className='text-sm text-gray-300'>{getStatusText()}</div>
       </div>
     </div>
   );

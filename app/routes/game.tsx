@@ -596,13 +596,15 @@ export default function Game({ params }: Route.ComponentProps) {
       )}
 
       {/* Team Summary - Show dealer and team assignments */}
-      <TeamSummaryOverlay
-        gameState={gameState}
-        myPlayer={myPlayer}
-        isHost={isHost}
-        onRenameTeam={renameTeam}
-        onProceedToDealing={proceedToDealing}
-      />
+      {gameState.phase === 'team_summary' && (
+        <TeamSummaryOverlay
+          gameState={gameState}
+          myPlayer={myPlayer}
+          isHost={isHost}
+          onRenameTeam={renameTeam}
+          onProceedToDealing={proceedToDealing}
+        />
+      )}
 
       {/* Dealing Animation */}
       {gameState.phase === 'dealing_animation' && (

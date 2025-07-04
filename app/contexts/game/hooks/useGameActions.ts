@@ -72,18 +72,10 @@ export function useGameActions(
   );
 
   const completeDealerSelection = useCallback(() => {
-    if (!isHost || !gameState.dealerSelectionCards) return;
-
-    const drawnCards = Object.keys(gameState.dealerSelectionCards).length;
-    if (drawnCards !== gameState.players.length) return;
+    if (!isHost) return;
 
     dispatch({ type: 'COMPLETE_DEALER_SELECTION' });
-  }, [
-    isHost,
-    gameState.dealerSelectionCards,
-    gameState.players.length,
-    dispatch,
-  ]);
+  }, [isHost, dispatch]);
 
   const proceedToDealing = useCallback(() => {
     if (!isHost) return;

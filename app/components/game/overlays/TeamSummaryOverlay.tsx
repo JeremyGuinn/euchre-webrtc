@@ -94,6 +94,14 @@ export function TeamSummaryOverlay({
                       {player.name}
                       {player.id === myPlayer.id && ' (You)'}
                       {player.id === gameState.currentDealerId && ' 🃏'}
+                      {/* Show the randomly selected card */}
+                      {gameState.dealerSelectionCards?.[player.id] && (
+                        <div className='text-sm text-gray-500'>
+                          Drawn card:{' '}
+                          {gameState.dealerSelectionCards[player.id].value} of{' '}
+                          {gameState.dealerSelectionCards[player.id].suit}
+                        </div>
+                      )}
                     </div>
                   ))}
               </Stack>
@@ -138,6 +146,13 @@ export function TeamSummaryOverlay({
                       {player.name}
                       {player.id === myPlayer.id && ' (You)'}
                       {player.id === gameState.currentDealerId && ' 🃏'}
+                      {gameState.dealerSelectionCards && (
+                        <div className='text-sm text-gray-500'>
+                          Drawn card:{' '}
+                          {gameState.dealerSelectionCards[player.id].value} of{' '}
+                          {gameState.dealerSelectionCards[player.id].suit}
+                        </div>
+                      )}
                     </div>
                   ))}
               </Stack>

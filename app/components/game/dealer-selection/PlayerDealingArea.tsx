@@ -105,7 +105,7 @@ export default function PlayerDealingArea({
                     card={card}
                     size='medium'
                     className={
-                      isBlackJackCard
+                      isBlackJackCard && mode === 'blackjack'
                         ? 'ring-4 ring-green-400 ring-opacity-75'
                         : ''
                     }

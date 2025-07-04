@@ -19,22 +19,22 @@ import {
 
 export type GameAction =
   | {
-    type: 'INIT_GAME';
-    payload: { hostId: string; gameId: string; gameCode?: string };
-  }
+      type: 'INIT_GAME';
+      payload: { hostId: string; gameId: string; gameCode?: string };
+    }
   | { type: 'ADD_PLAYER'; payload: { player: Player } }
   | { type: 'REMOVE_PLAYER'; payload: { playerId: string } }
   | {
-    type: 'UPDATE_PLAYER_CONNECTION';
-    payload: { playerId: string; isConnected: boolean };
-  }
+      type: 'UPDATE_PLAYER_CONNECTION';
+      payload: { playerId: string; isConnected: boolean };
+    }
   | { type: 'RENAME_PLAYER'; payload: { playerId: string; newName: string } }
   | { type: 'RENAME_TEAM'; payload: { teamId: 0 | 1; newName: string } }
   | { type: 'KICK_PLAYER'; payload: { playerId: string } }
   | {
-    type: 'MOVE_PLAYER';
-    payload: { playerId: string; newPosition: 0 | 1 | 2 | 3 };
-  }
+      type: 'MOVE_PLAYER';
+      payload: { playerId: string; newPosition: 0 | 1 | 2 | 3 };
+    }
   | { type: 'UPDATE_GAME_OPTIONS'; payload: { options: GameOptions } }
   | { type: 'START_GAME' }
   | { type: 'SELECT_DEALER' }
@@ -45,9 +45,9 @@ export type GameAction =
   | { type: 'PLACE_BID'; payload: { bid: Bid } }
   | { type: 'DEALER_DISCARD'; payload: { card: Card } }
   | {
-    type: 'SET_TRUMP';
-    payload: { trump: Card['suit']; makerId: string; alone?: boolean };
-  }
+      type: 'SET_TRUMP';
+      payload: { trump: Card['suit']; makerId: string; alone?: boolean };
+    }
   | { type: 'PLAY_CARD'; payload: { card: Card; playerId: string } }
   | { type: 'COMPLETE_TRICK' }
   | { type: 'COMPLETE_HAND' }
@@ -55,13 +55,13 @@ export type GameAction =
   | { type: 'SET_CURRENT_PLAYER'; payload: { playerId: string } }
   | { type: 'SET_PHASE'; payload: { phase: GameState['phase'] } }
   | {
-    type: 'SYNC_STATE';
-    payload: {
-      gameState: PublicGameState;
-      playerHand?: Card[];
-      receivingPlayerId: string;
+      type: 'SYNC_STATE';
+      payload: {
+        gameState: PublicGameState;
+        playerHand?: Card[];
+        receivingPlayerId: string;
+      };
     };
-  };
 
 const initialGameState: GameState = {
   id: '',
@@ -244,8 +244,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ...state,
           players: arrangedPlayers,
           currentDealerId: dealer.id,
+          dealerSelectionCards: newDealerSelectionCards, // displayed in the team_summary display
           phase: 'team_summary',
-          dealerSelectionCards: undefined, // Clear the selection cards
         };
       }
 
@@ -304,7 +304,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           players: arrangedPlayers,
           currentDealerId: dealer.id,
           phase: 'team_summary',
-          dealerSelectionCards: undefined, // Clear the selection cards
         };
       }
     }
@@ -313,6 +312,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         phase: 'dealing_animation',
+        dealerSelectionCards: undefined,
       };
 
     case 'DEAL_CARDS': {
