@@ -1,4 +1,5 @@
 import type { GameOptions } from '~/types/game';
+import Panel from '../ui/Panel';
 
 interface GameOptionsProps {
   options: GameOptions;
@@ -56,7 +57,7 @@ export function GameOptionsPanel({
   };
 
   return (
-    <div className='bg-white rounded-lg shadow-lg p-6'>
+    <Panel variant='compact' shadow='lg'>
       <h2 className='text-xl font-semibold text-gray-800 mb-4'>
         Game Rules{' '}
         {!isHost && (
@@ -370,7 +371,7 @@ export function GameOptionsPanel({
           </p>
         </div>
       )}
-    </div>
+    </Panel>
   );
 }
 

@@ -2,7 +2,6 @@ import type { ErrorInfo, ReactNode } from 'react';
 import { Component } from 'react';
 
 import {
-  cardVariants,
   debugVariants,
   layoutVariants,
   textVariants,
@@ -11,6 +10,7 @@ import { cn } from '../../utils/cn';
 import Button from '../ui/Button';
 import ButtonDivider from '../ui/ButtonDivider';
 import LinkButton from '../ui/LinkButton';
+import Panel from '../ui/Panel';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -72,7 +72,7 @@ export class ErrorBoundary extends Component<
             'bg-gradient-to-br from-red-800 to-red-600'
           )}
         >
-          <div className={cn(layoutVariants.container, cardVariants.default)}>
+          <Panel variant='default' className={layoutVariants.container}>
             {/* Card symbols decoration */}
             <div className={cn('text-6xl mb-6 text-center space-x-2')}>
               <span className='text-black'>♠️</span>
@@ -139,7 +139,7 @@ export class ErrorBoundary extends Component<
                 shuffle the deck and try again!
               </p>
             </div>
-          </div>
+          </Panel>
         </div>
       );
     }

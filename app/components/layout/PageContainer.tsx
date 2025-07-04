@@ -1,4 +1,6 @@
 import React from 'react';
+import Panel from '../ui/Panel';
+import { cn } from '../../utils/cn';
 
 interface PageContainerProps {
   children: React.ReactNode;
@@ -21,11 +23,12 @@ export default function PageContainer({
 }: PageContainerProps) {
   return (
     <div className='min-h-screen bg-gradient-to-br from-green-800 to-green-600 flex items-center justify-center p-4'>
-      <div
-        className={`${maxWidthClasses[maxWidth]} w-full bg-white rounded-lg shadow-lg p-8 ${className}`}
+      <Panel
+        variant="default"
+        className={cn(maxWidthClasses[maxWidth], 'w-full', className)}
       >
         {children}
-      </div>
+      </Panel>
     </div>
   );
 }

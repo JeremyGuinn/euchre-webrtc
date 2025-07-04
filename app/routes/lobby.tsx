@@ -8,6 +8,7 @@ import GameOptionsPanel from '~/components/lobby/GameOptionsPanel';
 import HostControlsInfo from '~/components/lobby/HostControlsInfo';
 import PlayerCard from '~/components/lobby/PlayerCard';
 import Button from '~/components/ui/Button';
+import Panel from '~/components/ui/Panel';
 import { useGame } from '~/contexts/GameContext';
 
 import PageContainer from '~/components/layout/PageContainer';
@@ -109,7 +110,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
   return (
     <PageContainer maxWidth='full'>
       {/* Header */}
-      <div className='bg-white rounded-lg shadow-lg p-6 mb-6'>
+      <Panel variant='compact' className='mb-6'>
         <div className='flex justify-between items-center mb-4 flex-wrap space-y-2'>
           <h1 className='text-2xl font-bold text-gray-800'>Game Lobby</h1>
           <div className='flex items-center space-x-4 flex-wrap space-y-2'>
@@ -121,14 +122,14 @@ export default function Lobby({ params }: Route.ComponentProps) {
         </div>
 
         <GameCodeSharing gameId={gameId} layout='horizontal' />
-      </div>
+      </Panel>
 
       {/* Main content - responsive layout */}
       <div className='space-y-6'>
         <div className='space-y-6'>
           {/* Left Column - Players (takes up 2/3 on large screens) */}
           <div className='lg:col-span-2 space-y-6'>
-            <div className='bg-white rounded-lg shadow-lg p-6'>
+            <Panel variant='compact'>
               <h2 className='text-xl font-semibold text-gray-800 mb-4'>
                 Players ({connectedPlayers.length}/4)
               </h2>
@@ -323,7 +324,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
                 {/* Host Controls Info */}
                 <HostControlsInfo isHost={isHost} />
               </div>
-            </div>
+            </Panel>
 
             <GameOptionsPanel
               options={gameState.options}
@@ -333,7 +334,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
             />
 
             {/* Game Controls */}
-            <div className='bg-white rounded-lg shadow-lg p-6'>
+            <Panel variant='compact'>
               <div className='text-center'>
                 {connectedPlayers.length < 4 ? (
                   <div>
@@ -366,7 +367,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
                   </div>
                 )}
               </div>
-            </div>
+            </Panel>
           </div>
         </div>
       </div>
