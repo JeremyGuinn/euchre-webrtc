@@ -25,6 +25,7 @@ export interface GameContextType {
   disconnect: () => void;
 
   renamePlayer: (playerId: string, newName: string) => void;
+  renameTeam: (teamId: 0 | 1, newName: string) => void;
 
   kickPlayer: (playerId: string) => void;
   movePlayer: (playerId: string, newPosition: 0 | 1 | 2 | 3) => void;

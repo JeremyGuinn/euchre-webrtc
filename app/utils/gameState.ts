@@ -29,6 +29,7 @@ export type GameAction =
     payload: { playerId: string; isConnected: boolean };
   }
   | { type: 'RENAME_PLAYER'; payload: { playerId: string; newName: string } }
+  | { type: 'RENAME_TEAM'; payload: { teamId: 0 | 1; newName: string } }
   | { type: 'KICK_PLAYER'; payload: { playerId: string } }
   | {
     type: 'MOVE_PLAYER';
@@ -84,6 +85,7 @@ const initialGameState: GameState = {
   completedTricks: [],
   scores: { team0: 0, team1: 0 },
   handScores: { team0: 0, team1: 0 },
+  teamNames: { team0: 'Team 1', team1: 'Team 2' },
 };
 
 function getNextPlayer(currentPlayerId: string, players: Player[]): string {
@@ -641,6 +643,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         id: gameState.id,
         players: gameState.players,
+        teamNames: gameState.teamNames,
         phase: gameState.phase,
         options: gameState.options,
         currentDealerId: gameState.currentDealerId,
@@ -668,6 +671,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             ? { ...p, name: action.payload.newName }
             : p
         ),
+      };
+
+    case 'RENAME_TEAM':
+      return {
+        ...state,
+        teamNames: {
+          ...state.teamNames,
+          [`team${action.payload.teamId}`]: action.payload.newName,
+        },
       };
 
     case 'KICK_PLAYER':
@@ -757,6 +769,7 @@ export function createPublicGameState(
     completedTricks: gameState.completedTricks,
     scores: gameState.scores,
     handScores: gameState.handScores,
+    teamNames: gameState.teamNames,
     maker: gameState.maker,
     dealerSelectionCards: gameState.dealerSelectionCards,
     deck: placeholderCards,

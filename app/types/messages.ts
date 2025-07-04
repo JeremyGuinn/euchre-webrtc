@@ -1,4 +1,4 @@
-import type { Card, Player, PublicGameState, Bid } from './game';
+import type { Bid, Card, Player, PublicGameState } from './game';
 
 export type MessageType =
   | 'JOIN_REQUEST'
@@ -16,6 +16,7 @@ export type MessageType =
   | 'DEAL_CARDS'
   | 'HEARTBEAT'
   | 'RENAME_PLAYER'
+  | 'RENAME_TEAM'
   | 'KICK_PLAYER'
   | 'MOVE_PLAYER'
   | 'ERROR';
@@ -124,6 +125,14 @@ export interface RenamePlayerMessage extends BaseMessage {
   };
 }
 
+export interface RenameTeamMessage extends BaseMessage {
+  type: 'RENAME_TEAM';
+  payload: {
+    teamId: 0 | 1;
+    newName: string;
+  };
+}
+
 export interface KickPlayerMessage extends BaseMessage {
   type: 'KICK_PLAYER';
   payload: {
@@ -176,6 +185,7 @@ export type GameMessage =
   | DealCardsMessage
   | HeartbeatMessage
   | RenamePlayerMessage
+  | RenameTeamMessage
   | KickPlayerMessage
   | MovePlayerMessage
   | ErrorMessage;

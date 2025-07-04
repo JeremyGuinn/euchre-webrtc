@@ -75,6 +75,10 @@ export type GameState = {
     team0: number;
     team1: number;
   };
+  teamNames: {
+    team0: string;
+    team1: string;
+  };
   maker?: {
     playerId: string;
     teamId: 0 | 1;

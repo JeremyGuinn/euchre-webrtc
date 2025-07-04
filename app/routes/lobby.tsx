@@ -7,6 +7,7 @@ import HostControlsInfo from '../components/lobby/HostControlsInfo';
 import PlayerCard from '../components/lobby/PlayerCard';
 import Button from '../components/ui/Button';
 import ConnectionStatusDisplay from '../components/ui/ConnectionStatusDisplay';
+import { EditableTeamName } from '../components/ui/EditableTeamName';
 import { useGame } from '../contexts/GameContext';
 
 import PageContainer from '~/components/layout/PageContainer';
@@ -32,6 +33,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
     getMyPlayer,
     disconnect,
     renamePlayer,
+    renameTeam,
     kickPlayer,
     movePlayer,
     updateGameOptions,
@@ -137,9 +139,18 @@ export default function Lobby({ params }: Route.ComponentProps) {
                   <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                     {/* Team 0 */}
                     <div className='bg-blue-50 rounded-lg p-4'>
-                      <h3 className='font-medium text-blue-800 mb-3 text-center'>
-                        Team 1
-                      </h3>
+                      <div className='text-blue-800 mb-3 text-center'>
+                        <EditableTeamName
+                          teamId={0}
+                          teamName={gameState.teamNames.team0}
+                          onRename={renameTeam}
+                          disabled={
+                            gameState.players.find(p => p.id === myPlayer?.id)
+                              ?.teamId !== 0
+                          }
+                          className='font-medium'
+                        />
+                      </div>
                       <div className='space-y-2'>
                         {[0, 2].map(position => {
                           const player = gameState.players.find(
@@ -189,9 +200,18 @@ export default function Lobby({ params }: Route.ComponentProps) {
 
                     {/* Team 1 */}
                     <div className='bg-red-50 rounded-lg p-4'>
-                      <h3 className='font-medium text-red-800 mb-3 text-center'>
-                        Team 2
-                      </h3>
+                      <div className='text-red-800 mb-3 text-center'>
+                        <EditableTeamName
+                          teamId={1}
+                          teamName={gameState.teamNames.team1}
+                          onRename={renameTeam}
+                          disabled={
+                            gameState.players.find(p => p.id === myPlayer?.id)
+                              ?.teamId !== 1
+                          }
+                          className='font-medium'
+                        />
+                      </div>
                       <div className='space-y-2'>
                         {[1, 3].map(position => {
                           const player = gameState.players.find(

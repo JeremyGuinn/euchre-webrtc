@@ -6,6 +6,7 @@ import { DealerSelectionAnimation } from '../components/game/DealerSelectionAnim
 import { DealingAnimation } from '../components/game/DealingAnimation';
 import GameContainer from '../components/layout/GameContainer';
 import Button from '../components/ui/Button';
+import { EditableTeamName } from '../components/ui/EditableTeamName';
 import { useGame } from '../contexts/GameContext';
 import type { Card as CardType, Player } from '../types/game';
 
@@ -53,6 +54,7 @@ export default function Game({ params }: Route.ComponentProps) {
     continueTrick,
     completeHand,
     dealerDiscard,
+    renameTeam,
     disconnect,
   } = useGame();
   const { gameId } = params;
@@ -203,8 +205,8 @@ export default function Game({ params }: Route.ComponentProps) {
           </div>
           <div className='flex items-center space-x-4'>
             <div className='text-sm'>
-              Team 1: {gameState.scores.team0} | Team 2:{' '}
-              {gameState.scores.team1}
+              {gameState.teamNames.team0}: {gameState.scores.team0} |{' '}
+              {gameState.teamNames.team1}: {gameState.scores.team1}
             </div>
             <Button variant='danger' size='sm' onClick={handleLeaveGame}>
               Leave
@@ -722,9 +724,18 @@ export default function Game({ params }: Route.ComponentProps) {
               <div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-8'>
                 {/* Team 1 */}
                 <div className='bg-blue-50 rounded-lg p-4 border border-blue-200'>
-                  <h3 className='text-lg font-semibold text-blue-800 mb-3 text-center'>
-                    Team 1
-                  </h3>
+                  <div className='text-lg text-blue-800 mb-3 text-center'>
+                    <EditableTeamName
+                      teamId={0}
+                      teamName={gameState.teamNames.team0}
+                      onRename={renameTeam}
+                      disabled={
+                        gameState.players.find(p => p.id === myPlayer.id)
+                          ?.teamId !== 0
+                      }
+                      className='text-blue-800'
+                    />
+                  </div>
                   <div className='space-y-2'>
                     {gameState.players
                       .filter(p => p.teamId === 0)
@@ -748,9 +759,18 @@ export default function Game({ params }: Route.ComponentProps) {
 
                 {/* Team 2 */}
                 <div className='bg-red-50 rounded-lg p-4 border border-red-200'>
-                  <h3 className='text-lg font-semibold text-red-800 mb-3 text-center'>
-                    Team 2
-                  </h3>
+                  <div className='text-lg text-red-800 mb-3 text-center'>
+                    <EditableTeamName
+                      teamId={1}
+                      teamName={gameState.teamNames.team1}
+                      onRename={renameTeam}
+                      disabled={
+                        gameState.players.find(p => p.id === myPlayer.id)
+                          ?.teamId !== 1
+                      }
+                      className='text-red-800'
+                    />
+                  </div>
                   <div className='space-y-2'>
                     {gameState.players
                       .filter(p => p.teamId === 1)
@@ -776,10 +796,11 @@ export default function Game({ params }: Route.ComponentProps) {
               {/* Team assignment explanation */}
               {gameState.options.teamSelection === 'random_cards' && (
                 <div className='text-center mb-6 p-3 bg-gray-50 rounded-lg'>
+                  {' '}
                   <p className='text-sm text-gray-600'>
                     <span className='font-medium'>Random Teams:</span> Teams
                     were determined by the cards drawn. The two players with the
-                    lowest cards form Team 1.
+                    lowest cards form one team.
                   </p>
                 </div>
               )}
@@ -973,7 +994,7 @@ export default function Game({ params }: Route.ComponentProps) {
                           className={`p-4 rounded-lg ${makerTeam === 0 ? 'bg-blue-100 border-2 border-blue-300' : 'bg-gray-100'}`}
                         >
                           <h3 className='font-semibold text-gray-800 mb-1'>
-                            Team 1
+                            {gameState.teamNames.team0}
                           </h3>
                           <div className='text-2xl font-bold text-blue-600'>
                             {team0Tricks}
@@ -986,7 +1007,7 @@ export default function Game({ params }: Route.ComponentProps) {
                           className={`p-4 rounded-lg ${makerTeam === 1 ? 'bg-red-100 border-2 border-red-300' : 'bg-gray-100'}`}
                         >
                           <h3 className='font-semibold text-gray-800 mb-1'>
-                            Team 2
+                            {gameState.teamNames.team1}
                           </h3>
                           <div className='text-2xl font-bold text-red-600'>
                             {team1Tricks}
@@ -1005,8 +1026,10 @@ export default function Game({ params }: Route.ComponentProps) {
                               {makerTeamTricks === 5 ? 'Sweep!' : 'Bid Made!'}
                             </p>
                             <p className='text-sm text-gray-700'>
-                              Team {makerTeam! + 1} made their bid with{' '}
-                              {makerTeamTricks} trick
+                              {gameState.teamNames[
+                                `team${makerTeam!}` as 'team0' | 'team1'
+                              ] || `Team ${makerTeam! + 1}`}{' '}
+                              made their bid with {makerTeamTricks} trick
                               {makerTeamTricks !== 1 ? 's' : ''}
                               {makerTeamTricks === 5 &&
                                 maker?.alone &&
@@ -1019,9 +1042,12 @@ export default function Game({ params }: Route.ComponentProps) {
                               Bid Failed!
                             </p>
                             <p className='text-sm text-gray-700'>
-                              Team {makerTeam! + 1} only won {makerTeamTricks}{' '}
-                              trick{makerTeamTricks !== 1 ? 's' : ''} - other
-                              team gets 2 points
+                              {gameState.teamNames[
+                                `team${makerTeam!}` as 'team0' | 'team1'
+                              ] || `Team ${makerTeam! + 1}`}{' '}
+                              only won {makerTeamTricks} trick
+                              {makerTeamTricks !== 1 ? 's' : ''} - other team
+                              gets 2 points
                             </p>
                           </div>
                         )}
@@ -1036,7 +1062,7 @@ export default function Game({ params }: Route.ComponentProps) {
                             +{handScores.team0}
                           </div>
                           <div className='text-sm text-gray-600'>
-                            Team 1 Points
+                            {gameState.teamNames.team0} Points
                           </div>
                         </div>
                         <div className='text-center'>
@@ -1046,7 +1072,7 @@ export default function Game({ params }: Route.ComponentProps) {
                             +{handScores.team1}
                           </div>
                           <div className='text-sm text-gray-600'>
-                            Team 2 Points
+                            {gameState.teamNames.team1} Points
                           </div>
                         </div>
                       </div>
@@ -1058,7 +1084,7 @@ export default function Game({ params }: Route.ComponentProps) {
                             {gameState.scores.team0}
                           </div>
                           <div className='text-sm text-gray-600'>
-                            Team 1 Total
+                            {gameState.teamNames.team0} Total
                           </div>
                         </div>
                         <div className='text-center p-3 bg-red-50 rounded-lg'>
@@ -1066,7 +1092,7 @@ export default function Game({ params }: Route.ComponentProps) {
                             {gameState.scores.team1}
                           </div>
                           <div className='text-sm text-gray-600'>
-                            Team 2 Total
+                            {gameState.teamNames.team1} Total
                           </div>
                         </div>
                       </div>
@@ -1121,7 +1147,9 @@ export default function Game({ params }: Route.ComponentProps) {
                         <h3
                           className={`text-2xl font-bold mb-2 ${iWon ? 'text-green-800' : 'text-gray-800'}`}
                         >
-                          {iWon ? 'You Won!' : `Team ${winningTeam + 1} Wins!`}
+                          {iWon
+                            ? 'You Won!'
+                            : `${gameState.teamNames[`team${winningTeam}` as 'team0' | 'team1'] || `Team ${winningTeam + 1}`} Wins!`}
                         </h3>
                         <div className='space-y-1'>
                           {gameState.players
@@ -1144,7 +1172,7 @@ export default function Game({ params }: Route.ComponentProps) {
                           className={`text-center p-6 rounded-lg ${team0Won ? 'bg-yellow-100 border-yellow-400 border-2' : 'bg-blue-50'}`}
                         >
                           <h3 className='text-lg font-semibold text-gray-800 mb-2'>
-                            Team 1
+                            {gameState.teamNames.team0}
                           </h3>
                           <div
                             className={`text-4xl font-bold ${team0Won ? 'text-yellow-600' : 'text-blue-600'}`}
@@ -1175,7 +1203,7 @@ export default function Game({ params }: Route.ComponentProps) {
                           className={`text-center p-6 rounded-lg ${team1Won ? 'bg-yellow-100 border-yellow-400 border-2' : 'bg-red-50'}`}
                         >
                           <h3 className='text-lg font-semibold text-gray-800 mb-2'>
-                            Team 2
+                            {gameState.teamNames.team1}
                           </h3>
                           <div
                             className={`text-4xl font-bold ${team1Won ? 'text-yellow-600' : 'text-red-600'}`}

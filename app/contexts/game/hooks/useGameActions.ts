@@ -186,6 +186,31 @@ export function useGameActions(
     [isHost, myPlayerId, dispatch, networkService, gameState.players]
   );
 
+  const renameTeam = useCallback(
+    (teamId: 0 | 1, newName: string): void => {
+      // Only allow team renaming during specific phases
+      const allowedPhases = ['lobby', 'team_summary'];
+      if (!allowedPhases.includes(gameState.phase)) return;
+
+      // Validate team name
+      const sanitizedName = newName.trim();
+      if (!sanitizedName || sanitizedName.length > 50) return;
+
+      dispatch({
+        type: 'RENAME_TEAM',
+        payload: { teamId, newName: sanitizedName },
+      });
+
+      networkService.sendMessage({
+        type: 'RENAME_TEAM',
+        timestamp: Date.now(),
+        messageId: createMessageId(),
+        payload: { teamId, newName: sanitizedName },
+      });
+    },
+    [dispatch, networkService, gameState.phase]
+  );
+
   const kickPlayer = useCallback(
     (playerId: string): void => {
       if (!isHost) return;
@@ -284,6 +309,7 @@ export function useGameActions(
     playCard,
     dealerDiscard,
     renamePlayer,
+    renameTeam,
     kickPlayer,
     movePlayer,
     updateGameOptions,

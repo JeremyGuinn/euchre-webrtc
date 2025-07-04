@@ -5,22 +5,23 @@ import {
   handlePlayerLeft,
 } from './connection';
 import {
-  handleStartGame,
-  handleSelectDealer,
-  handleDrawDealerCard,
-  handleCompleteDealerSelection,
   handleBidMessage,
-  handleDealerDiscard,
-  handlePlayCardMessage,
+  handleCompleteDealerSelection,
   handleDealCards,
+  handleDealerDiscard,
+  handleDrawDealerCard,
   handleGameStateUpdate,
+  handlePlayCardMessage,
+  handleSelectDealer,
+  handleStartGame,
 } from './gameplay';
 import {
-  handleRenamePlayer,
   handleKickPlayer,
   handleMovePlayer,
+  handleRenamePlayer,
+  handleRenameTeam,
 } from './player';
-import { handleHeartbeat, handleError } from './system';
+import { handleError, handleHeartbeat } from './system';
 import type { MessageHandlers } from './types';
 
 export const createMessageHandlers = (): MessageHandlers => ({
@@ -43,6 +44,7 @@ export const createMessageHandlers = (): MessageHandlers => ({
 
   // Player management
   RENAME_PLAYER: handleRenamePlayer,
+  RENAME_TEAM: handleRenameTeam,
   KICK_PLAYER: handleKickPlayer,
   MOVE_PLAYER: handleMovePlayer,
 

@@ -22,6 +22,7 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
   const [gameState, dispatch] = useReducer(gameReducer, {
     id: '',
     players: [],
+    teamNames: { team0: 'Team 1', team1: 'Team 2' },
     options: {
       allowReneging: false,
       teamSelection: 'predetermined',
