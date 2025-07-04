@@ -284,24 +284,69 @@ export default function Game({ params }: Route.ComponentProps) {
               {(gameState.phase === 'bidding_round1' ||
                 gameState.phase === 'bidding_round2') &&
                 gameState.kitty && (
-                  <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'>
-                    <CardBack
-                      size='medium'
-                      className='absolute top-0 left-0 opacity-60'
-                    />
-                    <CardBack
-                      size='medium'
-                      className='absolute top-0.5 left-0.5 opacity-80'
-                    />
-                    <CardBack size='medium' className='absolute top-1 left-1' />
+                  <div className='relative h-full'>
+                    {isMyTurn() && (
+                      <Button
+                        variant='primary'
+                        size='sm'
+                        onClick={() => handleBid(gameState.kitty!.suit)}
+                        className='absolute px-3 py-1 text-xs h-min w-min top-1/2 transform -translate-y-1/2 -translate-x-1/2'
+                        style={{
+                          left: `calc(50% - ${document.getElementById('kitty-card')?.clientWidth}px)`,
+                        }}
+                      >
+                        {myPlayer.id === gameState.currentDealerId
+                          ? 'Take it up'
+                          : myPlayer.teamId ===
+                              gameState.players.find(
+                                p => p.id === gameState.currentDealerId
+                              )?.teamId
+                            ? 'Assist'
+                            : 'Order it up'}
+                      </Button>
+                    )}
+                    <div className='absolute flex items-center transform justify-self-center -translate-y-1/2 top-1/2'>
+                      <div className='relative'>
+                        <CardBack
+                          size='medium'
+                          className='absolute top-0 left-0 opacity-60'
+                        />
+                        <CardBack
+                          size='medium'
+                          className='absolute top-0.5 left-0.5 opacity-80'
+                        />
+                        <CardBack
+                          size='medium'
+                          className='absolute top-1 left-1'
+                        />
 
-                    {(gameState.phase === 'bidding_round1' && (
-                      <Card
-                        card={gameState.kitty}
-                        size='medium'
-                        className='relative z-10'
-                      />
-                    )) || <CardBack size='medium' className='relative z-10' />}
+                        {(gameState.phase === 'bidding_round1' && (
+                          <div className='flex justify-center' id='kitty-card'>
+                            <Card
+                              card={gameState.kitty}
+                              size='medium'
+                              className='relative z-10'
+                            />
+                          </div>
+                        )) || (
+                          <CardBack size='medium' className='relative z-10' />
+                        )}
+                      </div>
+                    </div>
+
+                    {isMyTurn() && (
+                      <Button
+                        variant='secondary'
+                        size='sm'
+                        onClick={() => handleBid('pass')}
+                        className='absolute px-3 py-1 text-xs h-min w-fit top-1/2 transform -translate-y-1/2 -translate-x-1/2'
+                        style={{
+                          left: `calc(50% + ${document.getElementById('kitty-card')?.clientWidth}px)`,
+                        }}
+                      >
+                        Pass
+                      </Button>
+                    )}
                   </div>
                 )}
             </div>
@@ -496,118 +541,59 @@ export default function Game({ params }: Route.ComponentProps) {
         )}
 
         {/* Bidding Interface - positioned below player's hand */}
-        {(gameState.phase === 'bidding_round1' ||
-          gameState.phase === 'bidding_round2') &&
-          isMyTurn() && (
-            <div className='absolute bottom-24 left-1/2 transform -translate-x-1/2 z-30'>
-              <div className='bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-3 border border-gray-200 max-w-xs'>
-                {gameState.phase === 'bidding_round1' ? (
-                  // Round 1: Order up/Assist/Take up the kitty suit
-                  <div className='text-center'>
-                    <h3 className='text-sm font-bold text-gray-800 mb-2'>
-                      {myPlayer.id === gameState.currentDealerId
-                        ? 'Take it up?'
-                        : 'Order it up?'}
-                    </h3>
+        {gameState.phase === 'bidding_round2' && isMyTurn() && (
+          <div className='absolute bottom-24 left-1/2 transform -translate-x-1/2 z-30'>
+            <div className='bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-3 border border-gray-200 max-w-xs'>
+              <div className='text-center'>
+                <h3 className='text-sm font-bold text-gray-800 mb-2'>
+                  Call Trump
+                </h3>
 
-                    {gameState.kitty && (
-                      <div className='mb-2'>
-                        <p className='text-xs text-gray-600 mb-1'>
-                          Trump would be:
-                        </p>
-                        <div className='flex items-center justify-center space-x-1'>
-                          <span
-                            className={`text-lg ${suitColors[gameState.kitty.suit]}`}
-                          >
-                            {suitSymbols[gameState.kitty.suit]}
-                          </span>
-                          <span className='text-xs font-medium capitalize'>
-                            {gameState.kitty.suit}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className='flex space-x-2 justify-center'>
-                      <Button
-                        variant='primary'
-                        size='sm'
-                        onClick={() => handleBid(gameState.kitty!.suit)}
-                        className='px-3 py-1 text-xs'
+                {gameState.turnedDownSuit && (
+                  <div className='mb-2'>
+                    <p className='text-xs text-gray-600'>
+                      Turned down:{' '}
+                      <span
+                        className={`font-medium ${suitColors[gameState.turnedDownSuit]}`}
                       >
-                        {myPlayer.id === gameState.currentDealerId
-                          ? 'Take'
-                          : myPlayer.teamId ===
-                              gameState.players.find(
-                                p => p.id === gameState.currentDealerId
-                              )?.teamId
-                            ? 'Assist'
-                            : 'Order'}
-                      </Button>
-
-                      <Button
-                        variant='secondary'
-                        size='sm'
-                        onClick={() => handleBid('pass')}
-                        className='px-3 py-1 text-xs'
-                      >
-                        Pass
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  // Round 2: Call any suit except the turned down suit
-                  <div className='text-center'>
-                    <h3 className='text-sm font-bold text-gray-800 mb-2'>
-                      Call Trump
-                    </h3>
-
-                    {gameState.turnedDownSuit && (
-                      <div className='mb-2'>
-                        <p className='text-xs text-gray-600'>
-                          Turned down:{' '}
-                          <span
-                            className={`font-medium ${suitColors[gameState.turnedDownSuit]}`}
-                          >
-                            {suitSymbols[gameState.turnedDownSuit]}{' '}
-                            {gameState.turnedDownSuit}
-                          </span>
-                        </p>
-                      </div>
-                    )}
-
-                    <div className='grid grid-cols-2 gap-1 mb-2'>
-                      {(['spades', 'hearts', 'diamonds', 'clubs'] as const)
-                        .filter(suit => suit !== gameState.turnedDownSuit)
-                        .map(suit => (
-                          <Button
-                            key={suit}
-                            variant='ghost'
-                            size='sm'
-                            onClick={() => handleBid(suit)}
-                            className='flex items-center justify-center space-x-1 px-2 py-1 text-xs'
-                          >
-                            <span className={`text-sm ${suitColors[suit]}`}>
-                              {suitSymbols[suit]}
-                            </span>
-                            <span className='text-xs capitalize'>{suit}</span>
-                          </Button>
-                        ))}
-                    </div>
-
-                    <Button
-                      variant='secondary'
-                      size='sm'
-                      onClick={() => handleBid('pass')}
-                      className='px-3 py-1 text-xs'
-                    >
-                      Pass
-                    </Button>
+                        {suitSymbols[gameState.turnedDownSuit]}{' '}
+                        {gameState.turnedDownSuit}
+                      </span>
+                    </p>
                   </div>
                 )}
+
+                <div className='grid grid-cols-2 gap-1 mb-2'>
+                  {(['spades', 'hearts', 'diamonds', 'clubs'] as const)
+                    .filter(suit => suit !== gameState.turnedDownSuit)
+                    .map(suit => (
+                      <Button
+                        key={suit}
+                        variant='ghost'
+                        size='sm'
+                        onClick={() => handleBid(suit)}
+                        className='flex items-center justify-center space-x-1 px-2 py-1 text-xs'
+                      >
+                        <span className={`text-sm ${suitColors[suit]}`}>
+                          {suitSymbols[suit]}
+                        </span>
+                        <span className='text-xs capitalize'>{suit}</span>
+                      </Button>
+                    ))}
+                </div>
+
+                <Button
+                  variant='secondary'
+                  size='sm'
+                  onClick={() => handleBid('pass')}
+                  className='px-3 py-1 text-xs'
+                >
+                  Pass
+                </Button>
               </div>
             </div>
-          )}
+          </div>
+        )}
       </div>
 
       {/* Dealer Selection Animation */}
@@ -925,7 +911,7 @@ export default function Game({ params }: Route.ComponentProps) {
       {gameState.phase === 'hand_complete' && (
         <div className='absolute inset-0 bg-black/40 z-40'>
           <div className='flex flex-col items-center justify-center h-full p-8'>
-            <div className='bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8 max-w-lg w-full mx-4'>
+            <div className='bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8 max-w-lg w-full mx-4 overflow-y-auto'>
               <div className='text-center'>
                 <h2 className='text-3xl font-bold text-gray-800 mb-6'>
                   Hand Complete!
@@ -1125,7 +1111,7 @@ export default function Game({ params }: Route.ComponentProps) {
       {gameState.phase === 'game_complete' && (
         <div className='absolute inset-0 bg-black/40 z-40'>
           <div className='flex flex-col items-center justify-center h-full p-8'>
-            <div className='bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8 max-w-lg w-full mx-4'>
+            <div className='bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8 max-w-lg w-full mx-4 overflow-y-auto'>
               <div className='text-center'>
                 <h2 className='text-4xl font-bold text-gray-800 mb-6'>
                   🎉 Game Complete! 🎉
