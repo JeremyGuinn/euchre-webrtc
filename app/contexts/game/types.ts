@@ -14,6 +14,7 @@ export interface GameContextType {
   selectDealer: () => void;
   drawDealerCard: (cardIndex?: number) => void;
   completeDealerSelection: () => void;
+  dealFirstBlackJackCard: () => void;
   proceedToDealing: () => void;
   completeDealingAnimation: () => void;
   placeBid: (suit: Card['suit'] | 'pass', alone?: boolean) => void;

@@ -19,35 +19,39 @@ import {
 
 export type GameAction =
   | {
-      type: 'INIT_GAME';
-      payload: { hostId: string; gameId: string; gameCode?: string };
-    }
+    type: 'INIT_GAME';
+    payload: { hostId: string; gameId: string; gameCode?: string };
+  }
   | { type: 'ADD_PLAYER'; payload: { player: Player } }
   | { type: 'REMOVE_PLAYER'; payload: { playerId: string } }
   | {
-      type: 'UPDATE_PLAYER_CONNECTION';
-      payload: { playerId: string; isConnected: boolean };
-    }
+    type: 'UPDATE_PLAYER_CONNECTION';
+    payload: { playerId: string; isConnected: boolean };
+  }
   | { type: 'RENAME_PLAYER'; payload: { playerId: string; newName: string } }
   | { type: 'RENAME_TEAM'; payload: { teamId: 0 | 1; newName: string } }
   | { type: 'KICK_PLAYER'; payload: { playerId: string } }
   | {
-      type: 'MOVE_PLAYER';
-      payload: { playerId: string; newPosition: 0 | 1 | 2 | 3 };
-    }
+    type: 'MOVE_PLAYER';
+    payload: { playerId: string; newPosition: 0 | 1 | 2 | 3 };
+  }
   | { type: 'UPDATE_GAME_OPTIONS'; payload: { options: GameOptions } }
   | { type: 'START_GAME' }
   | { type: 'SELECT_DEALER' }
   | { type: 'DRAW_DEALER_CARD'; payload: { playerId: string; card: Card } }
+  | {
+    type: 'DEALER_CARD_DEALT';
+    payload: { playerId: string; card: Card; cardIndex: number; isBlackJack: boolean };
+  }
   | { type: 'COMPLETE_DEALER_SELECTION' }
   | { type: 'PROCEED_TO_DEALING' }
   | { type: 'DEAL_CARDS' }
   | { type: 'PLACE_BID'; payload: { bid: Bid } }
   | { type: 'DEALER_DISCARD'; payload: { card: Card } }
   | {
-      type: 'SET_TRUMP';
-      payload: { trump: Card['suit']; makerId: string; alone?: boolean };
-    }
+    type: 'SET_TRUMP';
+    payload: { trump: Card['suit']; makerId: string; alone?: boolean };
+  }
   | { type: 'PLAY_CARD'; payload: { card: Card; playerId: string } }
   | { type: 'COMPLETE_TRICK' }
   | { type: 'COMPLETE_HAND' }
@@ -55,13 +59,13 @@ export type GameAction =
   | { type: 'SET_CURRENT_PLAYER'; payload: { playerId: string } }
   | { type: 'SET_PHASE'; payload: { phase: GameState['phase'] } }
   | {
-      type: 'SYNC_STATE';
-      payload: {
-        gameState: PublicGameState;
-        playerHand?: Card[];
-        receivingPlayerId: string;
-      };
+    type: 'SYNC_STATE';
+    payload: {
+      gameState: PublicGameState;
+      playerHand?: Card[];
+      receivingPlayerId: string;
     };
+  };
 
 const initialGameState: GameState = {
   id: '',
@@ -195,17 +199,29 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         phase: 'dealer_selection',
       };
-
     case 'SELECT_DEALER': {
       // Create a shuffled deck for card drawing/dealing
       const deck = createDeck();
 
-      // Initialize dealer selection cards state for both methods
-      return {
-        ...state,
-        deck,
-        dealerSelectionCards: {},
-      };
+      // Initialize dealer selection state based on method
+      if (state.options.dealerSelection === 'first_black_jack') {
+        return {
+          ...state,
+          deck,
+          firstBlackJackDealing: {
+            currentPlayerIndex: 0,
+            currentCardIndex: 0,
+            dealtCards: [],
+          },
+        };
+      } else {
+        // Random cards method
+        return {
+          ...state,
+          deck,
+          dealerSelectionCards: {},
+        };
+      }
     }
 
     case 'DRAW_DEALER_CARD': {
@@ -252,6 +268,64 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         dealerSelectionCards: newDealerSelectionCards,
+      };
+    }
+
+    case 'DEALER_CARD_DEALT': {
+      const { playerId, card, cardIndex, isBlackJack } = action.payload;
+
+      // Add the dealt card to the dealing state
+      const currentDealing = state.firstBlackJackDealing || {
+        currentPlayerIndex: 0,
+        currentCardIndex: 0,
+        dealtCards: [],
+      };
+
+      const newDealtCards = [
+        ...currentDealing.dealtCards,
+        { playerId, card },
+      ];
+
+      // If this is a black jack, we found our dealer
+      if (isBlackJack) {
+        // Find the dealer player and arrange players
+        const dealer = state.players.find(p => p.id === playerId);
+        if (!dealer) {
+          return state; // Should not happen
+        }
+
+        const dealerOriginalPosition = dealer.position;
+        const arrangedPlayers: Player[] = [];
+
+        state.players.forEach(player => {
+          const newPosition = ((player.position - dealerOriginalPosition + 4) %
+            4) as 0 | 1 | 2 | 3;
+          arrangedPlayers[newPosition] = {
+            ...player,
+            position: newPosition,
+            teamId: (newPosition % 2) as 0 | 1,
+          };
+        });
+
+        return {
+          ...state,
+          players: arrangedPlayers,
+          currentDealerId: dealer.id,
+          phase: 'team_summary',
+          firstBlackJackDealing: undefined,
+        };
+      }
+
+      // Continue dealing - update the dealing state
+      const nextPlayerIndex = (currentDealing.currentPlayerIndex + 1) % state.players.length;
+
+      return {
+        ...state,
+        firstBlackJackDealing: {
+          currentPlayerIndex: nextPlayerIndex,
+          currentCardIndex: cardIndex + 1,
+          dealtCards: newDealtCards,
+        },
       };
     }
 
@@ -754,6 +828,7 @@ export function createPublicGameState(
     teamNames: gameState.teamNames,
     maker: gameState.maker,
     dealerSelectionCards: gameState.dealerSelectionCards,
+    firstBlackJackDealing: gameState.firstBlackJackDealing,
     deck: placeholderCards,
   };
 

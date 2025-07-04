@@ -8,6 +8,7 @@ export type MessageType =
   | 'START_GAME'
   | 'SELECT_DEALER'
   | 'DRAW_DEALER_CARD'
+  | 'DEALER_CARD_DEALT'
   | 'COMPLETE_DEALER_SELECTION'
   | 'GAME_STATE_UPDATE'
   | 'BID'
@@ -162,6 +163,16 @@ export interface DrawDealerCardMessage extends BaseMessage {
   };
 }
 
+export interface DealerCardDealtMessage extends BaseMessage {
+  type: 'DEALER_CARD_DEALT';
+  payload: {
+    playerId: string;
+    card: Card;
+    cardIndex: number;
+    isBlackJack: boolean;
+  };
+}
+
 export interface CompleteDealerSelectionMessage extends BaseMessage {
   type: 'COMPLETE_DEALER_SELECTION';
   payload: {
@@ -177,6 +188,7 @@ export type GameMessage =
   | StartGameMessage
   | SelectDealerMessage
   | DrawDealerCardMessage
+  | DealerCardDealtMessage
   | CompleteDealerSelectionMessage
   | GameStateUpdateMessage
   | BidMessage

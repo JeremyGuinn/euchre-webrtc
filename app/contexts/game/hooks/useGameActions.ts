@@ -25,6 +25,48 @@ export function useGameActions(
     dispatch({ type: 'SELECT_DEALER' });
   }, [isHost, dispatch]);
 
+  const dealFirstBlackJackCard = useCallback(() => {
+    if (!isHost) return;
+    if (gameState.options.dealerSelection !== 'first_black_jack') return;
+    if (!gameState.firstBlackJackDealing) return;
+    if (!gameState.deck) return;
+
+    const { currentPlayerIndex, currentCardIndex } = gameState.firstBlackJackDealing;
+
+    if (currentCardIndex >= gameState.deck.length) {
+      console.warn('No more cards in deck for first black jack dealing');
+      return;
+    }
+
+    const currentPlayer = gameState.players[currentPlayerIndex];
+    const card = gameState.deck[currentCardIndex];
+    const isBlackJack = card.value === 'J' && (card.suit === 'spades' || card.suit === 'clubs');
+
+    // Broadcast the dealt card to all clients
+    networkService.sendMessage({
+      type: 'DEALER_CARD_DEALT',
+      timestamp: Date.now(),
+      messageId: createMessageId(),
+      payload: {
+        playerId: currentPlayer.id,
+        card,
+        cardIndex: currentCardIndex,
+        isBlackJack,
+      },
+    });
+
+    // Update local state
+    dispatch({
+      type: 'DEALER_CARD_DEALT',
+      payload: {
+        playerId: currentPlayer.id,
+        card,
+        cardIndex: currentCardIndex,
+        isBlackJack,
+      },
+    });
+  }, [isHost, gameState, networkService, dispatch]);
+
   const drawDealerCard = useCallback(
     (cardIndex?: number) => {
       if (gameState.dealerSelectionCards?.[myPlayerId]) return;
@@ -282,6 +324,7 @@ export function useGameActions(
   return {
     startGame,
     selectDealer,
+    dealFirstBlackJackCard,
     drawDealerCard,
     completeDealerSelection,
     proceedToDealing,

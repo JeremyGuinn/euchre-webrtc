@@ -85,6 +85,11 @@ export type GameState = {
     alone: boolean;
   };
   dealerSelectionCards?: Record<string, Card>; // Cards drawn for dealer selection
+  firstBlackJackDealing?: {
+    currentPlayerIndex: number;
+    currentCardIndex: number;
+    dealtCards: Array<{ playerId: string; card: Card }>;
+  };
 };
 
 export type PublicGameState = Omit<GameState, 'hands' | 'deck'> & {

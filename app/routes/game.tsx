@@ -519,7 +519,8 @@ export default function Game({ params }: Route.ComponentProps) {
       {/* Dealer Selection Animation */}
       {gameState.phase === 'dealer_selection' && (
         <>
-          {!gameState.dealerSelectionCards ? (
+          {!gameState.dealerSelectionCards &&
+          !gameState.firstBlackJackDealing ? (
             // Initial state - show instruction overlay
             <Center className='absolute inset-0 bg-black/60 z-40'>
               <div className='text-white text-center p-8 bg-black/40 rounded-lg backdrop-blur-sm border border-white/20'>
