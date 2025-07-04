@@ -159,20 +159,6 @@ export function GameCompleteOverlay({
                   </div>
                 </div>
               </div>
-
-              {/* Game Stats */}
-              <div className='mb-6 p-4 bg-gray-50 rounded-lg'>
-                <h4 className='font-semibold text-gray-800 mb-2'>
-                  Game Summary
-                </h4>
-                <Stack spacing='1' className='text-sm text-gray-600'>
-                  <p>
-                    Final Score: {gameState.scores.team0} -{' '}
-                    {gameState.scores.team1}
-                  </p>
-                  <p>Game ID: {gameState.gameCode || gameState.id}</p>
-                </Stack>
-              </div>
             </div>
 
             {/* Action Buttons */}
