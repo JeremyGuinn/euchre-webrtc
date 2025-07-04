@@ -733,6 +733,7 @@ export default function Game({ params }: Route.ComponentProps) {
                       teamName={gameState.teamNames.team0}
                       onRename={renameTeam}
                       disabled={
+                        !isHost &&
                         gameState.players.find(p => p.id === myPlayer.id)
                           ?.teamId !== 0
                       }
@@ -768,6 +769,7 @@ export default function Game({ params }: Route.ComponentProps) {
                       teamName={gameState.teamNames.team1}
                       onRename={renameTeam}
                       disabled={
+                        !isHost &&
                         gameState.players.find(p => p.id === myPlayer.id)
                           ?.teamId !== 1
                       }
