@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import PageContainer from '../components/layout/PageContainer';
-import GameCodeSharing from '../components/lobby/GameCodeSharing';
-import Button from '../components/ui/Button';
-import ConnectionStatusDisplay from '../components/ui/ConnectionStatusDisplay';
-import ErrorDisplay from '../components/ui/ErrorDisplay';
-import LoadingScreen from '../components/ui/LoadingScreen';
-import { useGame } from '../contexts/GameContext';
+import ErrorDisplay from '~/components/error/ErrorDisplay';
+import ConnectionStatusDisplay from '~/components/feedback/ConnectionStatusDisplay';
+import LoadingScreen from '~/components/feedback/LoadingScreen';
+import PageContainer from '~/components/layout/PageContainer';
+import GameCodeSharing from '~/components/lobby/GameCodeSharing';
+import Button from '~/components/ui/Button';
+import { useGame } from '~/contexts/GameContext';
 
 export function meta() {
   return [

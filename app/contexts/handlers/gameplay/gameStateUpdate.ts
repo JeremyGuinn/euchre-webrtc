@@ -1,4 +1,4 @@
-import type { GameStateUpdateMessage } from '../../../types/messages';
+import type { GameStateUpdateMessage } from '~/types/messages';
 import type { MessageHandler } from '../types';
 
 /**

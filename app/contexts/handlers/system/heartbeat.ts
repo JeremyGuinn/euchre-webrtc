@@ -1,4 +1,4 @@
-import type { HeartbeatMessage } from '../../../types/messages';
+import type { HeartbeatMessage } from '~/types/messages';
 import type { MessageHandler } from '../types';
 
 /**

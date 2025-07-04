@@ -1,5 +1,5 @@
-import type { Player } from '../../../types/game';
-import type { JoinRequestMessage } from '../../../types/messages';
+import type { Player } from '~/types/game';
+import type { JoinRequestMessage } from '~/types/messages';
 import type { MessageHandler } from '../types';
 
 import { makeNameUnique } from '~/utils/playerUtils';

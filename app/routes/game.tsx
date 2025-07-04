@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
+import { EditableTeamName } from '../components/forms/EditableTeamName';
 import { Card, CardBack } from '../components/game/Card';
 import { DealerSelectionAnimation } from '../components/game/dealer-selection/DealerSelectionAnimation';
 import { DealingAnimation } from '../components/game/DealingAnimation';
 import GameContainer from '../components/layout/GameContainer';
 import Button from '../components/ui/Button';
-import { EditableTeamName } from '../components/ui/EditableTeamName';
 import { useGame } from '../contexts/GameContext';
 import type { Card as CardType, Player } from '../types/game';
 

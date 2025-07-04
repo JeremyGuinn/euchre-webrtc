@@ -1,4 +1,4 @@
-import type { Player } from '../types/game';
+import type { Player } from '~/types/game';
 
 /**
  * Ensures a player name is unique among existing players by appending a number if needed

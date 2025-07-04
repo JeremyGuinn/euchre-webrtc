@@ -1,4 +1,4 @@
-import type { Card, Player } from '../../../types/game';
+import type { Card, Player } from '~/types/game';
 import { FirstBlackJackSelection } from './FirstBlackJackSelection';
 import { RandomCardsSelection } from './RandomCardsSelection';
 

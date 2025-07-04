@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 import type { MessageHandler } from '~/contexts/handlers/types';
+import type { GameState } from '~/types/game';
+import type { GameMessage } from '~/types/messages';
 import type { ConnectionStatus, PeerMessageHandler } from '~/utils/networking';
-import type { GameState } from '../../../types/game';
-import type { GameMessage } from '../../../types/messages';
 import type { GameAction } from '../../../utils/gameState';
 import { createMessageHandlers } from '../../handlers';
 import { GameNetworkService } from '../services/networkService';
@@ -61,9 +61,9 @@ export function useNetworkHandlers(
           broadcastGameState: stateRef.current.broadcastGameState,
           onKicked: stateRef.current.onKicked,
           setConnectionStatus:
-            stateRef.current.setConnectionStatus || (() => {}),
-          setMyPlayerId: stateRef.current.setMyPlayerId || (() => {}),
-          setIsHost: stateRef.current.setIsHost || (() => {}),
+            stateRef.current.setConnectionStatus || (() => { }),
+          setMyPlayerId: stateRef.current.setMyPlayerId || (() => { }),
+          setIsHost: stateRef.current.setIsHost || (() => { }),
         });
       };
     },

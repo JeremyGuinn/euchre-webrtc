@@ -1,4 +1,4 @@
-import type { Card, Player } from '../types/game';
+import type { Card, Player } from '~/types/game';
 
 export function createDeck(): Card[] {
   const suits: Card['suit'][] = ['spades', 'hearts', 'diamonds', 'clubs'];

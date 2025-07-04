@@ -1,4 +1,4 @@
-import type { SelectDealerMessage } from '../../../types/messages';
+import type { SelectDealerMessage } from '~/types/messages';
 import type { MessageHandler } from '../types';
 
 /**

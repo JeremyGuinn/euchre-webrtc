@@ -1,5 +1,5 @@
-import type { PlayCardMessage } from '../../../types/messages';
-import { canPlayCardWithOptions } from '../../../utils/gameLogic';
+import type { PlayCardMessage } from '~/types/messages';
+import { canPlayCardWithOptions } from '~/utils/gameLogic';
 import type { MessageHandler } from '../types';
 
 /**

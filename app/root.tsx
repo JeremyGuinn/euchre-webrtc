@@ -10,7 +10,7 @@ import {
 } from 'react-router';
 import type { Route } from './+types/root';
 import './app.css';
-import { ErrorBoundary } from './components/core/ErrorBoundary';
+import { ErrorBoundary } from './components/error/ErrorBoundary';
 import { GameProvider } from './contexts/GameContext';
 
 declare global {

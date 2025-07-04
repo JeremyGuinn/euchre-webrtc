@@ -1,6 +1,6 @@
 import { decode, encode } from '@msgpack/msgpack';
 
-import type { GameMessage } from '../types/messages';
+import type { GameMessage } from '~/types/messages';
 
 export class ProtocolError extends Error {
   constructor(

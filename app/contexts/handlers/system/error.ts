@@ -1,4 +1,4 @@
-import type { ErrorMessage } from '../../../types/messages';
+import type { ErrorMessage } from '~/types/messages';
 import type { MessageHandler } from '../types';
 
 /**

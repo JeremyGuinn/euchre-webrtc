@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import Input from '../ui/Input';
+import Input from '../forms/Input';
 
 interface PlayerCardProps {
   player: {

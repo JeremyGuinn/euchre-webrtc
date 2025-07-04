@@ -1,4 +1,4 @@
-import type { BidMessage } from '../../../types/messages';
+import type { BidMessage } from '~/types/messages';
 import type { MessageHandler } from '../types';
 
 /**

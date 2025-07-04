@@ -1,10 +1,10 @@
-import type { GameState } from '../../types/game';
+import type { GameState } from '~/types/game';
 import type {
   BaseMessage,
   GameMessage,
   MessageType,
-} from '../../types/messages';
-import type { GameAction } from '../../utils/gameState';
+} from '~/types/messages';
+import type { GameAction } from '~/utils/gameState';
 
 import type { ConnectionStatus, NetworkManager } from '~/utils/networking';
 

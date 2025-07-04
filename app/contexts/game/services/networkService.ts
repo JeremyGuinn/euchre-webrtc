@@ -1,4 +1,4 @@
-import type { GameMessage } from '../../../types/messages';
+import type { GameMessage } from '~/types/messages';
 import { gameCodeToHostId, generateGameCode } from '../../../utils/gameCode';
 import {
   NetworkManager,

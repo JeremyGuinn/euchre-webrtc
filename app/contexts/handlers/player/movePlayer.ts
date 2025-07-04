@@ -1,4 +1,4 @@
-import type { MovePlayerMessage } from '../../../types/messages';
+import type { MovePlayerMessage } from '~/types/messages';
 import type { MessageHandler } from '../types';
 
 /**

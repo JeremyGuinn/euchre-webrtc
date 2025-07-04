@@ -1,6 +1,6 @@
 import type { DataConnection } from 'peerjs';
 import Peer from 'peerjs';
-import type { GameMessage } from '../types/messages';
+import type { GameMessage } from '~/types/messages';
 import {
   decodeMessage,
   encodeMessage,

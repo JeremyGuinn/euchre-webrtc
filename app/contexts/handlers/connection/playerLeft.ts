@@ -1,4 +1,4 @@
-import type { PlayerLeftMessage } from '../../../types/messages';
+import type { PlayerLeftMessage } from '~/types/messages';
 import type { MessageHandler } from '../types';
 
 /**

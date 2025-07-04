@@ -1,4 +1,4 @@
-import type { DealCardsMessage } from '../../../types/messages';
+import type { DealCardsMessage } from '~/types/messages';
 import type { MessageHandler } from '../types';
 
 /**

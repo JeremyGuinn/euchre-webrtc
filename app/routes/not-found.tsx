@@ -1,6 +1,6 @@
-import PageContainer from '../components/layout/PageContainer';
-import ButtonDivider from '../components/ui/ButtonDivider';
-import LinkButton from '../components/ui/LinkButton';
+import PageContainer from '~/components/layout/PageContainer';
+import ButtonDivider from '~/components/ui/ButtonDivider';
+import LinkButton from '~/components/ui/LinkButton';
 
 export function meta() {
   return [

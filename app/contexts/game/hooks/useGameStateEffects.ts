@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-import type { GameState, Player } from '../../../types/game';
+import type { GameState, Player } from '~/types/game';
 import { createPublicGameState } from '../../../utils/gameState';
 import { createMessageId } from '../../../utils/protocol';
 import { GameNetworkService } from '../services/networkService';

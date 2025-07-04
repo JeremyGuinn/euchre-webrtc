@@ -1,4 +1,4 @@
-import type { RenamePlayerMessage } from '../../../types/messages';
+import type { RenamePlayerMessage } from '~/types/messages';
 import type { MessageHandler } from '../types';
 
 import { makeNameUnique } from '~/utils/playerUtils';

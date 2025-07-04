@@ -1,6 +1,14 @@
 import type { ErrorInfo, ReactNode } from 'react';
 import { Component } from 'react';
 
+import {
+  cardVariants,
+  debugVariants,
+  layoutVariants,
+  textVariants,
+} from '../../utils/classVariants';
+import { cn } from '../../utils/cn';
+import Button from '../ui/Button';
 import ButtonDivider from '../ui/ButtonDivider';
 import LinkButton from '../ui/LinkButton';
 
@@ -58,10 +66,15 @@ export class ErrorBoundary extends Component<
       }
 
       return (
-        <div className='min-h-screen bg-gradient-to-br from-red-800 to-red-600 flex items-center justify-center p-4'>
-          <div className='max-w-lg w-full bg-white rounded-lg shadow-lg p-8'>
+        <div
+          className={cn(
+            layoutVariants.centerScreen,
+            'bg-gradient-to-br from-red-800 to-red-600'
+          )}
+        >
+          <div className={cn(layoutVariants.container, cardVariants.default)}>
             {/* Card symbols decoration */}
-            <div className='text-6xl mb-6 text-center space-x-2'>
+            <div className={cn('text-6xl mb-6 text-center space-x-2')}>
               <span className='text-black'>♠️</span>
               <span className='text-red-600'>♥️</span>
               <span className='text-red-600'>♦️</span>
@@ -69,34 +82,34 @@ export class ErrorBoundary extends Component<
             </div>
 
             {/* Error message */}
-            <div className='text-center mb-8'>
-              <h1 className='text-3xl font-bold text-gray-800 mb-4'>
+            <div className={cn('text-center mb-8')}>
+              <h1 className={textVariants.heading}>
                 Oops! Something went wrong
               </h1>
-              <p className='text-gray-600 mb-4'>
+              <p className={textVariants.body}>
                 It looks like you&apos;ve been dealt a bad hand! The game
                 encountered an unexpected error.
               </p>
 
               {process.env.NODE_ENV === 'development' && this.state.error && (
-                <details className='mt-4 p-4 bg-gray-50 rounded-lg text-left'>
-                  <summary className='cursor-pointer font-medium text-gray-700 mb-2'>
+                <details className={debugVariants.details}>
+                  <summary className={debugVariants.summary}>
                     Error Details (Development)
                   </summary>
-                  <div className='text-sm text-gray-600 space-y-2'>
+                  <div className={debugVariants.errorInfo}>
                     <div>
                       <strong>Error:</strong> {this.state.error.message}
                     </div>
                     <div>
                       <strong>Stack trace:</strong>
-                      <pre className='mt-1 text-xs overflow-auto bg-gray-100 p-2 rounded'>
+                      <pre className={debugVariants.codeBlock}>
                         {this.state.error.stack}
                       </pre>
                     </div>
                     {this.state.errorInfo && (
                       <div>
                         <strong>Component stack:</strong>
-                        <pre className='mt-1 text-xs overflow-auto bg-gray-100 p-2 rounded'>
+                        <pre className={debugVariants.codeBlock}>
                           {this.state.errorInfo.componentStack}
                         </pre>
                       </div>
@@ -107,13 +120,10 @@ export class ErrorBoundary extends Component<
             </div>
 
             {/* Action buttons */}
-            <div className='space-y-4'>
-              <button
-                onClick={this.handleReset}
-                className='w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200'
-              >
+            <div className={layoutVariants.flexColumn}>
+              <Button onClick={this.handleReset} variant='primary' fullWidth>
                 🔄 Try Again
-              </button>
+              </Button>
 
               <ButtonDivider />
 
@@ -123,8 +133,8 @@ export class ErrorBoundary extends Component<
             </div>
 
             {/* Fun euchre-themed message */}
-            <div className='mt-8 p-4 bg-gray-50 rounded-lg'>
-              <p className='text-sm text-gray-600 italic text-center'>
+            <div className={cn('mt-8 p-4 bg-gray-50 rounded-lg')}>
+              <p className={cn(textVariants.caption, 'italic text-center')}>
                 Even the best Euchre players sometimes get a misdeal. Let&apos;s
                 shuffle the deck and try again!
               </p>

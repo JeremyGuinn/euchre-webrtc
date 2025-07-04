@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 
-import type { Bid, Card, GameOptions, GameState } from '../../../types/game';
+import type { Bid, Card, GameOptions, GameState } from '~/types/game';
 import type { GameAction } from '../../../utils/gameState';
 import { makeNameUnique } from '../../../utils/playerUtils';
 import { createMessageId } from '../../../utils/protocol';

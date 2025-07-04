@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
 
-import PageContainer from '../components/layout/PageContainer';
-import ButtonDivider from '../components/ui/ButtonDivider';
-import Input from '../components/ui/Input';
-import LinkButton from '../components/ui/LinkButton';
-import NotificationBanner from '../components/ui/NotificationBanner';
-import { isValidGameCode, normalizeGameCode } from '../utils/gameCode';
+import NotificationBanner from '~/components/feedback/NotificationBanner';
+import Input from '~/components/forms/Input';
+import PageContainer from '~/components/layout/PageContainer';
+import ButtonDivider from '~/components/ui/ButtonDivider';
+import LinkButton from '~/components/ui/LinkButton';
+import { isValidGameCode, normalizeGameCode } from '~/utils/gameCode';
 
 export function meta() {
   return [

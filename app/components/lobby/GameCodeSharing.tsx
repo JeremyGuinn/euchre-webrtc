@@ -1,7 +1,5 @@
-import React from 'react';
-
-import { useIsClient } from '../../hooks/useClientOnly';
-import Input from '../ui/Input';
+import { useIsClient } from '~/hooks/useClientOnly';
+import Input from '../forms/Input';
 
 interface GameCodeSharingProps {
   gameId: string;

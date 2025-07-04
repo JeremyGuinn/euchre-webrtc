@@ -1,4 +1,4 @@
-import type { DrawDealerCardMessage } from '../../../types/messages';
+import type { DrawDealerCardMessage } from '~/types/messages';
 import type { MessageHandler } from '../types';
 
 /**

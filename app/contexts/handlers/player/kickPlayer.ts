@@ -1,4 +1,4 @@
-import type { KickPlayerMessage } from '../../../types/messages';
+import type { KickPlayerMessage } from '~/types/messages';
 import type { MessageHandler } from '../types';
 
 /**

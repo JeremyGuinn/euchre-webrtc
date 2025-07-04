@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import PageContainer from '../components/layout/PageContainer';
-import Button from '../components/ui/Button';
-import ConnectionStatusDisplay from '../components/ui/ConnectionStatusDisplay';
-import ErrorDisplay from '../components/ui/ErrorDisplay';
-import Input from '../components/ui/Input';
-import LinkButton from '../components/ui/LinkButton';
-import { useGame } from '../contexts/GameContext';
-import { useIsClient } from '../hooks/useClientOnly';
-import { isValidGameCode, normalizeGameCode } from '../utils/gameCode';
+import ErrorDisplay from '~/components/error/ErrorDisplay';
+import ConnectionStatusDisplay from '~/components/feedback/ConnectionStatusDisplay';
+import Input from '~/components/forms/Input';
+import PageContainer from '~/components/layout/PageContainer';
+import Button from '~/components/ui/Button';
+import LinkButton from '~/components/ui/LinkButton';
+import { useGame } from '~/contexts/GameContext';
+import { useIsClient } from '~/hooks/useClientOnly';
+import { isValidGameCode, normalizeGameCode } from '~/utils/gameCode';
 
 import type { Route } from './+types/join';
 

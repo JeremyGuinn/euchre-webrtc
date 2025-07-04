@@ -1,4 +1,4 @@
-import type { JoinResponseMessage } from '../../../types/messages';
+import type { JoinResponseMessage } from '~/types/messages';
 import type { MessageHandler } from '../types';
 
 /**

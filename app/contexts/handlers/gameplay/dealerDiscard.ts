@@ -1,4 +1,4 @@
-import type { DealerDiscardMessage } from '../../../types/messages';
+import type { DealerDiscardMessage } from '~/types/messages';
 import type { MessageHandler } from '../types';
 
 /**

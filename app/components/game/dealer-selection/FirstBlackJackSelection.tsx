@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { Card, Player } from '../../../types/game';
+import type { Card, Player } from '~/types/game';
 import { CardBack, Card as CardComponent } from '../Card';
 
 interface FirstBlackJackSelectionProps {

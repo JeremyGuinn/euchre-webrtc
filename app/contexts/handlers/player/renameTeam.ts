@@ -1,4 +1,4 @@
-import type { RenameTeamMessage } from '../../../types/messages';
+import type { RenameTeamMessage } from '~/types/messages';
 import type { MessageHandler } from '../types';
 
 /**

@@ -1,4 +1,4 @@
-import type { PlayerJoinedMessage } from '../../../types/messages';
+import type { PlayerJoinedMessage } from '~/types/messages';
 import type { MessageHandler } from '../types';
 
 /**

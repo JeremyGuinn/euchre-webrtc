@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import GameCodeSharing from '../components/lobby/GameCodeSharing';
-import GameOptionsPanel from '../components/lobby/GameOptionsPanel';
-import HostControlsInfo from '../components/lobby/HostControlsInfo';
-import PlayerCard from '../components/lobby/PlayerCard';
-import Button from '../components/ui/Button';
-import ConnectionStatusDisplay from '../components/ui/ConnectionStatusDisplay';
-import { EditableTeamName } from '../components/ui/EditableTeamName';
-import { useGame } from '../contexts/GameContext';
+import ConnectionStatusDisplay from '~/components/feedback/ConnectionStatusDisplay';
+import { EditableTeamName } from '~/components/forms/EditableTeamName';
+import GameCodeSharing from '~/components/lobby/GameCodeSharing';
+import GameOptionsPanel from '~/components/lobby/GameOptionsPanel';
+import HostControlsInfo from '~/components/lobby/HostControlsInfo';
+import PlayerCard from '~/components/lobby/PlayerCard';
+import Button from '~/components/ui/Button';
+import { useGame } from '~/contexts/GameContext';
 
 import PageContainer from '~/components/layout/PageContainer';
 import type { Route } from './+types/lobby';
