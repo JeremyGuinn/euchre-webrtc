@@ -8,10 +8,10 @@
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx --cache",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix --cache",
+    "format": "prettier --cache --write . ",
+    "format:check": "prettier --cache --check .",
     "validate": "pnpm lint && pnpm typecheck && pnpm format:check",
     "prepare": "lefthook install && pnpm validate"
   },
@@ -50,11 +50,11 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
+      "eslint --fix --cache",
+      "prettier --cache --write"
     ],
     "*.{json,md,css}": [
-      "prettier --write"
+      "prettier --cache --write"
     ]
   },
   "packageManager": "pnpm@10.6.2+sha256.20072a1f6edd17646ea9234bf32c42d563dad37b2973e97a2dde5c17774a824d",
