@@ -86,6 +86,26 @@ export default function Game({ params }: Route.ComponentProps) {
     }
   }, [gameState.phase, isHost, continueTrick]);
 
+  const [headerHeight, setHeaderHeight] = useState(0);
+
+  useEffect(() => {
+    const headerElement = document.getElementById('game-header');
+    if (!headerElement) return;
+
+    const resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        setHeaderHeight(entry.target.clientHeight);
+      }
+    });
+
+    resizeObserver.observe(headerElement);
+    setHeaderHeight(headerElement.clientHeight);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   const handleCardClick = (card: CardType) => {
     if (!isMyTurn() || gameState.phase !== 'playing') return;
 
@@ -130,11 +150,11 @@ export default function Game({ params }: Route.ComponentProps) {
       case 'bottom':
         return 'absolute bottom-2 left-1/2 transform -translate-x-1/2';
       case 'left':
-        return 'absolute left-0 top-1/2 transform -translate-y-1/2 -rotate-90';
+        return 'absolute left-14 top-1/2 transform -translate-y-1/2 rotate-90 -translate-x-1/2';
       case 'top':
-        return 'absolute top-4 left-1/2 transform -translate-x-1/2 rotate-180';
+        return 'absolute top-14 left-1/2 transform -translate-x-1/2 -translate-y-1/2';
       case 'right':
-        return 'absolute right-0 top-1/2 transform -translate-y-1/2 rotate-90';
+        return 'absolute right-14 top-1/2 transform -translate-y-1/2 -rotate-90 translate-x-1/2';
       default:
         return '';
     }
@@ -164,16 +184,14 @@ export default function Game({ params }: Route.ComponentProps) {
   return (
     <GameContainer className='relative overflow-hidden'>
       {/* Header */}
-      <div className='absolute top-0 left-0 right-0 bg-black/20 p-4 z-10'>
+      <div
+        className='absolute top-0 left-0 right-0 bg-black/20 p-4 z-10'
+        id='game-header'
+      >
         <div className='flex justify-between items-center text-white'>
           <div className='flex items-center space-x-6'>
             <h1 className='text-xl font-bold'>Euchre Game</h1>
-            <div className='text-sm'>
-              Phase:{' '}
-              <span className='font-medium capitalize'>
-                {gameState.phase.replace('_', ' ')}
-              </span>
-            </div>
+
             {gameState.trump && (
               <div className='flex items-center space-x-1'>
                 <span className='text-sm'>Trump:</span>
@@ -196,7 +214,13 @@ export default function Game({ params }: Route.ComponentProps) {
       </div>
 
       {/* Game Table */}
-      <div className='relative w-full h-[calc(100vh-4rem)] top-16'>
+      <div
+        className={`relative w-full`}
+        style={{
+          height: `calc(100vh - ${headerHeight}px)`,
+          top: `${headerHeight}px`,
+        }}
+      >
         {/* Center area for tricks */}
         {(gameState.phase === 'playing' ||
           gameState.phase === 'bidding_round1' ||
@@ -243,7 +267,7 @@ export default function Game({ params }: Route.ComponentProps) {
                   return (
                     <div
                       key={playedCard.card.id}
-                      className='absolute transform -translate-x-1/2 -translate-y-1/2'
+                      className='absolute transform -translate-x-1/2 -translate-y-1/2 z-20'
                       style={{
                         left: `calc(50% + ${x}px)`,
                         top: `calc(50% + ${y}px)`,
@@ -290,21 +314,12 @@ export default function Game({ params }: Route.ComponentProps) {
           return (
             <div key={player.id} className={getPositionClasses(position)}>
               <div
-                className={`text-center ${
-                  position === 'top' || position === 'bottom' ? '' : 'transform'
-                }`}
+                className={`text-center flex gap-2 items-center ${position === 'top' ? 'flex-col-reverse ' : 'flex-col'}`}
               >
                 {gameState.phase !== 'dealing_animation' &&
                   gameState.phase !== 'dealer_selection' && (
                     <div
-                      className={`
-                    inline-block px-3 py-1 rounded-lg text-sm font-medium mb-2
-                    ${
-                      isCurrentPlayer
-                        ? 'bg-yellow-400 text-black'
-                        : 'bg-white/20 text-white'
-                    }
-                    ${!player.isConnected ? 'opacity-50' : ''}
+                      className={`inline-block px-3 py-1 rounded-lg text-sm font-medium w-fit ${isCurrentPlayer ? 'bg-yellow-400 text-black' : 'bg-white/20 text-white'}${!player.isConnected ? 'opacity-50' : ''}
                   `}
                     >
                       {player.name} {player.id === myPlayer.id && '(You)'}
@@ -446,7 +461,7 @@ export default function Game({ params }: Route.ComponentProps) {
 
         {/* Current turn indicator */}
         {currentPlayer && gameState.phase !== 'dealing_animation' && (
-          <div className='absolute bottom-48 left-1/2 transform -translate-x-1/2 text-white text-center z-20'>
+          <div className='absolute top-4 left-1/2 transform -translate-x-1/2 text-white text-center z-20'>
             <div className='bg-black/70 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg border border-white/20'>
               {currentPlayer.id === myPlayer.id ? (
                 <>
@@ -668,8 +683,8 @@ export default function Game({ params }: Route.ComponentProps) {
       {/* Team Summary - Show dealer and team assignments */}
       {gameState.phase === 'team_summary' && (
         <div className='absolute inset-0 bg-black/40 z-40'>
-          <div className='flex flex-col items-center justify-center h-full p-8'>
-            <div className='bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8 max-w-2xl w-full mx-4'>
+          <div className='flex flex-col items-center justify-center h-full px-8 py-4'>
+            <div className='bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8 max-w-2xl w-full mx-4 max-h-[99vh] overflow-y-auto'>
               <div className='text-center mb-8'>
                 <h2 className='text-3xl font-bold text-gray-800 mb-2'>
                   Team Assignments

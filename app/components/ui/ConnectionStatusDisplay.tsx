@@ -31,7 +31,9 @@ export default function ConnectionStatusDisplay({
   const config = statusConfig[status];
 
   return (
-    <div className={`flex items-center text-sm text-gray-600 ${className}`}>
+    <div
+      className={`flex items-center text-sm text-gray-600 flex-wrap ${className}`}
+    >
       <span>Connection Status:</span>
       <span className={`font-medium ml-2 ${config.color}`}>{config.label}</span>
     </div>

@@ -108,9 +108,9 @@ export default function Lobby({ params }: Route.ComponentProps) {
     <PageContainer maxWidth='full'>
       {/* Header */}
       <div className='bg-white rounded-lg shadow-lg p-6 mb-6'>
-        <div className='flex justify-between items-center mb-4'>
+        <div className='flex justify-between items-center mb-4 flex-wrap space-y-2'>
           <h1 className='text-2xl font-bold text-gray-800'>Game Lobby</h1>
-          <div className='flex items-center space-x-4'>
+          <div className='flex items-center space-x-4 flex-wrap space-y-2'>
             <ConnectionStatusDisplay status={connectionStatus} />
             <Button variant='danger' onClick={handleLeaveGame} size='sm'>
               Leave Game
