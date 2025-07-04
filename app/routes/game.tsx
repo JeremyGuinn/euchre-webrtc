@@ -35,10 +35,10 @@ const suitSymbols = {
 };
 
 const suitColors = {
-  spades: 'text-black',
+  spades: 'text-white',
   hearts: 'text-red-600',
   diamonds: 'text-red-600',
-  clubs: 'text-black',
+  clubs: 'text-white',
 };
 
 export default function Game({ params }: Route.ComponentProps) {
