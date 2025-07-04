@@ -1,8 +1,9 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useGame } from '~/contexts/GameContext';
 import type { Card, Player } from '~/types/game';
 import CardDeck from './CardDeck';
 import DealerSelectionStatus from './DealerSelectionStatus';
+import { FirstBlackJackDealingAnimation } from './FirstBlackJackDealingAnimation';
 import PlayerDealingArea from './PlayerDealingArea';
 
 interface FirstBlackJackSelectionProps {
@@ -22,11 +23,48 @@ export function FirstBlackJackSelection({
 }: FirstBlackJackSelectionProps) {
   const { gameState, isHost, dealFirstBlackJackCard } = useGame();
 
+  // Animation state
+  const [pendingDeal, setPendingDeal] = useState<{
+    card: Card;
+    playerId: string;
+  } | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+
   // Get dealing state from game context - all derived state should be in useMemo
   const dealingState = useMemo(
     () => gameState.firstBlackJackDealing,
     [gameState.firstBlackJackDealing]
   );
+
+  // Track the last dealt card to detect new cards being dealt
+  const lastDealtCard = useMemo(() => {
+    const dealtCards = dealingState?.dealtCards ?? [];
+    return dealtCards.length > 0 ? dealtCards[dealtCards.length - 1] : null;
+  }, [dealingState?.dealtCards]);
+
+  // Track the count of dealt cards to detect changes
+  const dealtCardsCount = useMemo(() => {
+    return dealingState?.dealtCards?.length ?? 0;
+  }, [dealingState?.dealtCards]);
+
+  // Detect when a new card is being dealt and trigger animation
+  useEffect(() => {
+    if (!lastDealtCard || !isVisible) return;
+
+    // Set up the pending deal for animation
+    setPendingDeal({
+      card: lastDealtCard.card,
+      playerId: lastDealtCard.playerId,
+    });
+    setIsAnimating(true);
+  }, [dealtCardsCount, lastDealtCard, isVisible]); // Use dealtCardsCount to trigger on new cards
+
+  // Handle animation completion
+  const handleAnimationComplete = () => {
+    setIsAnimating(false);
+    setPendingDeal(null);
+  };
+
   const dealingComplete = useMemo(
     () => gameState.phase === 'team_summary',
     [gameState.phase]
@@ -113,7 +151,7 @@ export function FirstBlackJackSelection({
 
     const timer = setTimeout(() => {
       dealFirstBlackJackCard();
-    }, initialDelay + 150); // 250ms initial + 150ms between cards
+    }, initialDelay + 800); // Longer delay to allow animation to complete
 
     return () => clearTimeout(timer);
   }, [
@@ -132,9 +170,19 @@ export function FirstBlackJackSelection({
       {/* Center deck area */}
       <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
         <div id='blackjack-dealing-center' className='relative'>
-          <CardDeck id='blackjack-dealing-center' isAnimating={false} />
+          <CardDeck id='blackjack-dealing-center' isAnimating={isAnimating} />
         </div>
       </div>
+
+      {/* Dealing Animation */}
+      <FirstBlackJackDealingAnimation
+        players={players}
+        myPlayer={myPlayer}
+        isVisible={isAnimating}
+        currentCard={pendingDeal?.card || null}
+        targetPlayerId={pendingDeal?.playerId || null}
+        onAnimationComplete={handleAnimationComplete}
+      />
 
       {/* Show cards for each player in their positions */}
       {players.map(player => {
