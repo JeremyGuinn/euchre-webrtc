@@ -455,7 +455,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           newPhase === 'dealing_animation'
             ? currentPlayer || state.currentDealerId
             : state.currentDealerId,
-        hands: newHands,
+        hands: newPhase === 'dealing_animation' ? {} : newHands,
       };
     }
 

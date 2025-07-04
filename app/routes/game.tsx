@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { Card, CardBack } from '../components/game/Card';
-import { DealerSelectionAnimation } from '../components/game/DealerSelectionAnimation';
+import { DealerSelectionAnimation } from '../components/game/dealer-selection/DealerSelectionAnimation';
 import { DealingAnimation } from '../components/game/DealingAnimation';
 import GameContainer from '../components/layout/GameContainer';
 import Button from '../components/ui/Button';
@@ -124,6 +124,35 @@ export default function Game({ params }: Route.ComponentProps) {
       resizeObserver.disconnect();
     };
   }, []);
+
+  const [kittyWidth, setKittyWidth] = useState(0);
+
+  useEffect(() => {
+    if (
+      !(
+        (gameState.phase === 'bidding_round1' ||
+          gameState.phase === 'bidding_round2') &&
+        gameState.kitty
+      )
+    ) {
+      return;
+    }
+    const kittyElement = document.getElementById('kitty-card');
+    if (!kittyElement) return;
+
+    const resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        setKittyWidth(entry.target.clientWidth);
+      }
+    });
+
+    resizeObserver.observe(kittyElement);
+    setKittyWidth(kittyElement.clientWidth);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [gameState.phase, gameState.kitty]);
 
   const handleCardClick = (card: CardType) => {
     if (!isMyTurn() || gameState.phase !== 'playing') return;
@@ -302,14 +331,14 @@ export default function Game({ params }: Route.ComponentProps) {
                 gameState.phase === 'bidding_round2') &&
                 gameState.kitty && (
                   <div className='relative h-full'>
-                    {isMyTurn() && (
+                    {isMyTurn() && gameState.phase === 'bidding_round1' && (
                       <Button
                         variant='primary'
                         size='sm'
                         onClick={() => handleBid(gameState.kitty!.suit)}
                         className='absolute px-3 py-1 text-xs h-min w-min top-1/2 transform -translate-y-1/2 -translate-x-1/2'
                         style={{
-                          left: `calc(50% - ${document.getElementById('kitty-card')?.clientWidth}px)`,
+                          left: `calc(50% - ${kittyWidth}px)`,
                         }}
                       >
                         {myPlayer.id === gameState.currentDealerId
@@ -351,14 +380,14 @@ export default function Game({ params }: Route.ComponentProps) {
                       </div>
                     </div>
 
-                    {isMyTurn() && (
+                    {isMyTurn() && gameState.phase === 'bidding_round1' && (
                       <Button
                         variant='secondary'
                         size='sm'
                         onClick={() => handleBid('pass')}
                         className='absolute px-3 py-1 text-xs h-min w-fit top-1/2 transform -translate-y-1/2 -translate-x-1/2'
                         style={{
-                          left: `calc(50% + ${document.getElementById('kitty-card')?.clientWidth}px)`,
+                          left: `calc(50% + ${kittyWidth}px)`,
                         }}
                       >
                         Pass
