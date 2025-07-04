@@ -13,7 +13,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "validate": "pnpm lint && pnpm typecheck && pnpm format:check",
-    "prepare": "pnpm validate"
+    "prepare": "lefthook install && pnpm validate"
   },
   "dependencies": {
     "@msgpack/msgpack": "^3.1.2",
@@ -39,12 +39,23 @@
     "eslint-plugin-prettier": "^5.5.1",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
+    "lefthook": "^1.9.3",
+    "lint-staged": "^15.3.0",
     "prettier": "^3.6.2",
     "tailwindcss": "^4.1.4",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.35.1",
     "vite": "^6.3.3",
     "vite-tsconfig-paths": "^5.1.4"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,css}": [
+      "prettier --write"
+    ]
   },
   "packageManager": "pnpm@10.6.2+sha256.20072a1f6edd17646ea9234bf32c42d563dad37b2973e97a2dde5c17774a824d",
   "pnpm": {
