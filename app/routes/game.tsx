@@ -77,14 +77,31 @@ export default function Game({ params }: Route.ComponentProps) {
     }
   }, [gameState.phase, gameId, navigate]);
 
+  const [autoAdvanceProgress, setAutoAdvanceProgress] = useState(0);
+
   useEffect(() => {
     // Auto-advance from trick_complete phase after 3 seconds if host
     if (gameState.phase === 'trick_complete' && isHost) {
+      setAutoAdvanceProgress(0);
+
+      const progressInterval = setInterval(() => {
+        setAutoAdvanceProgress(prev => {
+          const newProgress = prev + 100 / 30; // 30 intervals over 3 seconds = 100ms each
+          return newProgress >= 100 ? 100 : newProgress;
+        });
+      }, 100);
+
       const timer = setTimeout(() => {
         continueTrick();
       }, 3000);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        clearInterval(progressInterval);
+        setAutoAdvanceProgress(0);
+      };
+    } else {
+      setAutoAdvanceProgress(0);
     }
   }, [gameState.phase, isHost, continueTrick]);
 
@@ -890,9 +907,34 @@ export default function Game({ params }: Route.ComponentProps) {
                 })()}
 
                 {isHost ? (
-                  <Button onClick={continueTrick} size='lg' className='w-full'>
-                    Continue to Next Trick
-                  </Button>
+                  <div className='relative'>
+                    <Button
+                      onClick={continueTrick}
+                      size='lg'
+                      className='w-full relative overflow-hidden'
+                    >
+                      {/* Progress background */}
+                      <div
+                        className='absolute inset-0 bg-white/20 transition-all duration-100 ease-linear'
+                        style={{
+                          width: `${autoAdvanceProgress}%`,
+                          transformOrigin: 'left',
+                        }}
+                      />
+
+                      {/* Button text */}
+                      <span className='relative z-10'>
+                        Continue to Next Trick
+                        {autoAdvanceProgress > 0 && (
+                          <span className='ml-2 text-sm opacity-80'>
+                            (
+                            {Math.ceil(((100 - autoAdvanceProgress) / 100) * 3)}
+                            s)
+                          </span>
+                        )}
+                      </span>
+                    </Button>
+                  </div>
                 ) : (
                   <div className='text-gray-600'>
                     <div className='inline-flex items-center space-x-2'>
