@@ -13,7 +13,6 @@ export interface GameContextType {
   startGame: () => void;
   selectDealer: () => void;
   drawDealerCard: (cardIndex?: number) => void;
-  dealerSelectionCardDealt: (playerId: string, card: Card) => void;
   completeDealerSelection: () => void;
   proceedToDealing: () => void;
   completeDealingAnimation: () => void;

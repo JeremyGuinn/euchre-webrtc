@@ -363,11 +363,14 @@ export function selectDealerOnly(
 /**
  * Find the first player to receive a black Jack when dealing around the table
  */
-export function findFirstBlackJackDealer(players: Player[]): {
+
+export function findFirstBlackJackDealer(
+  deck: Card[],
+  players: Player[]
+): {
   dealer: Player;
   arrangedPlayers: Player[];
 } {
-  const deck = createDeck();
   let currentPlayerIndex = 0;
   let cardIndex = 0;
 

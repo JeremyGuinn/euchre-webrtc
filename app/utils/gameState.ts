@@ -39,10 +39,6 @@ export type GameAction =
   | { type: 'START_GAME' }
   | { type: 'SELECT_DEALER' }
   | { type: 'DRAW_DEALER_CARD'; payload: { playerId: string; card: Card } }
-  | {
-      type: 'DEALER_SELECTION_CARD_DEALT';
-      payload: { playerId: string; card: Card };
-    }
   | { type: 'COMPLETE_DEALER_SELECTION' }
   | { type: 'PROCEED_TO_DEALING' }
   | { type: 'DEAL_CARDS' }
@@ -259,24 +255,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
-    case 'DEALER_SELECTION_CARD_DEALT': {
-      const { playerId, card } = action.payload;
-
-      const newDealerSelectionCards = {
-        ...state.dealerSelectionCards,
-        [playerId]: card,
-      };
-
-      return {
-        ...state,
-        dealerSelectionCards: newDealerSelectionCards,
-      };
-    }
-
     case 'COMPLETE_DEALER_SELECTION': {
       if (state.options.dealerSelection === 'first_black_jack') {
-        // Use first black jack method - this will be called after the dealing animation
         const { dealer, arrangedPlayers } = findFirstBlackJackDealer(
+          state.deck,
           state.players
         );
 

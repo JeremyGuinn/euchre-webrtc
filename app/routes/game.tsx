@@ -46,7 +46,6 @@ export default function Game({ params }: Route.ComponentProps) {
     playCard,
     placeBid,
     drawDealerCard,
-    dealerSelectionCardDealt,
     completeDealerSelection,
     proceedToDealing,
     completeDealingAnimation,
@@ -692,17 +691,24 @@ export default function Game({ params }: Route.ComponentProps) {
               </div>
             </div>
           ) : (
-            // Show dealer selection animation
-            <DealerSelectionAnimation
-              players={gameState.players}
-              myPlayer={myPlayer}
-              isVisible={true}
-              method={gameState.options.dealerSelection}
-              dealerSelectionCards={gameState.dealerSelectionCards}
-              onCardDealt={dealerSelectionCardDealt}
-              onCardPicked={drawDealerCard}
-              onComplete={completeDealerSelection}
-            />
+            <div
+              className='absolute w-full'
+              style={{
+                height: `calc(100vh - ${headerHeight}px)`,
+                top: `${headerHeight}px`,
+              }}
+            >
+              <DealerSelectionAnimation
+                players={gameState.players}
+                myPlayer={myPlayer}
+                isVisible={true}
+                deck={gameState.deck}
+                method={gameState.options.dealerSelection}
+                dealerSelectionCards={gameState.dealerSelectionCards}
+                onCardPicked={drawDealerCard}
+                onComplete={completeDealerSelection}
+              />
+            </div>
           )}
         </>
       )}
