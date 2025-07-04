@@ -1,3 +1,4 @@
+import { Stack } from '~/components/ui/Stack';
 import type { GameOptions } from '~/types/game';
 import Panel from '../ui/Panel';
 
@@ -75,7 +76,7 @@ export function GameOptionsPanel({
             <h3 className='text-sm font-medium text-gray-700 mb-2'>
               Team Selection
             </h3>
-            <div className='space-y-2'>
+            <Stack spacing='2'>
               <label className='flex items-start' id='randomCardsLabel'>
                 <input
                   type='radio'
@@ -119,7 +120,7 @@ export function GameOptionsPanel({
                   </span>
                 </span>
               </label>
-            </div>
+            </Stack>
           </div>
 
           {/* Dealer Selection */}
@@ -127,7 +128,7 @@ export function GameOptionsPanel({
             <h3 className='text-sm font-medium text-gray-700 mb-2'>
               Dealer Selection
             </h3>
-            <div className='space-y-2'>
+            <Stack spacing='2'>
               <label className='flex items-start' id='randomCardsLabel'>
                 <input
                   type='radio'
@@ -170,7 +171,7 @@ export function GameOptionsPanel({
                   </span>
                 </span>
               </label>
-            </div>
+            </Stack>
           </div>
 
           {/* Reneging */}

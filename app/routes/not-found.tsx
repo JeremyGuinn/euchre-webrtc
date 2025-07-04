@@ -1,6 +1,7 @@
 import PageContainer from '~/components/layout/PageContainer';
 import ButtonDivider from '~/components/ui/ButtonDivider';
 import LinkButton from '~/components/ui/LinkButton';
+import { Stack } from '~/components/ui/Stack';
 
 export function meta() {
   return [
@@ -55,7 +56,7 @@ export default function NotFound() {
       </div>
 
       {/* Action buttons */}
-      <div className='space-y-4'>
+      <Stack spacing='4'>
         <LinkButton to='/' variant='primary'>
           🏠 Go Home
         </LinkButton>
@@ -65,7 +66,7 @@ export default function NotFound() {
         <LinkButton to='/host' variant='success'>
           🎮 Host a New Game
         </LinkButton>
-      </div>
+      </Stack>
 
       {/* Fun euchre-themed message */}
       <div className='mt-8 p-4 bg-gray-50 rounded-lg border-l-4 border-green-500'>
@@ -77,11 +78,11 @@ export default function NotFound() {
 
       {/* Footer info */}
       <div className='mt-6 text-center'>
-        <div className='text-xs text-gray-500 space-y-1'>
+        <Stack spacing='1' className='text-xs text-gray-500'>
           <p>🔒 No registration required</p>
           <p>🌐 Peer-to-peer connection</p>
           <p>👥 4 players needed</p>
-        </div>
+        </Stack>
       </div>
     </PageContainer>
   );

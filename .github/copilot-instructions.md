@@ -85,7 +85,7 @@ Avoid bloating the app with unnecessary dependencies.
 - Avoid deeply nested ternary expressions
 - Don’t use inline `fetch`—wrap it in a service
 - Avoid magic numbers or strings—use constants/enums
-- Don't use barrel files
+- Don't use barrel files for exporting components (e.g., `index.ts` files that re-export everything)
 - Avoid using deep relative imports (e.g., `../../components/Button`), use absolute imports instead (e.g., `~/components/Button`)
 
 ---

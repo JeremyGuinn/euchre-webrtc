@@ -7,6 +7,7 @@ import Input from '~/components/forms/Input';
 import PageContainer from '~/components/layout/PageContainer';
 import Button from '~/components/ui/Button';
 import LinkButton from '~/components/ui/LinkButton';
+import { Stack } from '~/components/ui/Stack';
 import { useGame } from '~/contexts/GameContext';
 import { useIsClient } from '~/hooks/useClientOnly';
 import { isValidGameCode, normalizeGameCode } from '~/utils/gameCode';
@@ -97,36 +98,38 @@ export default function Join({ params }: Route.ComponentProps) {
         </p>
       </div>
 
-      <form onSubmit={handleJoinGame} className='space-y-6'>
-        <Input
-          label='Your Name'
-          id='playerName'
-          value={playerName}
-          onChange={e => setPlayerName(e.target.value)}
-          placeholder='Enter your name'
-          maxLength={20}
-          required
-          disabled={isJoining}
-          fullWidth
-        />
+      <form onSubmit={handleJoinGame}>
+        <Stack spacing='6'>
+          <Input
+            label='Your Name'
+            id='playerName'
+            value={playerName}
+            onChange={e => setPlayerName(e.target.value)}
+            placeholder='Enter your name'
+            maxLength={20}
+            required
+            disabled={isJoining}
+            fullWidth
+          />
 
-        {error && <ErrorDisplay error={error} />}
+          {error && <ErrorDisplay error={error} />}
 
-        <ConnectionStatusDisplay
-          status={connectionStatus}
-          className='justify-between mb-4'
-        />
+          <ConnectionStatusDisplay
+            status={connectionStatus}
+            className='justify-between mb-4'
+          />
 
-        <Button
-          type='submit'
-          variant='success'
-          size='lg'
-          fullWidth
-          disabled={!playerName.trim()}
-          loading={isJoining}
-        >
-          {isJoining ? 'Joining...' : 'Join Game'}
-        </Button>
+          <Button
+            type='submit'
+            variant='success'
+            size='lg'
+            fullWidth
+            disabled={!playerName.trim()}
+            loading={isJoining}
+          >
+            {isJoining ? 'Joining...' : 'Join Game'}
+          </Button>
+        </Stack>
       </form>
 
       <div className='mt-6 text-center'>

@@ -8,7 +8,10 @@ import GameOptionsPanel from '~/components/lobby/GameOptionsPanel';
 import HostControlsInfo from '~/components/lobby/HostControlsInfo';
 import PlayerCard from '~/components/lobby/PlayerCard';
 import Button from '~/components/ui/Button';
+import { Center } from '~/components/ui/Center';
 import Panel from '~/components/ui/Panel';
+import { Placeholder } from '~/components/ui/Placeholder';
+import { Stack } from '~/components/ui/Stack';
 import { useGame } from '~/contexts/GameContext';
 
 import PageContainer from '~/components/layout/PageContainer';
@@ -125,16 +128,16 @@ export default function Lobby({ params }: Route.ComponentProps) {
       </Panel>
 
       {/* Main content - responsive layout */}
-      <div className='space-y-6'>
-        <div className='space-y-6'>
+      <Stack spacing='6'>
+        <Stack spacing='6'>
           {/* Left Column - Players (takes up 2/3 on large screens) */}
-          <div className='lg:col-span-2 space-y-6'>
+          <Stack spacing='6' className='lg:col-span-2'>
             <Panel variant='compact'>
               <h2 className='text-xl font-semibold text-gray-800 mb-4'>
                 Players ({connectedPlayers.length}/4)
               </h2>
 
-              <div className='space-y-3'>
+              <Stack spacing='3'>
                 {gameState.options?.teamSelection === 'predetermined' ? (
                   // Team-based layout for predetermined teams
                   <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -153,7 +156,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
                           className='font-medium'
                         />
                       </div>
-                      <div className='space-y-2'>
+                      <Stack spacing='2'>
                         {[0, 2].map(position => {
                           const player = gameState.players.find(
                             p => p.position === position
@@ -186,18 +189,18 @@ export default function Lobby({ params }: Route.ComponentProps) {
                                   onDragStart={handleDragStart}
                                 />
                               ) : (
-                                <div className='p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50'>
-                                  <div className='flex items-center justify-center text-gray-500'>
+                                <Placeholder>
+                                  <Center className='text-gray-500'>
                                     <span className='text-sm font-medium'>
                                       Waiting for player...
                                     </span>
-                                  </div>
-                                </div>
+                                  </Center>
+                                </Placeholder>
                               )}
                             </div>
                           );
                         })}
-                      </div>
+                      </Stack>
                     </div>
 
                     {/* Team 1 */}
@@ -215,7 +218,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
                           className='font-medium'
                         />
                       </div>
-                      <div className='space-y-2'>
+                      <Stack spacing='2'>
                         {[1, 3].map(position => {
                           const player = gameState.players.find(
                             p => p.position === position
@@ -248,23 +251,23 @@ export default function Lobby({ params }: Route.ComponentProps) {
                                   onDragStart={handleDragStart}
                                 />
                               ) : (
-                                <div className='p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50'>
-                                  <div className='flex items-center justify-center text-gray-500'>
+                                <Placeholder>
+                                  <Center className='text-gray-500'>
                                     <span className='text-sm font-medium'>
                                       Waiting for player...
                                     </span>
-                                  </div>
-                                </div>
+                                  </Center>
+                                </Placeholder>
                               )}
                             </div>
                           );
                         })}
-                      </div>
+                      </Stack>
                     </div>
                   </div>
                 ) : (
                   // Simple list layout for random card teams
-                  <div className='space-y-3'>
+                  <Stack spacing='3'>
                     <div className='text-sm text-gray-600 text-center mb-4'>
                       Teams will be determined by card selection when the game
                       starts
@@ -273,16 +276,13 @@ export default function Lobby({ params }: Route.ComponentProps) {
                     {gameState.players.length === 0 ? (
                       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3'>
                         {Array.from({ length: 4 }).map((_, index) => (
-                          <div
-                            key={index}
-                            className='p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50'
-                          >
-                            <div className='flex items-center justify-center text-gray-500'>
+                          <Placeholder key={index}>
+                            <Center className='text-gray-500'>
                               <span className='text-sm font-medium'>
                                 Waiting for player...
                               </span>
-                            </div>
-                          </div>
+                            </Center>
+                          </Placeholder>
                         ))}
                       </div>
                     ) : (
@@ -305,25 +305,22 @@ export default function Lobby({ params }: Route.ComponentProps) {
                         {Array.from({
                           length: Math.max(0, 4 - gameState.players.length),
                         }).map((_, index) => (
-                          <div
-                            key={`empty-${index}`}
-                            className='p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50'
-                          >
-                            <div className='flex items-center justify-center text-gray-500'>
+                          <Placeholder key={`empty-${index}`}>
+                            <Center className='text-gray-500'>
                               <span className='text-sm font-medium'>
                                 Waiting for player...
                               </span>
-                            </div>
-                          </div>
+                            </Center>
+                          </Placeholder>
                         ))}
                       </div>
                     )}
-                  </div>
+                  </Stack>
                 )}
 
                 {/* Host Controls Info */}
                 <HostControlsInfo isHost={isHost} />
-              </div>
+              </Stack>
             </Panel>
 
             <GameOptionsPanel
@@ -368,9 +365,9 @@ export default function Lobby({ params }: Route.ComponentProps) {
                 )}
               </div>
             </Panel>
-          </div>
-        </div>
-      </div>
+          </Stack>
+        </Stack>
+      </Stack>
     </PageContainer>
   );
 }

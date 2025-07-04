@@ -47,7 +47,7 @@ export default function GameCodeSharing({
           value={gameId}
           readOnly
           variant='readonly'
-          className='text-center font-mono text-lg'
+          className='text-center font-mono text-md'
           fullWidth
           copyButton
           onCopy={copyGameCode}
@@ -60,7 +60,7 @@ export default function GameCodeSharing({
           value={getGameLink()}
           readOnly
           variant='readonly'
-          className='text-sm'
+          className='text-md'
           fullWidth
           copyButton
           onCopy={copyGameLink}

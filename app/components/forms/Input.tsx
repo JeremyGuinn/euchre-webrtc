@@ -1,4 +1,4 @@
-import { useState, useId, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -87,6 +87,17 @@ export function Input({
           aria-describedby={
             error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined
           }
+          onClick={() => {
+            if (copyButton) {
+              handleCopy();
+            }
+          }}
+          onKeyDown={e => {
+            if (e.key === 'Enter' && copyButton) {
+              e.preventDefault(); // Prevent form submission
+              handleCopy();
+            }
+          }}
         />
 
         {copyButton && onCopy && (

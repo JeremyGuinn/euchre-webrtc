@@ -7,6 +7,9 @@ import { DealerSelectionAnimation } from '../components/game/dealer-selection/De
 import { DealingAnimation } from '../components/game/DealingAnimation';
 import GameContainer from '../components/layout/GameContainer';
 import Button from '../components/ui/Button';
+import { Center } from '../components/ui/Center';
+import { Spinner } from '../components/ui/Spinner';
+import { Stack } from '../components/ui/Stack';
 import { useGame } from '../contexts/GameContext';
 import type { Card as CardType, Player } from '../types/game';
 
@@ -219,11 +222,15 @@ export default function Game({ params }: Route.ComponentProps) {
 
   if (!myPlayer) {
     return (
-      <GameContainer className='flex items-center justify-center'>
-        <div className='text-white text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4'></div>
-          <p>Loading game...</p>
-        </div>
+      <GameContainer>
+        <Center className='text-white text-center'>
+          <Stack spacing='4'>
+            <Center>
+              <Spinner size='lg' color='white' />
+            </Center>
+            <p>Loading game...</p>
+          </Stack>
+        </Center>
       </GameContainer>
     );
   }
@@ -272,7 +279,7 @@ export default function Game({ params }: Route.ComponentProps) {
         {(gameState.phase === 'playing' ||
           gameState.phase === 'bidding_round1' ||
           gameState.phase === 'bidding_round2') && (
-          <div className='absolute inset-0 flex items-center justify-center'>
+          <Center className='absolute inset-0'>
             <div className='w-64 h-64 bg-green-700 rounded-full border-4 border-yellow-600 relative'>
               {/* Current trick cards */}
               {gameState.currentTrick &&
@@ -395,7 +402,7 @@ export default function Game({ params }: Route.ComponentProps) {
                   </div>
                 )}
             </div>
-          </div>
+          </Center>
         )}
 
         {/* Players around the table */}
@@ -646,7 +653,7 @@ export default function Game({ params }: Route.ComponentProps) {
         <>
           {!gameState.dealerSelectionCards ? (
             // Initial state - show instruction overlay
-            <div className='absolute inset-0 bg-black/60 z-40 flex items-center justify-center'>
+            <Center className='absolute inset-0 bg-black/60 z-40'>
               <div className='text-white text-center p-8 bg-black/40 rounded-lg backdrop-blur-sm border border-white/20'>
                 <h2 className='text-3xl font-bold mb-4'>
                   {gameState.options.dealerSelection === 'random_cards' &&
@@ -689,7 +696,7 @@ export default function Game({ params }: Route.ComponentProps) {
                   </div>
                 )}
               </div>
-            </div>
+            </Center>
           ) : (
             <div
               className='absolute w-full'
@@ -775,7 +782,7 @@ export default function Game({ params }: Route.ComponentProps) {
                       className='text-blue-800'
                     />
                   </div>
-                  <div className='space-y-2'>
+                  <Stack spacing='2'>
                     {gameState.players
                       .filter(p => p.teamId === 0)
                       .sort((a, b) => a.position - b.position)
@@ -793,7 +800,7 @@ export default function Game({ params }: Route.ComponentProps) {
                           {player.id === gameState.currentDealerId && ' 🃏'}
                         </div>
                       ))}
-                  </div>
+                  </Stack>
                 </div>
 
                 {/* Team 2 */}
@@ -811,7 +818,7 @@ export default function Game({ params }: Route.ComponentProps) {
                       className='text-red-800'
                     />
                   </div>
-                  <div className='space-y-2'>
+                  <Stack spacing='2'>
                     {gameState.players
                       .filter(p => p.teamId === 1)
                       .sort((a, b) => a.position - b.position)
@@ -829,7 +836,7 @@ export default function Game({ params }: Route.ComponentProps) {
                           {player.id === gameState.currentDealerId && ' 🃏'}
                         </div>
                       ))}
-                  </div>
+                  </Stack>
                 </div>
               </div>
 
@@ -864,7 +871,7 @@ export default function Game({ params }: Route.ComponentProps) {
                 ) : (
                   <div className='text-gray-600'>
                     <div className='inline-flex items-center space-x-2'>
-                      <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600'></div>
+                      <Spinner size='sm' color='gray' />
                       <span>Waiting for host to deal cards...</span>
                     </div>
                   </div>
@@ -975,7 +982,7 @@ export default function Game({ params }: Route.ComponentProps) {
                 ) : (
                   <div className='text-gray-600'>
                     <div className='inline-flex items-center space-x-2'>
-                      <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600'></div>
+                      <Spinner size='sm' color='gray' />
                       <span>Waiting for host to continue...</span>
                     </div>
                   </div>
@@ -1031,7 +1038,7 @@ export default function Game({ params }: Route.ComponentProps) {
                     <div className='mb-6'>
                       {/* Trump and Maker Info */}
                       <div className='mb-6 p-4 bg-gray-50 rounded-lg'>
-                        <div className='flex items-center justify-center space-x-4 mb-2'>
+                        <Center className='space-x-4 mb-2'>
                           <span className='text-sm text-gray-600'>Trump:</span>
                           {gameState.trump && (
                             <span
@@ -1040,7 +1047,7 @@ export default function Game({ params }: Route.ComponentProps) {
                               {suitSymbols[gameState.trump]} {gameState.trump}
                             </span>
                           )}
-                        </div>
+                        </Center>
                         {makerPlayer && (
                           <p className='text-sm text-gray-700'>
                             <span className='font-medium'>
@@ -1175,7 +1182,7 @@ export default function Game({ params }: Route.ComponentProps) {
                 ) : (
                   <div className='text-gray-600'>
                     <div className='inline-flex items-center space-x-2'>
-                      <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600'></div>
+                      <Spinner size='sm' color='gray' />
                       <span>Waiting for host...</span>
                     </div>
                   </div>
@@ -1216,7 +1223,7 @@ export default function Game({ params }: Route.ComponentProps) {
                             ? 'You Won!'
                             : `${gameState.teamNames[`team${winningTeam}` as 'team0' | 'team1'] || `Team ${winningTeam + 1}`} Wins!`}
                         </h3>
-                        <div className='space-y-1'>
+                        <Stack spacing='1'>
                           {gameState.players
                             .filter(p => p.teamId === winningTeam)
                             .map(player => (
@@ -1228,7 +1235,7 @@ export default function Game({ params }: Route.ComponentProps) {
                                 {player.id === myPlayer.id && ' (You)'}
                               </p>
                             ))}
-                        </div>
+                        </Stack>
                       </div>
 
                       {/* Final Scores */}
@@ -1249,18 +1256,20 @@ export default function Game({ params }: Route.ComponentProps) {
                               🏆 Winners!
                             </div>
                           )}
-                          <div className='mt-2 space-y-1'>
-                            {gameState.players
-                              .filter(p => p.teamId === 0)
-                              .map(player => (
-                                <div
-                                  key={player.id}
-                                  className='text-sm text-gray-600'
-                                >
-                                  {player.name}
-                                  {player.id === myPlayer.id && ' (You)'}
-                                </div>
-                              ))}
+                          <div className='mt-2'>
+                            <Stack spacing='1'>
+                              {gameState.players
+                                .filter(p => p.teamId === 0)
+                                .map(player => (
+                                  <div
+                                    key={player.id}
+                                    className='text-sm text-gray-600'
+                                  >
+                                    {player.name}
+                                    {player.id === myPlayer.id && ' (You)'}
+                                  </div>
+                                ))}
+                            </Stack>
                           </div>
                         </div>
 
@@ -1280,18 +1289,20 @@ export default function Game({ params }: Route.ComponentProps) {
                               🏆 Winners!
                             </div>
                           )}
-                          <div className='mt-2 space-y-1'>
-                            {gameState.players
-                              .filter(p => p.teamId === 1)
-                              .map(player => (
-                                <div
-                                  key={player.id}
-                                  className='text-sm text-gray-600'
-                                >
-                                  {player.name}
-                                  {player.id === myPlayer.id && ' (You)'}
-                                </div>
-                              ))}
+                          <div className='mt-2'>
+                            <Stack spacing='1'>
+                              {gameState.players
+                                .filter(p => p.teamId === 1)
+                                .map(player => (
+                                  <div
+                                    key={player.id}
+                                    className='text-sm text-gray-600'
+                                  >
+                                    {player.name}
+                                    {player.id === myPlayer.id && ' (You)'}
+                                  </div>
+                                ))}
+                            </Stack>
                           </div>
                         </div>
                       </div>
@@ -1301,20 +1312,20 @@ export default function Game({ params }: Route.ComponentProps) {
                         <h4 className='font-semibold text-gray-800 mb-2'>
                           Game Summary
                         </h4>
-                        <div className='text-sm text-gray-600 space-y-1'>
+                        <Stack spacing='1' className='text-sm text-gray-600'>
                           <p>
                             Final Score: {gameState.scores.team0} -{' '}
                             {gameState.scores.team1}
                           </p>
                           <p>Game ID: {gameState.gameCode || gameState.id}</p>
-                        </div>
+                        </Stack>
                       </div>
                     </div>
                   );
                 })()}
 
                 {/* Action Buttons */}
-                <div className='space-y-3'>
+                <Stack spacing='3'>
                   <Button
                     onClick={handleLeaveGame}
                     size='lg'
@@ -1335,7 +1346,7 @@ export default function Game({ params }: Route.ComponentProps) {
                       Start New Game
                     </Button>
                   )}
-                </div>
+                </Stack>
               </div>
             </div>
           </div>

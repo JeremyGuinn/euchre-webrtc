@@ -7,6 +7,7 @@ import LoadingScreen from '~/components/feedback/LoadingScreen';
 import PageContainer from '~/components/layout/PageContainer';
 import GameCodeSharing from '~/components/lobby/GameCodeSharing';
 import Button from '~/components/ui/Button';
+import { Spinner } from '~/components/ui/Spinner';
 import { useGame } from '~/contexts/GameContext';
 
 export function meta() {
@@ -86,7 +87,7 @@ export default function Host() {
         >
           {isRetrying ? (
             <div className='flex items-center'>
-              <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2'></div>
+              <Spinner size='sm' color='white' className='mr-2' />
               Retrying...
             </div>
           ) : (

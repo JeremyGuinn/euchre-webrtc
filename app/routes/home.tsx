@@ -6,6 +6,7 @@ import Input from '~/components/forms/Input';
 import PageContainer from '~/components/layout/PageContainer';
 import ButtonDivider from '~/components/ui/ButtonDivider';
 import LinkButton from '~/components/ui/LinkButton';
+import { Stack } from '~/components/ui/Stack';
 import { isValidGameCode, normalizeGameCode } from '~/utils/gameCode';
 
 export function meta() {
@@ -55,20 +56,26 @@ export default function Home() {
         <p className='text-gray-600'>Play the classic card game with friends</p>
       </div>
 
-      <div className='space-y-4'>
+      <Stack spacing='4'>
         <LinkButton to='/host' variant='primary'>
           Host a New Game
         </LinkButton>
 
         <ButtonDivider />
 
-        <div className='space-y-2'>
+        <Stack spacing='2'>
           <Input
             placeholder='Enter game code (e.g., A3K7M2)'
             value={gameCode}
             onChange={e => {
               const normalized = normalizeGameCode(e.target.value);
               setGameCode(normalized);
+            }}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && isValidGameCode(gameCode)) {
+                e.preventDefault(); // Prevent form submission
+                window.location.href = `/join/${gameCode}`; // Navigate to join page
+              }
             }}
             className='font-mono text-center'
             maxLength={6}
@@ -86,15 +93,15 @@ export default function Home() {
           >
             Join Game
           </LinkButton>
-        </div>
-      </div>
+        </Stack>
+      </Stack>
 
       <div className='mt-8 text-center'>
-        <div className='text-sm text-gray-600 space-y-1'>
+        <Stack spacing='1' className='text-sm text-gray-600'>
           <p>🔒 No registration required</p>
           <p>🌐 Peer-to-peer connection</p>
           <p>👥 4 players needed</p>
-        </div>
+        </Stack>
       </div>
     </PageContainer>
   );

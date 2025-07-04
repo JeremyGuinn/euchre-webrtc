@@ -1,5 +1,6 @@
-import React from 'react';
-
+import { Center } from '../ui/Center';
+import { Spinner } from '../ui/Spinner';
+import { Stack } from '../ui/Stack';
 interface LoadingScreenProps {
   title: string;
   message: string;
@@ -12,10 +13,14 @@ export default function LoadingScreen({
   className = '',
 }: LoadingScreenProps) {
   return (
-    <div className={`text-center ${className}`}>
-      <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
-      <h2 className='text-xl font-semibold text-gray-800 mb-2'>{title}</h2>
-      <p className='text-gray-600'>{message}</p>
-    </div>
+    <Center className={`text-center ${className}`}>
+      <Stack spacing='2'>
+        <Center>
+          <Spinner size='lg' />
+        </Center>
+        <h2 className='text-xl font-semibold text-gray-800'>{title}</h2>
+        <p className='text-gray-600'>{message}</p>
+      </Stack>
+    </Center>
   );
 }
