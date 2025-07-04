@@ -1,5 +1,7 @@
 import type { Card, Player } from '~/types/game';
-import { CardBack, Card as CardComponent } from '../Card';
+import { CardBack } from '../Card';
+import DealerSelectionStatus from './DealerSelectionStatus';
+import PlayerDealingArea from './PlayerDealingArea';
 
 interface RandomCardsSelectionProps {
   players: Player[];
@@ -64,34 +66,17 @@ export function RandomCardsSelection({
           const isMyTurn = player.id === myPlayer.id && !hasDrawn;
 
           return (
-            <div key={player.id} className={getPositionClasses(position)}>
-              <div className='text-center flex flex-col items-center'>
-                <div
-                  className={`inline-block px-3 py-1 rounded-lg text-sm font-medium mb-2 ${
-                    isMyTurn
-                      ? 'bg-yellow-500/90 text-black'
-                      : 'bg-white/20 text-white'
-                  }`}
-                >
-                  {player.name} {player.id === myPlayer.id && '(You)'}
-                </div>
-                <div className='w-20 h-28 border-2 border-white/30 rounded-lg flex items-center justify-center bg-green-700/50'>
-                  {hasDrawn ? (
-                    <CardComponent card={drawnCard} size='medium' />
-                  ) : isMyTurn ? (
-                    <div className='text-xs text-center text-yellow-400 font-medium'>
-                      Your Turn!
-                      <br />
-                      Pick a Card
-                    </div>
-                  ) : (
-                    <div className='text-xs text-center text-gray-400'>
-                      {player.isConnected ? 'Waiting...' : 'Disconnected'}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+            <PlayerDealingArea
+              key={player.id}
+              player={player}
+              myPlayer={myPlayer}
+              positionClasses={getPositionClasses(position)}
+              isCurrentPlayer={isMyTurn}
+              cards={drawnCard ? [drawnCard] : []}
+              maxCardsToShow={1}
+              dealerSelectionId={`random-player-cards-${player.id}`}
+              mode='random'
+            />
           );
         })}
 
@@ -140,18 +125,21 @@ export function RandomCardsSelection({
           </div>
         )}
 
-        {/* Completion message - positioned at bottom center */}
-        {dealerSelectionCards &&
-          Object.keys(dealerSelectionCards).length === players.length && (
-            <div className='absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center text-white'>
-              <div className='bg-black/70 backdrop-blur-sm px-6 py-3 rounded-lg shadow-lg border border-white/20'>
-                <p className='text-lg mb-2'>All cards drawn!</p>
-                <p className='text-sm text-gray-300'>
-                  Determining dealer and teams...
-                </p>
-              </div>
-            </div>
-          )}
+        {/* Status display */}
+        <DealerSelectionStatus
+          method='random_cards'
+          dealerFound={
+            !!(
+              dealerSelectionCards &&
+              Object.keys(dealerSelectionCards).length === players.length
+            )
+          }
+          currentStep={
+            dealerSelectionCards ? Object.keys(dealerSelectionCards).length : 0
+          }
+          totalSteps={players.length}
+          currentPlayerName={canPickCard ? myPlayer.name : undefined}
+        />
       </div>
     </div>
   );

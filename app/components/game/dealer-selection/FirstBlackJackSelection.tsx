@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Card, Player } from '~/types/game';
-import { CardBack, Card as CardComponent } from '../Card';
+import { Card as CardComponent } from '../Card';
+import CardDeck from './CardDeck';
+import DealerSelectionStatus from './DealerSelectionStatus';
+import PlayerDealingArea from './PlayerDealingArea';
 
 interface FirstBlackJackSelectionProps {
   players: Player[];
@@ -242,40 +245,10 @@ export function FirstBlackJackSelection({
       {/* Center deck area */}
       <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
         <div id='blackjack-dealing-center' className='relative'>
-          {/* Deck of cards in center */}
-          <div className='relative w-20 h-28'>
-            <div
-              className='absolute top-0 left-0 opacity-60 transition-transform duration-100'
-              style={{
-                transform:
-                  animatingCards.length > 0
-                    ? 'translateY(-1px) rotate(-0.5deg)'
-                    : 'none',
-              }}
-            >
-              <CardBack size='medium' />
-            </div>
-            <div
-              className='absolute top-0.5 left-0.5 opacity-80 transition-transform duration-100'
-              style={{
-                transform:
-                  animatingCards.length > 0
-                    ? 'translateY(-0.5px) rotate(0.3deg)'
-                    : 'none',
-              }}
-            >
-              <CardBack size='medium' />
-            </div>
-            <div
-              className='absolute top-1 left-1 transition-transform duration-100'
-              style={{
-                transform:
-                  animatingCards.length > 0 ? 'translateY(-0.2px)' : 'none',
-              }}
-            >
-              <CardBack size='medium' />
-            </div>
-          </div>
+          <CardDeck
+            id='blackjack-dealing-center'
+            isAnimating={animatingCards.length > 0}
+          />
 
           {/* Animating cards */}
           {animatingCards.map(animatingCard => {
@@ -313,110 +286,29 @@ export function FirstBlackJackSelection({
         const isWinner = blackJackWinner?.id === player.id;
 
         return (
-          <div key={player.id} className={getPositionClasses(position)}>
-            <div className='text-center flex flex-col items-center'>
-              <div
-                className={`inline-block px-3 py-1 rounded-lg text-sm font-medium mb-2 transition-all duration-300 ${
-                  isWinner
-                    ? 'bg-green-500/90 text-white animate-pulse'
-                    : isCurrentPlayer
-                      ? 'bg-yellow-500/90 text-black'
-                      : 'bg-white/20 text-white'
-                }`}
-              >
-                {player.name} {player.id === myPlayer.id && '(You)'}
-                {isWinner && ' - DEALER!'}
-              </div>
-
-              {/* Card stack area */}
-              <div
-                id={`blackjack-player-cards-${player.id}`}
-                className='relative'
-              >
-                {playerCards.length === 0 ? (
-                  <div className='absolute flex items-center justify-center'>
-                    {isCurrentPlayer ? (
-                      <div className='text-xs text-center text-yellow-400 font-medium animate-pulse'>
-                        Dealing...
-                      </div>
-                    ) : (
-                      <div className='text-xs text-center text-gray-400'>
-                        Waiting...
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  // Show cards stacked on top of each other
-                  playerCards.map((card, index) => {
-                    const isTopCard = index === playerCards.length - 1;
-                    const isBlackJackCard = isBlackJack(card);
-
-                    // Create consistent random offsets based on card ID for stable positioning
-                    const seed = card.id
-                      .split('')
-                      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-                    const random1 = ((seed * 9301 + 49297) % 233280) / 233280;
-                    const random2 =
-                      ((seed * 9301 + 49297 + 1) % 233280) / 233280;
-                    const random3 =
-                      ((seed * 9301 + 49297 + 2) % 233280) / 233280;
-
-                    // Random offsets for natural stacking
-                    const offsetX = (random1 - 0.5) * 8 + index * 2; // Mix random with systematic offset
-                    const offsetY = (random2 - 0.5) * 8 - index * 2; // Stack upward with randomness
-                    const rotation = (random3 - 0.5) * 10; // ±5 degrees rotation
-
-                    return (
-                      <div
-                        key={`${card.id}-${index}`}
-                        className={`absolute transition-all duration-500 transform -translate-x-1/2 ${
-                          isTopCard && isCurrentPlayer ? '' : ''
-                        }`}
-                        style={{
-                          zIndex: index,
-                          transform: `translate(${offsetX}px, ${offsetY}px) rotate(${rotation}deg)`,
-                        }}
-                      >
-                        <CardComponent
-                          card={card}
-                          size='medium'
-                          className={`${isBlackJackCard ? 'ring-4 ring-green-400 ring-opacity-75' : ''}`}
-                        />
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          </div>
+          <PlayerDealingArea
+            key={player.id}
+            player={player}
+            myPlayer={myPlayer}
+            positionClasses={getPositionClasses(position)}
+            isCurrentPlayer={isCurrentPlayer}
+            isWinner={isWinner}
+            cards={playerCards}
+            maxCardsToShow={MAX_CARDS_TO_SHOW}
+            dealerSelectionId={`blackjack-player-cards-${player.id}`}
+          />
         );
       })}
 
       {/* Central status message */}
       <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
-        <div className='text-center text-white'>
-          {dealingComplete ? (
-            <div className='bg-black/70 backdrop-blur-sm px-6 py-4 rounded-lg shadow-lg border border-green-500/50'>
-              <div className='text-lg'>
-                <span className='font-semibold'>{blackJackWinner?.name}</span>{' '}
-                is the dealer!
-              </div>
-              <div className='text-sm text-gray-300 mt-1'>
-                Setting up teams and positions...
-              </div>
-            </div>
-          ) : (
-            <div className='bg-black/50 backdrop-blur-sm px-4 py-2 rounded-lg'>
-              <div className='text-lg font-semibold mb-1'>
-                Dealing for First Black Jack
-              </div>
-              <div className='text-sm text-gray-300'>
-                Card {currentCardIndex + 1} • {currentPlayerDealing?.name}
-                &apos;s turn
-              </div>
-            </div>
-          )}
-        </div>
+        <DealerSelectionStatus
+          method='first_black_jack'
+          dealerFound={dealingComplete}
+          currentStep={currentCardIndex}
+          totalSteps={deck.length}
+          currentPlayerName={currentPlayerDealing?.name}
+        />
       </div>
     </div>
   );
