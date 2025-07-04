@@ -1,5 +1,5 @@
 import type { PlayCardMessage } from '~/types/messages';
-import { canPlayCardWithOptions } from '~/utils/gameLogic';
+import { canPlayCardWithOptions, getEffectiveSuit } from '~/utils/gameLogic';
 import type { MessageHandler } from '../types';
 
 /**
@@ -25,12 +25,19 @@ export const handlePlayCardMessage: MessageHandler<PlayCardMessage> = (
   const playerHand = gameState.hands[senderId];
   if (!playerHand || !playerHand.some(c => c.id === card.id)) return;
 
-  const leadSuit = gameState.currentTrick?.cards[0]?.card.suit;
+  let effectiveLeadSuit = undefined;
+  if (gameState.currentTrick?.cards[0] && gameState.trump) {
+    effectiveLeadSuit = getEffectiveSuit(
+      gameState.currentTrick.cards[0].card,
+      gameState.trump
+    );
+  }
+
   if (
     !canPlayCardWithOptions(
       card,
       playerHand,
-      leadSuit,
+      effectiveLeadSuit,
       gameState.trump,
       gameState.options.allowReneging
     )

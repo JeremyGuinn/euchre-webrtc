@@ -1,17 +1,28 @@
 import { useCallback } from 'react';
 
 import type { Card, GameState, Player } from '~/types/game';
-import { canPlayCardWithOptions } from '../../../utils/gameLogic';
+import {
+  canPlayCardWithOptions,
+  getEffectiveSuit,
+} from '../../../utils/gameLogic';
 
 export function useGameUtils(gameState: GameState, myPlayerId: string) {
   const canPlay = useCallback(
     (card: Card): boolean => {
       const myHand = gameState.hands[myPlayerId] || [];
-      const leadSuit = gameState.currentTrick?.cards[0]?.card.suit;
+
+      let effectiveLeadSuit = undefined;
+      if (gameState.currentTrick?.cards[0] && gameState.trump) {
+        effectiveLeadSuit = getEffectiveSuit(
+          gameState.currentTrick.cards[0].card,
+          gameState.trump
+        );
+      }
+
       return canPlayCardWithOptions(
         card,
         myHand,
-        leadSuit,
+        effectiveLeadSuit,
         gameState.trump,
         gameState.options.allowReneging
       );
