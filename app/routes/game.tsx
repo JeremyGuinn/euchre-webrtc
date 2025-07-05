@@ -35,10 +35,10 @@ const suitSymbols = {
 };
 
 const suitColors = {
-  spades: 'text-white',
+  spades: 'text-black',
   hearts: 'text-red-600',
   diamonds: 'text-red-600',
-  clubs: 'text-white',
+  clubs: 'text-black',
 };
 
 export default function Game({ params }: Route.ComponentProps) {
@@ -50,6 +50,7 @@ export default function Game({ params }: Route.ComponentProps) {
     getMyPlayer,
     getMyHand,
     isMyTurn,
+    isSittingOut,
     canPlay,
     playCard,
     placeBid,
@@ -351,6 +352,13 @@ export default function Game({ params }: Route.ComponentProps) {
           const position = getPlayerPosition(player, myPlayer.position);
           const isCurrentPlayer = player.id === gameState.currentPlayerId;
 
+          // Check if this player is sitting out due to going alone
+          const isPlayerSittingOut =
+            gameState.maker?.alone &&
+            gameState.maker.playerId !== player.id &&
+            gameState.players.find(p => p.id === gameState.maker!.playerId)
+              ?.teamId === player.teamId;
+
           return (
             <div key={player.id} className={getPositionClasses(position)}>
               <div
@@ -359,12 +367,19 @@ export default function Game({ params }: Route.ComponentProps) {
                 {gameState.phase !== 'dealing_animation' &&
                   gameState.phase !== 'dealer_selection' && (
                     <div
-                      className={`inline-block px-3 py-1 rounded-lg text-sm font-medium w-fit ${isCurrentPlayer ? 'bg-yellow-400 text-black' : 'bg-white/20 text-white'}${!player.isConnected ? 'opacity-50' : ''}
+                      className={`inline-block px-3 py-1 rounded-lg text-sm font-medium w-fit ${
+                        isPlayerSittingOut
+                          ? 'bg-gray-500 text-gray-300'
+                          : isCurrentPlayer
+                            ? 'bg-yellow-400 text-black'
+                            : 'bg-white/20 text-white'
+                      }${!player.isConnected ? 'opacity-50' : ''}
                   `}
                     >
                       {player.name} {player.id === myPlayer.id && '(You)'}
                       {!player.isConnected && ' (Disconnected)'}
                       {gameState.currentDealerId === player.id && ' (Dealer)'}
+                      {isPlayerSittingOut && ' (Sitting Out)'}
                     </div>
                   )}
 
@@ -411,19 +426,22 @@ export default function Game({ params }: Route.ComponentProps) {
                                 }
                               }}
                               disabled={
-                                isInDealerDiscardPhase
+                                isSittingOut() ||
+                                (isInDealerDiscardPhase
                                   ? !canDiscard
                                   : !isMyTurn() ||
                                     gameState.phase !== 'playing' ||
-                                    !canPlay(card)
+                                    !canPlay(card))
                               }
                               className={`
                                 ${
-                                  !canPlay(card) &&
-                                  isMyTurn() &&
-                                  gameState.phase === 'playing'
-                                    ? 'opacity-50'
-                                    : ''
+                                  isSittingOut()
+                                    ? 'opacity-30 grayscale'
+                                    : !canPlay(card) &&
+                                        isMyTurn() &&
+                                        gameState.phase === 'playing'
+                                      ? 'opacity-50'
+                                      : ''
                                 }
                                 ${
                                   isInDealerDiscardPhase && canDiscard
@@ -445,6 +463,15 @@ export default function Game({ params }: Route.ComponentProps) {
                               <div className='absolute scale-110 inset-0 bg-red-500/20 rounded-lg flex items-center justify-center pointer-events-none'>
                                 <div className='bg-red-600 text-white text-xs font-bold px-2 py-1 rounded transform -rotate-12 shadow-lg'>
                                   DISCARD
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Sitting out overlay */}
+                            {isSittingOut() && (
+                              <div className='absolute inset-0 bg-gray-900/40 rounded-lg flex items-center justify-center pointer-events-none'>
+                                <div className='bg-gray-700 text-white text-xs font-bold px-2 py-1 rounded shadow-lg'>
+                                  SITTING OUT
                                 </div>
                               </div>
                             )}

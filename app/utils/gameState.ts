@@ -19,39 +19,44 @@ import {
 
 export type GameAction =
   | {
-    type: 'INIT_GAME';
-    payload: { hostId: string; gameId: string; gameCode?: string };
-  }
+      type: 'INIT_GAME';
+      payload: { hostId: string; gameId: string; gameCode?: string };
+    }
   | { type: 'ADD_PLAYER'; payload: { player: Player } }
   | { type: 'REMOVE_PLAYER'; payload: { playerId: string } }
   | {
-    type: 'UPDATE_PLAYER_CONNECTION';
-    payload: { playerId: string; isConnected: boolean };
-  }
+      type: 'UPDATE_PLAYER_CONNECTION';
+      payload: { playerId: string; isConnected: boolean };
+    }
   | { type: 'RENAME_PLAYER'; payload: { playerId: string; newName: string } }
   | { type: 'RENAME_TEAM'; payload: { teamId: 0 | 1; newName: string } }
   | { type: 'KICK_PLAYER'; payload: { playerId: string } }
   | {
-    type: 'MOVE_PLAYER';
-    payload: { playerId: string; newPosition: 0 | 1 | 2 | 3 };
-  }
+      type: 'MOVE_PLAYER';
+      payload: { playerId: string; newPosition: 0 | 1 | 2 | 3 };
+    }
   | { type: 'UPDATE_GAME_OPTIONS'; payload: { options: GameOptions } }
   | { type: 'START_GAME' }
   | { type: 'SELECT_DEALER' }
   | { type: 'DRAW_DEALER_CARD'; payload: { playerId: string; card: Card } }
   | {
-    type: 'DEALER_CARD_DEALT';
-    payload: { playerId: string; card: Card; cardIndex: number; isBlackJack: boolean };
-  }
+      type: 'DEALER_CARD_DEALT';
+      payload: {
+        playerId: string;
+        card: Card;
+        cardIndex: number;
+        isBlackJack: boolean;
+      };
+    }
   | { type: 'COMPLETE_DEALER_SELECTION' }
   | { type: 'PROCEED_TO_DEALING' }
   | { type: 'DEAL_CARDS' }
   | { type: 'PLACE_BID'; payload: { bid: Bid } }
   | { type: 'DEALER_DISCARD'; payload: { card: Card } }
   | {
-    type: 'SET_TRUMP';
-    payload: { trump: Card['suit']; makerId: string; alone?: boolean };
-  }
+      type: 'SET_TRUMP';
+      payload: { trump: Card['suit']; makerId: string; alone?: boolean };
+    }
   | { type: 'PLAY_CARD'; payload: { card: Card; playerId: string } }
   | { type: 'COMPLETE_TRICK' }
   | { type: 'COMPLETE_HAND' }
@@ -59,13 +64,13 @@ export type GameAction =
   | { type: 'SET_CURRENT_PLAYER'; payload: { playerId: string } }
   | { type: 'SET_PHASE'; payload: { phase: GameState['phase'] } }
   | {
-    type: 'SYNC_STATE';
-    payload: {
-      gameState: PublicGameState;
-      playerHand?: Card[];
-      receivingPlayerId: string;
+      type: 'SYNC_STATE';
+      payload: {
+        gameState: PublicGameState;
+        playerHand?: Card[];
+        receivingPlayerId: string;
+      };
     };
-  };
 
 const initialGameState: GameState = {
   id: '',
@@ -94,6 +99,50 @@ function getNextPlayer(currentPlayerId: string, players: Player[]): string {
 
   const nextIndex = (currentIndex + 1) % players.length;
   return players[nextIndex].id;
+}
+
+function getNextPlayerWithAlone(
+  currentPlayerId: string,
+  players: Player[],
+  maker?: { playerId: string; teamId: 0 | 1; alone: boolean }
+): string {
+  const currentIndex = players.findIndex(p => p.id === currentPlayerId);
+  if (currentIndex === -1) return players[0]?.id || '';
+
+  // If someone is going alone, skip their teammate
+  if (maker?.alone) {
+    const makerPlayer = players.find(p => p.id === maker.playerId);
+    if (makerPlayer) {
+      const teammateId = players.find(
+        p => p.teamId === makerPlayer.teamId && p.id !== makerPlayer.id
+      )?.id;
+
+      // Find next player, skipping the teammate
+      let nextIndex = (currentIndex + 1) % players.length;
+      let nextPlayer = players[nextIndex];
+
+      // If the next player is the teammate, skip them
+      if (nextPlayer.id === teammateId) {
+        nextIndex = (nextIndex + 1) % players.length;
+        nextPlayer = players[nextIndex];
+      }
+
+      return nextPlayer.id;
+    }
+  }
+
+  // Normal turn order
+  const nextIndex = (currentIndex + 1) % players.length;
+  return players[nextIndex].id;
+}
+
+function getExpectedTrickSize(maker?: {
+  playerId: string;
+  teamId: 0 | 1;
+  alone: boolean;
+}): number {
+  // If someone is going alone, only 3 players participate
+  return maker?.alone ? 3 : 4;
 }
 
 function getNextDealer(currentDealerId: string, players: Player[]): string {
@@ -281,10 +330,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         dealtCards: [],
       };
 
-      const newDealtCards = [
-        ...currentDealing.dealtCards,
-        { playerId, card },
-      ];
+      const newDealtCards = [...currentDealing.dealtCards, { playerId, card }];
 
       // If this is a black jack, we found our dealer
       if (isBlackJack) {
@@ -317,7 +363,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       // Continue dealing - update the dealing state
-      const nextPlayerIndex = (currentDealing.currentPlayerIndex + 1) % state.players.length;
+      const nextPlayerIndex =
+        (currentDealing.currentPlayerIndex + 1) % state.players.length;
 
       return {
         ...state,
@@ -444,9 +491,29 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               ],
             };
           }
-          // Go to dealer discard phase
-          newPhase = 'dealer_discard';
-          currentPlayer = state.currentDealerId;
+
+          // Check if dealer is sitting out due to going alone
+          const dealerPlayer = state.players.find(
+            p => p.id === state.currentDealerId
+          );
+          const isDealerSittingOut =
+            maker.alone &&
+            maker.playerId !== state.currentDealerId &&
+            dealerPlayer?.teamId === maker.teamId;
+
+          if (isDealerSittingOut) {
+            // Skip dealer discard phase and go straight to playing
+            newPhase = 'playing';
+            currentPlayer = getNextPlayerWithAlone(
+              state.currentDealerId,
+              state.players,
+              maker
+            );
+          } else {
+            // Go to dealer discard phase
+            newPhase = 'dealer_discard';
+            currentPlayer = state.currentDealerId;
+          }
         } else {
           // Player passed, check if round 1 is complete
           const currentPlayerIndex = state.players.findIndex(
@@ -460,10 +527,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             // Dealer passed, start round 2
             newPhase = 'bidding_round2';
             turnedDownSuit = state.kitty!.suit;
-            currentPlayer = getNextPlayer(state.currentDealerId, state.players);
+            currentPlayer = getNextPlayerWithAlone(
+              state.currentDealerId,
+              state.players,
+              maker
+            );
           } else {
             // Continue round 1
-            currentPlayer = getNextPlayer(bid.playerId, state.players);
+            currentPlayer = getNextPlayerWithAlone(
+              bid.playerId,
+              state.players,
+              maker
+            );
           }
         }
       } else if (state.phase === 'bidding_round2') {
@@ -478,7 +553,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             alone: bid.alone || false,
           };
           newPhase = 'playing';
-          currentPlayer = getNextPlayer(state.currentDealerId, state.players);
+          currentPlayer = getNextPlayerWithAlone(
+            state.currentDealerId,
+            state.players,
+            maker
+          );
         } else {
           // Player passed, check if round 2 is complete
           const currentPlayerIndex = state.players.findIndex(
@@ -494,7 +573,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             currentPlayer = getNextDealer(state.currentDealerId, state.players);
           } else {
             // Continue round 2
-            currentPlayer = getNextPlayer(bid.playerId, state.players);
+            currentPlayer = getNextPlayerWithAlone(
+              bid.playerId,
+              state.players,
+              maker
+            );
           }
         }
       }
@@ -530,7 +613,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         hands: newHands,
         phase: 'playing',
-        currentPlayerId: getNextPlayer(state.currentDealerId, state.players),
+        currentPlayerId: getNextPlayerWithAlone(
+          state.currentDealerId,
+          state.players,
+          state.maker
+        ),
       };
     }
 
@@ -565,7 +652,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             ...state.hands,
             [playerId]: state.hands[playerId].filter(c => c.id !== card.id),
           },
-          currentPlayerId: getNextPlayer(playerId, state.players),
+          currentPlayerId: getNextPlayerWithAlone(
+            playerId,
+            state.players,
+            state.maker
+          ),
         };
       }
 
@@ -579,12 +670,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         [playerId]: state.hands[playerId].filter(c => c.id !== card.id),
       };
 
-      if (updatedTrick.cards.length !== 4) {
+      const expectedTrickSize = getExpectedTrickSize(state.maker);
+
+      if (updatedTrick.cards.length !== expectedTrickSize) {
         return {
           ...state,
           hands: newHands,
           currentTrick: updatedTrick,
-          currentPlayerId: getNextPlayer(playerId, state.players),
+          currentPlayerId: getNextPlayerWithAlone(
+            playerId,
+            state.players,
+            state.maker
+          ),
         };
       }
 

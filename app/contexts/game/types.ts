@@ -35,6 +35,7 @@ export interface GameContextType {
 
   canPlay: (card: Card) => boolean;
   isMyTurn: () => boolean;
+  isSittingOut: () => boolean;
   getMyPlayer: () => Player | undefined;
   getMyHand: () => Card[];
 }

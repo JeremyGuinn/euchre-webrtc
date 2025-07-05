@@ -40,6 +40,25 @@ export function useGameUtils(gameState: GameState, myPlayerId: string) {
     return gameState.currentPlayerId === myPlayerId;
   }, [gameState.currentPlayerId, myPlayerId]);
 
+  const isSittingOut = useCallback((): boolean => {
+    // Check if I'm the teammate of someone going alone
+    if (gameState.maker?.alone) {
+      const myPlayer = gameState.players.find(p => p.id === myPlayerId);
+      const makerPlayer = gameState.players.find(
+        p => p.id === gameState.maker!.playerId
+      );
+
+      if (myPlayer && makerPlayer) {
+        // If I'm on the same team as the maker but not the maker myself, I'm sitting out
+        return (
+          myPlayer.teamId === makerPlayer.teamId &&
+          myPlayer.id !== makerPlayer.id
+        );
+      }
+    }
+    return false;
+  }, [gameState.maker, gameState.players, myPlayerId]);
+
   const getMyPlayer = useCallback((): Player | undefined => {
     return gameState.players.find(p => p.id === myPlayerId);
   }, [gameState.players, myPlayerId]);
@@ -51,6 +70,7 @@ export function useGameUtils(gameState: GameState, myPlayerId: string) {
   return {
     canPlay,
     isMyTurn,
+    isSittingOut,
     getMyPlayer,
     getMyHand,
   };
