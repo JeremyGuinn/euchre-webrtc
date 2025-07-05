@@ -7,6 +7,8 @@ import type { GameState, Player } from '~/types/game';
 
 interface TeamSummaryOverlayProps {
   gameState: GameState;
+  suitSymbols: Record<string, string>;
+  suitColors: Record<string, string>;
   myPlayer: Player;
   isHost: boolean;
   onRenameTeam: (teamId: 0 | 1, newName: string) => void;
@@ -17,6 +19,8 @@ export function TeamSummaryOverlay({
   gameState,
   myPlayer,
   isHost,
+  suitSymbols,
+  suitColors,
   onRenameTeam,
   onProceedToDealing,
 }: TeamSummaryOverlayProps) {
@@ -98,8 +102,16 @@ export function TeamSummaryOverlay({
                       {gameState.dealerSelectionCards?.[player.id] && (
                         <div className='text-sm text-gray-500'>
                           Drawn card:{' '}
-                          {gameState.dealerSelectionCards[player.id].value} of{' '}
-                          {gameState.dealerSelectionCards[player.id].suit}
+                          <span
+                            className={`font-medium ${suitColors[gameState.dealerSelectionCards[player.id].suit]}`}
+                          >
+                            {
+                              suitSymbols[
+                                gameState.dealerSelectionCards[player.id].suit
+                              ]
+                            }{' '}
+                            {gameState.dealerSelectionCards[player.id].value}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -149,8 +161,16 @@ export function TeamSummaryOverlay({
                       {gameState.dealerSelectionCards && (
                         <div className='text-sm text-gray-500'>
                           Drawn card:{' '}
-                          {gameState.dealerSelectionCards[player.id].value} of{' '}
-                          {gameState.dealerSelectionCards[player.id].suit}
+                          <span
+                            className={`font-medium ${suitColors[gameState.dealerSelectionCards[player.id].suit]}`}
+                          >
+                            {
+                              suitSymbols[
+                                gameState.dealerSelectionCards[player.id].suit
+                              ]
+                            }{' '}
+                            {gameState.dealerSelectionCards[player.id].value}
+                          </span>
                         </div>
                       )}
                     </div>

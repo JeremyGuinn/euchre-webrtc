@@ -627,6 +627,8 @@ export default function Game({ params }: Route.ComponentProps) {
       {gameState.phase === 'team_summary' && (
         <TeamSummaryOverlay
           gameState={gameState}
+          suitSymbols={suitSymbols}
+          suitColors={suitColors}
           myPlayer={myPlayer}
           isHost={isHost}
           onRenameTeam={renameTeam}

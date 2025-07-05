@@ -59,6 +59,10 @@ export class ErrorBoundary extends Component<
     });
   };
 
+  private reloadHomePgae = () => {
+    window.location.href = '/';
+  };
+
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
@@ -127,7 +131,11 @@ export class ErrorBoundary extends Component<
 
               <ButtonDivider />
 
-              <LinkButton to='/' variant='success'>
+              <LinkButton
+                to='/'
+                variant='success'
+                onClick={this.reloadHomePgae}
+              >
                 🏠 Go Home
               </LinkButton>
             </div>
