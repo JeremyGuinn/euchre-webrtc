@@ -39,13 +39,13 @@ export function RandomCardsSelection({
   const getPositionClasses = (position: string) => {
     switch (position) {
       case 'bottom':
-        return 'absolute bottom-8 left-1/2 transform -translate-x-1/2';
+        return 'absolute left-1/2 -translate-x-1/2 bottom-0';
       case 'left':
-        return 'absolute left-4 top-1/2 transform -translate-y-1/2';
+        return 'absolute top-1/2 -translate-y-1/2 rotate-90 translate-x-1/2';
       case 'top':
-        return 'absolute top-4 left-1/2 transform -translate-x-1/2';
+        return 'absolute left-1/2 -translate-x-1/2';
       case 'right':
-        return 'absolute right-4 top-1/2 transform -translate-y-1/2';
+        return 'absolute -rotate-90 right-0 top-1/2 -translate-y-1/2 -translate-x-1/2';
       default:
         return '';
     }
@@ -56,91 +56,90 @@ export function RandomCardsSelection({
   const canPickCard = !dealerSelectionCards?.[myPlayer.id];
 
   return (
-    <div className='absolute inset-0 z-30'>
-      <div className='flex flex-col items-center justify-center h-full p-8'>
-        {/* Show dealt cards for each player in their positions */}
-        {players.map(player => {
-          const position = getPlayerPosition(player, myPlayer.position);
-          const drawnCard = dealerSelectionCards?.[player.id];
-          const hasDrawn = !!drawnCard;
-          const isMyTurn = player.id === myPlayer.id && !hasDrawn;
+    <>
+      {/* Show dealt cards for each player in their positions */}
+      {players.map(player => {
+        const position = getPlayerPosition(player, myPlayer.position);
+        const drawnCard = dealerSelectionCards?.[player.id];
+        const hasDrawn = !!drawnCard;
+        const isMyTurn = player.id === myPlayer.id && !hasDrawn;
 
-          return (
-            <PlayerDealingArea
-              key={player.id}
-              player={player}
-              myPlayer={myPlayer}
-              positionClasses={getPositionClasses(position)}
-              isCurrentPlayer={isMyTurn}
-              cards={drawnCard ? [drawnCard] : []}
-              maxCardsToShow={1}
-              dealerSelectionId={`random-player-cards-${player.id}`}
-              mode='random'
-            />
-          );
-        })}
+        return (
+          <PlayerDealingArea
+            key={player.id}
+            player={player}
+            myPlayer={myPlayer}
+            position={position}
+            positionClasses={getPositionClasses(position)}
+            isCurrentPlayer={isMyTurn}
+            cards={drawnCard ? [drawnCard] : []}
+            maxCardsToShow={1}
+            dealerSelectionId={`random-player-cards-${player.id}`}
+            mode='random'
+          />
+        );
+      })}
 
-        {/* Spread Deck - positioned in the center */}
-        {canPickCard && (
-          <div className='absolute inset-0 flex items-center justify-center'>
-            <div className='relative'>
-              <div className='relative w-full h-48 flex items-center justify-center'>
-                {/* Create array of face-down cards in spread formation */}
-                {Array.from({ length: 24 }, (_, index) => {
-                  const totalCards = 24;
+      {/* Spread Deck - positioned in the center */}
+      {canPickCard && (
+        <div className='absolute inset-0 flex items-center justify-center'>
+          <div className='relative'>
+            <div className='relative w-full h-48 flex items-center justify-center'>
+              {/* Create array of face-down cards in spread formation */}
+              {Array.from({ length: 24 }, (_, index) => {
+                const totalCards = 24;
 
-                  // Create an arc from -60 degrees to +60 degrees (120 degree spread)
-                  const maxAngle = 60; // degrees
-                  const angleStep =
-                    totalCards > 1 ? (2 * maxAngle) / (totalCards - 1) : 0;
-                  const angle = -maxAngle + index * angleStep;
+                // Create an arc from -60 degrees to +60 degrees (120 degree spread)
+                const maxAngle = 60; // degrees
+                const angleStep =
+                  totalCards > 1 ? (2 * maxAngle) / (totalCards - 1) : 0;
+                const angle = -maxAngle + index * angleStep;
 
-                  // Position cards along a circular arc
-                  const radius = 180; // Distance from center
-                  const angleRad = (angle * Math.PI) / 180;
-                  const x = Math.sin(angleRad) * radius;
-                  const y = (1 - Math.cos(angleRad)) * radius * 0.5;
+                // Position cards along a circular arc
+                const radius = 180; // Distance from center
+                const angleRad = (angle * Math.PI) / 180;
+                const x = Math.sin(angleRad) * radius;
+                const y = (1 - Math.cos(angleRad)) * radius * 0.5;
 
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => onCardPicked?.(index)}
-                      className='absolute transition-all duration-200 hover:scale-110 hover:-translate-y-4 hover:z-30 cursor-pointer'
-                      style={{
-                        transform: `translate(${x}px, ${y}px) rotate(${angle}deg)`,
-                        transformOrigin: 'center bottom',
-                        zIndex: 10 + index,
-                      }}
-                    >
-                      <CardBack size='medium' />
-                    </button>
-                  );
-                })}
-              </div>
+                return (
+                  <button
+                    key={index}
+                    onClick={() => onCardPicked?.(index)}
+                    className='absolute transition-all duration-200 hover:scale-110 hover:-translate-y-4 hover:z-30 cursor-pointer'
+                    style={{
+                      transform: `translate(${x}px, ${y}px) rotate(${angle}deg)`,
+                      transformOrigin: 'center bottom',
+                      zIndex: 10 + index,
+                    }}
+                  >
+                    <CardBack size='medium' />
+                  </button>
+                );
+              })}
+            </div>
 
-              <div className='text-center text-white mt-4'>
-                <p className='text-sm animate-pulse'>Click any card to draw</p>
-              </div>
+            <div className='text-center text-white mt-4'>
+              <p className='text-sm animate-pulse'>Click any card to draw</p>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Status display */}
-        <DealerSelectionStatus
-          method='random_cards'
-          dealerFound={
-            !!(
-              dealerSelectionCards &&
-              Object.keys(dealerSelectionCards).length === players.length
-            )
-          }
-          currentStep={
-            dealerSelectionCards ? Object.keys(dealerSelectionCards).length : 0
-          }
-          totalSteps={players.length}
-          currentPlayerName={canPickCard ? myPlayer.name : undefined}
-        />
-      </div>
-    </div>
+      {/* Status display */}
+      <DealerSelectionStatus
+        method='random_cards'
+        dealerFound={
+          !!(
+            dealerSelectionCards &&
+            Object.keys(dealerSelectionCards).length === players.length
+          )
+        }
+        currentStep={
+          dealerSelectionCards ? Object.keys(dealerSelectionCards).length : 0
+        }
+        totalSteps={players.length}
+        currentPlayerName={canPickCard ? myPlayer.name : undefined}
+      />
+    </>
   );
 }

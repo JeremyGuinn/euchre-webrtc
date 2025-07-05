@@ -4,6 +4,7 @@ import { Card as CardComponent } from '../Card';
 interface PlayerDealingAreaProps {
   player: Player;
   myPlayer: Player;
+  position: 'bottom' | 'left' | 'top' | 'right';
   positionClasses: string;
   isCurrentPlayer?: boolean;
   isWinner?: boolean;
@@ -16,6 +17,7 @@ interface PlayerDealingAreaProps {
 export default function PlayerDealingArea({
   player,
   myPlayer,
+  position,
   positionClasses,
   isCurrentPlayer = false,
   isWinner = false,
@@ -42,9 +44,11 @@ export default function PlayerDealingArea({
 
   return (
     <div className={positionClasses}>
-      <div className='text-center flex flex-col items-center'>
+      <div
+        className={`text-center flex flex-col items-center gap-2 ${position === 'top' ? 'flex-col-reverse' : ''}`}
+      >
         <div
-          className={`inline-block px-3 py-1 rounded-lg text-sm font-medium mb-2 transition-all duration-300 ${getPlayerLabelClass()}`}
+          className={`inline-block px-3 py-1 rounded-lg text-sm font-medium transition-all duration-300 ${getPlayerLabelClass()}`}
         >
           {player.name} {player.id === myPlayer.id && '(You)'}
           {isWinner && ' - DEALER!'}
@@ -95,7 +99,7 @@ export default function PlayerDealingArea({
               return (
                 <div
                   key={`${card.id}-${index}`}
-                  className='absolute transition-all duration-500 transform -translate-x-1/2'
+                  className='transition-all duration-500 transform'
                   style={{
                     zIndex: index,
                     transform: `translate(${offsetX}px, ${offsetY}px) rotate(${rotation}deg)`,

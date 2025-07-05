@@ -288,7 +288,9 @@ export function DealingAnimation({
 
         return (
           <div key={player.id} className={getPositionClasses(position)}>
-            <div className='text-center'>
+            <div
+              className={`text-center flex flex-col items-center gap-2 ${position === 'top' ? 'flex-col-reverse' : ''}`}
+            >
               <div className='inline-block px-3 py-1 rounded-lg text-sm font-medium mb-2 bg-white/20 text-white'>
                 {player.name} {player.id === myPlayer.id && '(You)'}
                 {player.position === 0 && ' (Dealer)'}
