@@ -244,17 +244,17 @@ export default function Game({ params }: Route.ComponentProps) {
       </div>
 
       {/* Game Table */}
-      <div
-        className={`relative w-full`}
-        style={{
-          height: `calc(100vh - ${headerHeight}px)`,
-          top: `${headerHeight}px`,
-        }}
-      >
-        {/* Center area for tricks */}
-        {(gameState.phase === 'playing' ||
-          gameState.phase === 'bidding_round1' ||
-          gameState.phase === 'bidding_round2') && (
+      {(gameState.phase === 'playing' ||
+        gameState.phase === 'bidding_round1' ||
+        gameState.phase === 'bidding_round2') && (
+        <div
+          className={`relative w-full`}
+          style={{
+            height: `calc(100vh - ${headerHeight}px)`,
+            top: `${headerHeight}px`,
+          }}
+        >
+          {/* Center area for tricks */}
           <Center className='absolute inset-0'>
             <div className='w-64 h-64 bg-green-700 rounded-full border-4 border-yellow-600 relative'>
               {/* Current trick cards */}
@@ -345,95 +345,94 @@ export default function Game({ params }: Route.ComponentProps) {
                 )}
             </div>
           </Center>
-        )}
 
-        {/* Players around the table */}
-        {gameState.players.map(player => {
-          const position = getPlayerPosition(player, myPlayer.position);
-          const isCurrentPlayer = player.id === gameState.currentPlayerId;
+          {/* Players around the table */}
+          {gameState.players.map(player => {
+            const position = getPlayerPosition(player, myPlayer.position);
+            const isCurrentPlayer = player.id === gameState.currentPlayerId;
 
-          // Check if this player is sitting out due to going alone
-          const isPlayerSittingOut =
-            gameState.maker?.alone &&
-            gameState.maker.playerId !== player.id &&
-            gameState.players.find(p => p.id === gameState.maker!.playerId)
-              ?.teamId === player.teamId;
+            // Check if this player is sitting out due to going alone
+            const isPlayerSittingOut =
+              gameState.maker?.alone &&
+              gameState.maker.playerId !== player.id &&
+              gameState.players.find(p => p.id === gameState.maker!.playerId)
+                ?.teamId === player.teamId;
 
-          return (
-            <div key={player.id} className={getPositionClasses(position)}>
-              <div
-                className={`text-center flex gap-2 items-center ${position === 'top' ? 'flex-col-reverse ' : 'flex-col'}`}
-              >
-                {gameState.phase !== 'dealing_animation' &&
-                  gameState.phase !== 'dealer_selection' && (
-                    <div
-                      className={`inline-block px-3 py-1 rounded-lg text-sm font-medium w-fit ${
-                        isPlayerSittingOut
-                          ? 'bg-gray-500 text-gray-300'
-                          : isCurrentPlayer
-                            ? 'bg-yellow-400 text-black'
-                            : 'bg-white/20 text-white'
-                      }${!player.isConnected ? 'opacity-50' : ''}
+            return (
+              <div key={player.id} className={getPositionClasses(position)}>
+                <div
+                  className={`text-center flex gap-2 items-center ${position === 'top' ? 'flex-col-reverse ' : 'flex-col'}`}
+                >
+                  {gameState.phase !== 'dealing_animation' &&
+                    gameState.phase !== 'dealer_selection' && (
+                      <div
+                        className={`inline-block px-3 py-1 rounded-lg text-sm font-medium w-fit ${
+                          isPlayerSittingOut
+                            ? 'bg-gray-500 text-gray-300'
+                            : isCurrentPlayer
+                              ? 'bg-yellow-400 text-black'
+                              : 'bg-white/20 text-white'
+                        }${!player.isConnected ? 'opacity-50' : ''}
                   `}
-                    >
-                      {player.name} {player.id === myPlayer.id && '(You)'}
-                      {!player.isConnected && ' (Disconnected)'}
-                      {gameState.currentDealerId === player.id && ' (Dealer)'}
-                      {isPlayerSittingOut && ' (Sitting Out)'}
-                    </div>
-                  )}
+                      >
+                        {player.name} {player.id === myPlayer.id && '(You)'}
+                        {!player.isConnected && ' (Disconnected)'}
+                        {gameState.currentDealerId === player.id && ' (Dealer)'}
+                        {isPlayerSittingOut && ' (Sitting Out)'}
+                      </div>
+                    )}
 
-                {/* Player's cards (face down for others, face up for self) */}
-                <div className='flex space-x-1'>
-                  {player.id === myPlayer.id
-                    ? // My hand - show actual cards
-                      myHand.map(card => {
-                        const isInDealerDiscardPhase =
-                          gameState.phase === 'dealer_discard' &&
-                          myPlayer.id === gameState.currentDealerId;
-                        const isKittyCard =
-                          isInDealerDiscardPhase &&
-                          gameState.kitty &&
-                          card.id === gameState.kitty.id;
-                        const canDiscard =
-                          isInDealerDiscardPhase && !isKittyCard;
-                        const isHovered =
-                          isInDealerDiscardPhase &&
-                          hoveredDiscardCard?.id === card.id;
+                  {/* Player's cards (face down for others, face up for self) */}
+                  <div className='flex space-x-1'>
+                    {player.id === myPlayer.id
+                      ? // My hand - show actual cards
+                        myHand.map(card => {
+                          const isInDealerDiscardPhase =
+                            gameState.phase === 'dealer_discard' &&
+                            myPlayer.id === gameState.currentDealerId;
+                          const isKittyCard =
+                            isInDealerDiscardPhase &&
+                            gameState.kitty &&
+                            card.id === gameState.kitty.id;
+                          const canDiscard =
+                            isInDealerDiscardPhase && !isKittyCard;
+                          const isHovered =
+                            isInDealerDiscardPhase &&
+                            hoveredDiscardCard?.id === card.id;
 
-                        return (
-                          <div
-                            key={card.id}
-                            className='relative'
-                            role='presentation'
-                            onMouseEnter={() =>
-                              isInDealerDiscardPhase &&
-                              canDiscard &&
-                              setHoveredDiscardCard(card)
-                            }
-                            onMouseLeave={() =>
-                              isInDealerDiscardPhase &&
-                              setHoveredDiscardCard(null)
-                            }
-                          >
-                            <Card
-                              card={card}
-                              onClick={() => {
-                                if (isInDealerDiscardPhase && canDiscard) {
-                                  dealerDiscard(card);
-                                } else if (!isInDealerDiscardPhase) {
-                                  handleCardClick(card);
-                                }
-                              }}
-                              disabled={
-                                isSittingOut() ||
-                                (isInDealerDiscardPhase
-                                  ? !canDiscard
-                                  : !isMyTurn() ||
-                                    gameState.phase !== 'playing' ||
-                                    !canPlay(card))
+                          return (
+                            <div
+                              key={card.id}
+                              className='relative'
+                              role='presentation'
+                              onMouseEnter={() =>
+                                isInDealerDiscardPhase &&
+                                canDiscard &&
+                                setHoveredDiscardCard(card)
                               }
-                              className={`
+                              onMouseLeave={() =>
+                                isInDealerDiscardPhase &&
+                                setHoveredDiscardCard(null)
+                              }
+                            >
+                              <Card
+                                card={card}
+                                onClick={() => {
+                                  if (isInDealerDiscardPhase && canDiscard) {
+                                    dealerDiscard(card);
+                                  } else if (!isInDealerDiscardPhase) {
+                                    handleCardClick(card);
+                                  }
+                                }}
+                                disabled={
+                                  isSittingOut() ||
+                                  (isInDealerDiscardPhase
+                                    ? !canDiscard
+                                    : !isMyTurn() ||
+                                      gameState.phase !== 'playing' ||
+                                      !canPlay(card))
+                                }
+                                className={`
                                 ${
                                   isSittingOut()
                                     ? 'opacity-30 grayscale'
@@ -456,92 +455,94 @@ export default function Game({ params }: Route.ComponentProps) {
                                 ${isHovered ? 'ring-2 ring-red-400' : ''}
                                 transition-all duration-200
                               `}
-                              size='medium'
-                            />
-                            {/* Discard overlay when hovering */}
-                            {isHovered && canDiscard && (
-                              <div className='absolute scale-110 inset-0 bg-red-500/20 rounded-lg flex items-center justify-center pointer-events-none'>
-                                <div className='bg-red-600 text-white text-xs font-bold px-2 py-1 rounded transform -rotate-12 shadow-lg'>
-                                  DISCARD
+                                size='medium'
+                              />
+                              {/* Discard overlay when hovering */}
+                              {isHovered && canDiscard && (
+                                <div className='absolute scale-110 inset-0 bg-red-500/20 rounded-lg flex items-center justify-center pointer-events-none'>
+                                  <div className='bg-red-600 text-white text-xs font-bold px-2 py-1 rounded transform -rotate-12 shadow-lg'>
+                                    DISCARD
+                                  </div>
                                 </div>
-                              </div>
-                            )}
+                              )}
 
-                            {/* Sitting out overlay */}
-                            {isSittingOut() && (
-                              <div className='absolute inset-0 bg-gray-900/40 rounded-lg flex items-center justify-center pointer-events-none'>
-                                <div className='bg-gray-700 text-white text-xs font-bold px-2 py-1 rounded shadow-lg'>
-                                  SITTING OUT
+                              {/* Sitting out overlay */}
+                              {isSittingOut() && (
+                                <div className='absolute inset-0 bg-gray-900/40 rounded-lg flex items-center justify-center pointer-events-none'>
+                                  <div className='bg-gray-700 text-white text-xs font-bold px-2 py-1 rounded shadow-lg'>
+                                    SITTING OUT
+                                  </div>
                                 </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })
-                    : // Other players - show card backs only after cards are dealt
-                      (() => {
-                        // Only show cards after dealing phase is complete
-                        if (!shouldShowCards()) {
-                          return null;
-                        }
+                              )}
+                            </div>
+                          );
+                        })
+                      : // Other players - show card backs only after cards are dealt
+                        (() => {
+                          // Only show cards after dealing phase is complete
+                          if (!shouldShowCards()) {
+                            return null;
+                          }
 
-                        // Calculate how many cards this player has left
-                        let cardsRemaining = 5; // Start with 5 cards per hand
+                          // Calculate how many cards this player has left
+                          let cardsRemaining = 5; // Start with 5 cards per hand
 
-                        // Count cards played in completed tricks
-                        if (gameState.completedTricks) {
-                          const cardsPlayedInCompletedTricks =
-                            gameState.completedTricks
-                              .flatMap(trick => trick.cards)
-                              .filter(
+                          // Count cards played in completed tricks
+                          if (gameState.completedTricks) {
+                            const cardsPlayedInCompletedTricks =
+                              gameState.completedTricks
+                                .flatMap(trick => trick.cards)
+                                .filter(
+                                  playedCard =>
+                                    playedCard.playerId === player.id
+                                ).length;
+                            cardsRemaining -= cardsPlayedInCompletedTricks;
+                          }
+
+                          // Count cards played in current trick
+                          if (gameState.currentTrick) {
+                            const cardsPlayedInCurrentTrick =
+                              gameState.currentTrick.cards.filter(
                                 playedCard => playedCard.playerId === player.id
                               ).length;
-                          cardsRemaining -= cardsPlayedInCompletedTricks;
-                        }
+                            cardsRemaining -= cardsPlayedInCurrentTrick;
+                          }
 
-                        // Count cards played in current trick
-                        if (gameState.currentTrick) {
-                          const cardsPlayedInCurrentTrick =
-                            gameState.currentTrick.cards.filter(
-                              playedCard => playedCard.playerId === player.id
-                            ).length;
-                          cardsRemaining -= cardsPlayedInCurrentTrick;
-                        }
+                          // Ensure we don't show negative cards
+                          cardsRemaining = Math.max(0, cardsRemaining);
 
-                        // Ensure we don't show negative cards
-                        cardsRemaining = Math.max(0, cardsRemaining);
-
-                        return Array.from({ length: cardsRemaining }).map(
-                          (_, index) => <CardBack key={index} size='small' />
-                        );
-                      })()}
+                          return Array.from({ length: cardsRemaining }).map(
+                            (_, index) => <CardBack key={index} size='small' />
+                          );
+                        })()}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
 
-        {/* Current turn indicator */}
-        <CurrentTurnIndicator
-          gameState={gameState}
-          myPlayer={myPlayer}
-          currentPlayer={currentPlayer}
-        />
+          {/* Current turn indicator */}
+          <CurrentTurnIndicator
+            gameState={gameState}
+            myPlayer={myPlayer}
+            currentPlayer={currentPlayer}
+          />
 
-        {/* Bidding Interface - positioned below player's hand */}
-        {((gameState.phase === 'bidding_round1' && gameState.kitty) ||
-          gameState.phase === 'bidding_round2') &&
-          isMyTurn() && (
-            <BiddingInterface
-              phase={gameState.phase as 'bidding_round1' | 'bidding_round2'}
-              kitty={gameState.kitty}
-              turnedDownSuit={gameState.turnedDownSuit}
-              suitSymbols={suitSymbols}
-              suitColors={suitColors}
-              onBid={handleBid}
-            />
-          )}
-      </div>
+          {/* Bidding Interface - positioned below player's hand */}
+          {((gameState.phase === 'bidding_round1' && gameState.kitty) ||
+            gameState.phase === 'bidding_round2') &&
+            isMyTurn() && (
+              <BiddingInterface
+                phase={gameState.phase as 'bidding_round1' | 'bidding_round2'}
+                kitty={gameState.kitty}
+                turnedDownSuit={gameState.turnedDownSuit}
+                suitSymbols={suitSymbols}
+                suitColors={suitColors}
+                onBid={handleBid}
+              />
+            )}
+        </div>
+      )}
 
       {/* Dealer Selection Animation */}
       {gameState.phase === 'dealer_selection' && (
@@ -595,7 +596,7 @@ export default function Game({ params }: Route.ComponentProps) {
             </Center>
           ) : (
             <div
-              className='absolute w-full'
+              className='relative w-full'
               style={{
                 height: `calc(100vh - ${headerHeight}px)`,
                 top: `${headerHeight}px`,
@@ -638,12 +639,20 @@ export default function Game({ params }: Route.ComponentProps) {
 
       {/* Dealing Animation */}
       {gameState.phase === 'dealing_animation' && (
-        <DealingAnimation
-          players={gameState.players}
-          myPlayer={myPlayer}
-          isVisible={true}
-          onComplete={completeDealingAnimation}
-        />
+        <div
+          className='relative w-full'
+          style={{
+            height: `calc(100vh - ${headerHeight}px)`,
+            top: `${headerHeight}px`,
+          }}
+        >
+          <DealingAnimation
+            players={gameState.players}
+            myPlayer={myPlayer}
+            isVisible={true}
+            onComplete={completeDealingAnimation}
+          />
+        </div>
       )}
 
       {/* Trick Complete - Show winner and continue */}

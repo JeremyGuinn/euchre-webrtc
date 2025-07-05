@@ -125,13 +125,15 @@ export function DealingAnimation({
       setAnimatingCards(prev => prev.filter(card => card.id !== cardId));
 
       // Move to next step
-      if (currentStep < dealingSteps.length - 1) {
+      if (currentStep < dealingSteps.length) {
         setCurrentStep(currentStep + 1);
-      } else {
-        // Animation complete
-        setTimeout(() => {
-          onComplete();
-        }, 300);
+
+        if (currentStep + 1 >= dealingSteps.length) {
+          // If last step, trigger completion callback
+          setTimeout(() => {
+            onComplete();
+          }, 300); // Short delay before calling onComplete
+        }
       }
     }, 150);
 
@@ -160,13 +162,13 @@ export function DealingAnimation({
   const getPositionClasses = (position: string) => {
     switch (position) {
       case 'bottom':
-        return 'absolute bottom-8 left-1/2 transform -translate-x-1/2';
+        return 'absolute bottom-2 left-1/2 transform -translate-x-1/2';
       case 'left':
-        return 'absolute left-4 top-1/2 transform -translate-y-1/2';
+        return 'absolute left-14 top-1/2 transform -translate-y-1/2 rotate-90 -translate-x-1/2';
       case 'top':
-        return 'absolute top-4 left-1/2 transform -translate-x-1/2';
+        return 'absolute top-14 left-1/2 transform -translate-x-1/2 -translate-y-1/2';
       case 'right':
-        return 'absolute right-4 top-1/2 transform -translate-y-1/2';
+        return 'absolute right-14 top-1/2 transform -translate-y-1/2 -rotate-90 translate-x-1/2';
       default:
         return '';
     }
@@ -213,7 +215,7 @@ export function DealingAnimation({
   if (!isVisible) return null;
 
   return (
-    <div className='absolute inset-0 z-30 pointer-events-none'>
+    <div className='relative z-30 pointer-events-none h-full'>
       {/* Center deck area */}
       <div className='absolute inset-0 flex items-center justify-center'>
         <div id='dealing-center' className='relative'>
