@@ -244,9 +244,7 @@ export default function Game({ params }: Route.ComponentProps) {
       </div>
 
       {/* Game Table */}
-      {(gameState.phase === 'playing' ||
-        gameState.phase === 'bidding_round1' ||
-        gameState.phase === 'bidding_round2') && (
+      {shouldShowCards() && (
         <div
           className={`relative w-full`}
           style={{
