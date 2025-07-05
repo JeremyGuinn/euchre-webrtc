@@ -20,10 +20,17 @@ export function GameOptionsPanel({
     value: GameOptions[K]
   ) => {
     if (isHost && !disabled) {
-      onOptionsChange({
+      const updatedOptions = {
         ...options,
         [key]: value,
-      });
+      };
+
+      // If random card selection is selected for teams, force dealer selection to random_cards as well
+      if (key === 'teamSelection' && value === 'random_cards') {
+        updatedOptions.dealerSelection = 'random_cards';
+      }
+
+      onOptionsChange(updatedOptions);
     }
   };
 
@@ -129,7 +136,10 @@ export function GameOptionsPanel({
               Dealer Selection
             </h3>
             <Stack spacing='2'>
-              <label className='flex items-start' id='randomCardsLabel'>
+              <label
+                className={`flex items-start ${options.teamSelection === 'random_cards' ? 'opacity-60' : ''}`}
+                id='randomCardsLabel'
+              >
                 <input
                   type='radio'
                   aria-labelledby='randomCardsLabel'
@@ -139,7 +149,9 @@ export function GameOptionsPanel({
                   onChange={() =>
                     handleOptionChange('dealerSelection', 'random_cards')
                   }
-                  disabled={disabled}
+                  disabled={
+                    disabled || options.teamSelection === 'random_cards'
+                  }
                   className='w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 mt-0.5'
                 />
                 <span className='ml-2 text-sm text-gray-600'>
@@ -150,7 +162,10 @@ export function GameOptionsPanel({
                   </span>
                 </span>
               </label>
-              <label className='flex items-start' id='firstBlackJackLabel'>
+              <label
+                className={`flex items-start ${options.teamSelection === 'random_cards' ? 'opacity-60' : ''}`}
+                id='firstBlackJackLabel'
+              >
                 <input
                   type='radio'
                   aria-labelledby='firstBlackJackLabel'
@@ -160,7 +175,9 @@ export function GameOptionsPanel({
                   onChange={() =>
                     handleOptionChange('dealerSelection', 'first_black_jack')
                   }
-                  disabled={disabled}
+                  disabled={
+                    disabled || options.teamSelection === 'random_cards'
+                  }
                   className='w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 mt-0.5'
                 />
                 <span className='ml-2 text-sm text-gray-600'>
