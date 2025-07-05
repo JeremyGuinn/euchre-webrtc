@@ -129,7 +129,7 @@ export function HandCompleteOverlay({
                 ) : (
                   <div>
                     <p className='text-lg font-semibold text-red-700 mb-2'>
-                      Bid Failed!
+                      Euchred!
                     </p>
                     <p className='text-sm text-gray-700'>
                       {gameState.teamNames[

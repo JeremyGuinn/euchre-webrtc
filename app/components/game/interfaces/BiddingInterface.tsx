@@ -8,6 +8,7 @@ interface BiddingInterfaceProps {
   turnedDownSuit?: CardType['suit'];
   suitSymbols: Record<string, string>;
   suitColors: Record<string, string>;
+  isDealer: boolean;
   onBid: (suit: CardType['suit'] | 'pass', alone?: boolean) => void;
 }
 
@@ -19,6 +20,7 @@ export function BiddingInterface({
   turnedDownSuit,
   suitSymbols,
   suitColors,
+  isDealer,
   onBid,
 }: BiddingInterfaceProps) {
   const [selectedSuit, setSelectedSuit] = useState<CardType['suit'] | null>(
@@ -30,13 +32,8 @@ export function BiddingInterface({
   };
 
   const handleSuitSelection = (suit: CardType['suit']) => {
-    if (phase === 'bidding_round1') {
-      // Round 1: directly order it up without alone prompt
-      handleBid(suit);
-    } else {
-      // Round 2: show alone prompt after suit selection
-      setSelectedSuit(suit);
-    }
+    // Both rounds: show alone prompt after suit selection
+    setSelectedSuit(suit);
   };
 
   const handleAloneChoice = (alone: boolean) => {
@@ -68,34 +65,75 @@ export function BiddingInterface({
 
           {phase === 'bidding_round1' ? (
             /* Round 1: Order up the kitty or pass */
-            <div className='space-y-2'>
-              <Button
-                variant='primary'
-                size='sm'
-                onClick={() => handleBid(kitty!.suit)}
-                className='w-full px-3 py-1 text-xs'
-              >
-                Order It Up ({suitSymbols[kitty!.suit]} {kitty!.suit})
-              </Button>
-              <div className='flex space-x-1'>
-                <Button
-                  variant='primary'
-                  size='sm'
-                  onClick={() => handleBid(kitty!.suit, true)}
-                  className='flex-1 px-2 py-1 text-xs'
-                >
-                  Alone
-                </Button>
-                <Button
-                  variant='secondary'
-                  size='sm'
-                  onClick={() => handleBid('pass')}
-                  className='flex-1 px-2 py-1 text-xs'
-                >
-                  Pass
-                </Button>
-              </div>
-            </div>
+            <>
+              {selectedSuit ? (
+                /* Round 1: Alone choice after ordering up */
+                <div className='space-y-2'>
+                  <div className='text-center mb-3'>
+                    <p className='text-xs text-gray-600'>
+                      Ordering up:
+                      <span
+                        className={`font-medium pl-1 ${suitColors[selectedSuit]}`}
+                      >
+                        {suitSymbols[selectedSuit]} {selectedSuit}
+                      </span>
+                    </p>
+                  </div>
+
+                  <p className='text-xs text-gray-600 text-center mb-3'>
+                    Do you want to go alone?
+                  </p>
+
+                  <div className='flex space-x-2'>
+                    <Button
+                      variant='success'
+                      size='sm'
+                      onClick={() => handleAloneChoice(true)}
+                      className='flex-1 px-2 py-1 text-xs'
+                    >
+                      Go Alone
+                    </Button>
+                    <Button
+                      variant='primary'
+                      size='sm'
+                      onClick={() => handleAloneChoice(false)}
+                      className='flex-1 px-2 py-1 text-xs'
+                    >
+                      With Partner
+                    </Button>
+                  </div>
+
+                  <Button
+                    variant='secondary'
+                    size='sm'
+                    onClick={handleBack}
+                    className='w-full px-3 py-1 text-xs'
+                  >
+                    ← Back
+                  </Button>
+                </div>
+              ) : (
+                <div className='space-y-2'>
+                  <Button
+                    variant='primary'
+                    size='sm'
+                    onClick={() => handleSuitSelection(kitty!.suit)}
+                    className='w-full px-3 py-1 text-xs'
+                  >
+                    Order up ({suitSymbols[kitty!.suit]} {kitty!.suit})
+                  </Button>
+                  <Button
+                    variant='secondary'
+                    size='sm'
+                    onClick={() => handleBid('pass')}
+                    className='w-full px-3 py-1 text-xs'
+                  >
+                    {/* Dealer sees "turn it down" instead of pass */}
+                    {isDealer ? 'Turn down' : 'Pass'}
+                  </Button>
+                </div>
+              )}
+            </>
           ) : selectedSuit ? (
             /* Round 2: Alone choice after suit selection */
             <div className='space-y-2'>

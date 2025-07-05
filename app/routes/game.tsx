@@ -533,6 +533,7 @@ export default function Game({ params }: Route.ComponentProps) {
               <BiddingInterface
                 phase={gameState.phase as 'bidding_round1' | 'bidding_round2'}
                 kitty={gameState.kitty}
+                isDealer={gameState.currentDealerId === myPlayer.id}
                 turnedDownSuit={gameState.turnedDownSuit}
                 suitSymbols={suitSymbols}
                 suitColors={suitColors}
