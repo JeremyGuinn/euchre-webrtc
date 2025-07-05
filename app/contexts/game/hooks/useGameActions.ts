@@ -31,7 +31,8 @@ export function useGameActions(
     if (!gameState.firstBlackJackDealing) return;
     if (!gameState.deck) return;
 
-    const { currentPlayerIndex, currentCardIndex } = gameState.firstBlackJackDealing;
+    const { currentPlayerIndex, currentCardIndex } =
+      gameState.firstBlackJackDealing;
 
     if (currentCardIndex >= gameState.deck.length) {
       console.warn('No more cards in deck for first black jack dealing');
@@ -40,7 +41,8 @@ export function useGameActions(
 
     const currentPlayer = gameState.players[currentPlayerIndex];
     const card = gameState.deck[currentCardIndex];
-    const isBlackJack = card.value === 'J' && (card.suit === 'spades' || card.suit === 'clubs');
+    const isBlackJack =
+      card.value === 'J' && (card.suit === 'spades' || card.suit === 'clubs');
 
     // Broadcast the dealt card to all clients
     networkService.sendMessage({
@@ -66,6 +68,23 @@ export function useGameActions(
       },
     });
   }, [isHost, gameState, networkService, dispatch]);
+
+  const completeBlackJackDealerSelection = useCallback(() => {
+    if (!isHost) return;
+
+    // Broadcast the completion to all clients
+    networkService.sendMessage({
+      type: 'COMPLETE_BLACKJACK_DEALER_SELECTION',
+      timestamp: Date.now(),
+      messageId: createMessageId(),
+      payload: {},
+    });
+
+    // Update local state
+    dispatch({
+      type: 'COMPLETE_BLACKJACK_DEALER_SELECTION',
+    });
+  }, [isHost, networkService, dispatch]);
 
   const drawDealerCard = useCallback(
     (cardIndex?: number) => {
@@ -112,12 +131,6 @@ export function useGameActions(
     },
     [gameState, myPlayerId, isHost, dispatch, networkService]
   );
-
-  const completeDealerSelection = useCallback(() => {
-    if (!isHost) return;
-
-    dispatch({ type: 'COMPLETE_DEALER_SELECTION' });
-  }, [isHost, dispatch]);
 
   const proceedToDealing = useCallback(() => {
     if (!isHost) return;
@@ -325,8 +338,8 @@ export function useGameActions(
     startGame,
     selectDealer,
     dealFirstBlackJackCard,
+    completeBlackJackDealerSelection,
     drawDealerCard,
-    completeDealerSelection,
     proceedToDealing,
     completeDealingAnimation,
     placeBid,

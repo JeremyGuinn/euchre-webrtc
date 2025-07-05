@@ -9,7 +9,7 @@ export type MessageType =
   | 'SELECT_DEALER'
   | 'DRAW_DEALER_CARD'
   | 'DEALER_CARD_DEALT'
-  | 'COMPLETE_DEALER_SELECTION'
+  | 'COMPLETE_BLACKJACK_DEALER_SELECTION'
   | 'GAME_STATE_UPDATE'
   | 'BID'
   | 'DEALER_DISCARD'
@@ -173,11 +173,9 @@ export interface DealerCardDealtMessage extends BaseMessage {
   };
 }
 
-export interface CompleteDealerSelectionMessage extends BaseMessage {
-  type: 'COMPLETE_DEALER_SELECTION';
-  payload: {
-    gameState: PublicGameState;
-  };
+export interface CompleteBlackJackDealerSelectionMessage extends BaseMessage {
+  type: 'COMPLETE_BLACKJACK_DEALER_SELECTION';
+  payload: Record<string, never>;
 }
 
 export type GameMessage =
@@ -189,7 +187,7 @@ export type GameMessage =
   | SelectDealerMessage
   | DrawDealerCardMessage
   | DealerCardDealtMessage
-  | CompleteDealerSelectionMessage
+  | CompleteBlackJackDealerSelectionMessage
   | GameStateUpdateMessage
   | BidMessage
   | DealerDiscardMessage

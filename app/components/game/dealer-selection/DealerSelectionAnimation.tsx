@@ -10,7 +10,6 @@ interface DealerSelectionAnimationProps {
   method: 'first_black_jack' | 'random_cards';
   dealerSelectionCards?: Record<string, Card>;
   onCardPicked?: (cardIndex: number) => void;
-  onComplete: () => void;
 }
 
 export function DealerSelectionAnimation({
@@ -21,7 +20,6 @@ export function DealerSelectionAnimation({
   method,
   dealerSelectionCards,
   onCardPicked,
-  onComplete,
 }: DealerSelectionAnimationProps) {
   switch (method) {
     case 'random_cards':
@@ -32,7 +30,6 @@ export function DealerSelectionAnimation({
           isVisible={isVisible}
           dealerSelectionCards={dealerSelectionCards}
           onCardPicked={onCardPicked}
-          onComplete={onComplete}
         />
       );
     case 'first_black_jack':
@@ -42,7 +39,6 @@ export function DealerSelectionAnimation({
           myPlayer={myPlayer}
           isVisible={isVisible}
           deck={deck}
-          onComplete={onComplete}
         />
       );
     default:

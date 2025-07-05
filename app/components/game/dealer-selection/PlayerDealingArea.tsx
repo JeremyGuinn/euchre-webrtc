@@ -79,44 +79,46 @@ export default function PlayerDealingArea({
               )}
             </div>
           ) : (
-            // Show cards stacked
-            cards.slice(-maxCardsToShow).map((card, index) => {
-              const isBlackJackCard = isBlackJack(card);
+            // Show cards stacked using grid
+            <div className='grid grid-cols-1 grid-rows-1 place-items-center'>
+              {cards.slice(-maxCardsToShow).map((card, index) => {
+                const isBlackJackCard = isBlackJack(card);
 
-              // Create consistent random offsets based on card ID
-              const seed = card.id
-                .split('')
-                .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-              const random1 = ((seed * 9301 + 49297) % 233280) / 233280;
-              const random2 = ((seed * 9301 + 49297 + 1) % 233280) / 233280;
-              const random3 = ((seed * 9301 + 49297 + 2) % 233280) / 233280;
+                // Create consistent random offsets based on card ID
+                const seed = card.id
+                  .split('')
+                  .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                const random1 = ((seed * 9301 + 49297) % 233280) / 233280;
+                const random2 = ((seed * 9301 + 49297 + 1) % 233280) / 233280;
+                const random3 = ((seed * 9301 + 49297 + 2) % 233280) / 233280;
 
-              // Random offsets for natural stacking
-              const offsetX = (random1 - 0.5) * 8 + index * 2;
-              const offsetY = (random2 - 0.5) * 8 - index * 2;
-              const rotation = (random3 - 0.5) * 10;
+                // Random offsets for natural stacking
+                const offsetX = (random1 - 0.5) * 8 + index * 2;
+                const offsetY = (random2 - 0.5) * 8 - index * 2;
+                const rotation = (random3 - 0.5) * 10;
 
-              return (
-                <div
-                  key={`${card.id}-${index}`}
-                  className='transition-all duration-500 transform'
-                  style={{
-                    zIndex: index,
-                    transform: `translate(${offsetX}px, ${offsetY}px) rotate(${rotation}deg)`,
-                  }}
-                >
-                  <CardComponent
-                    card={card}
-                    size='medium'
-                    className={
-                      isBlackJackCard && mode === 'blackjack'
-                        ? 'ring-4 ring-green-400 ring-opacity-75'
-                        : ''
-                    }
-                  />
-                </div>
-              );
-            })
+                return (
+                  <div
+                    key={`${card.id}-${index}`}
+                    className='col-start-1 row-start-1 transition-all duration-500'
+                    style={{
+                      zIndex: index,
+                      transform: `translate(${offsetX}px, ${offsetY}px) rotate(${rotation}deg)`,
+                    }}
+                  >
+                    <CardComponent
+                      card={card}
+                      size='medium'
+                      className={
+                        isBlackJackCard && mode === 'blackjack'
+                          ? 'ring-4 ring-green-400 ring-opacity-75'
+                          : ''
+                      }
+                    />
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
       </div>

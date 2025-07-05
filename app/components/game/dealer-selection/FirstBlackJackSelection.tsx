@@ -11,7 +11,6 @@ interface FirstBlackJackSelectionProps {
   myPlayer: Player;
   isVisible: boolean;
   deck: Card[];
-  onComplete: () => void;
 }
 
 export function FirstBlackJackSelection({
@@ -19,9 +18,13 @@ export function FirstBlackJackSelection({
   myPlayer,
   isVisible,
   deck: _deck,
-  onComplete: _onComplete,
 }: FirstBlackJackSelectionProps) {
-  const { gameState, isHost, dealFirstBlackJackCard } = useGame();
+  const {
+    gameState,
+    isHost,
+    dealFirstBlackJackCard,
+    completeBlackJackDealerSelection,
+  } = useGame();
 
   // Animation state
   const [pendingDeal, setPendingDeal] = useState<{
@@ -29,6 +32,10 @@ export function FirstBlackJackSelection({
     playerId: string;
   } | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  // Track cards that have completed their animations and should be visible
+  const [completedAnimations, setCompletedAnimations] = useState<Set<string>>(
+    new Set()
+  );
 
   // Get dealing state from game context - all derived state should be in useMemo
   const dealingState = useMemo(
@@ -62,6 +69,25 @@ export function FirstBlackJackSelection({
   // Handle animation completion
   const handleAnimationComplete = () => {
     setIsAnimating(false);
+    // Mark this card as completed
+    if (pendingDeal) {
+      setCompletedAnimations(prev =>
+        new Set(prev).add(`${pendingDeal.playerId}-${pendingDeal.card.id}`)
+      );
+
+      // Check if this was a black jack card and trigger completion if host
+      const isBlackJack =
+        pendingDeal.card.value === 'J' &&
+        (pendingDeal.card.suit === 'spades' ||
+          pendingDeal.card.suit === 'clubs');
+
+      if (isBlackJack && isHost) {
+        // Add a small delay to let the animation fully settle before transitioning
+        setTimeout(() => {
+          completeBlackJackDealerSelection();
+        }, 500);
+      }
+    }
     setPendingDeal(null);
   };
 
@@ -78,7 +104,7 @@ export function FirstBlackJackSelection({
     [dealingState?.currentCardIndex]
   );
 
-  // Group dealt cards by player for display - memoized to avoid expensive recalculation
+  // Group dealt cards by player for display - only show cards that have completed animation
   const playerCardHistories = useMemo(() => {
     const dealtCards = dealingState?.dealtCards ?? [];
     return players.map(player => ({
@@ -86,9 +112,14 @@ export function FirstBlackJackSelection({
       cards: dealtCards
         .filter(dealt => dealt.playerId === player.id)
         .map(dealt => dealt.card)
-        .slice(-3), // Show last 3 cards for performance
+        .filter(
+          card =>
+            // Show all cards if dealing is complete, otherwise only show completed animations
+            dealingComplete ||
+            completedAnimations.has(`${player.id}-${card.id}`)
+        ),
     }));
-  }, [players, dealingState?.dealtCards]);
+  }, [players, dealingState?.dealtCards, completedAnimations, dealingComplete]);
 
   // Find winner (player who got a black jack) - memoized
   const blackJackWinner = useMemo(() => {
@@ -124,34 +155,42 @@ export function FirstBlackJackSelection({
     };
   }, []);
 
-  const getPositionClasses = useMemo(() => {
-    return (position: string) => {
-      switch (position) {
-        case 'bottom':
-          return 'absolute bottom-2 left-1/2 transform -translate-x-1/2';
-        case 'left':
-          return 'absolute left-14 top-1/2 transform -translate-y-1/2 rotate-90 -translate-x-1/2';
-        case 'top':
-          return 'absolute top-14 left-1/2 transform -translate-x-1/2 -translate-y-1/2';
-        case 'right':
-          return 'absolute right-14 top-1/2 transform -translate-y-1/2 -rotate-90 translate-x-1/2';
-        default:
-          return '';
-      }
-    };
-  }, []);
+  const getPositionClasses = (position: string) => {
+    switch (position) {
+      case 'bottom':
+        return 'absolute left-1/2 -translate-x-1/2 bottom-0';
+      case 'left':
+        return 'absolute top-1/2 -translate-y-1/2 rotate-90 translate-x-1/2';
+      case 'top':
+        return 'absolute left-1/2 -translate-x-1/2';
+      case 'right':
+        return 'absolute -rotate-90 right-0 top-1/2 -translate-y-1/2 -translate-x-1/2';
+      default:
+        return '';
+    }
+  };
+
+  // Reset completed animations when component becomes visible
+  useEffect(() => {
+    if (isVisible && !dealingComplete) {
+      setCompletedAnimations(new Set());
+    }
+  }, [isVisible, dealingComplete]);
 
   // Auto-deal cards with timing (only on host)
   useEffect(() => {
     if (!isVisible || dealingComplete || !isHost) return;
     if (!dealingState) return;
 
+    // Stop dealing if a black jack has been found
+    if (dealingState.blackJackFound) return;
+
     // Add initial delay before starting first card
-    const initialDelay = currentCardIndex === 0 ? 250 : 0;
+    const initialDelay = currentCardIndex === 0 ? 125 : 0;
 
     const timer = setTimeout(() => {
       dealFirstBlackJackCard();
-    }, initialDelay + 800); // Longer delay to allow animation to complete
+    }, initialDelay + 400); // Faster dealing - twice as fast as before
 
     return () => clearTimeout(timer);
   }, [
@@ -166,7 +205,7 @@ export function FirstBlackJackSelection({
   if (!isVisible) return null;
 
   return (
-    <div className='relative h-full'>
+    <>
       {/* Center deck area */}
       <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
         <div id='blackjack-dealing-center' className='relative'>
@@ -200,11 +239,13 @@ export function FirstBlackJackSelection({
             key={player.id}
             player={player}
             myPlayer={myPlayer}
+            position={position}
             positionClasses={getPositionClasses(position)}
             isCurrentPlayer={isCurrentPlayer}
             isWinner={isWinner}
             cards={playerCards}
             maxCardsToShow={MAX_CARDS_TO_SHOW}
+            mode='blackjack'
             dealerSelectionId={`blackjack-player-cards-${player.id}`}
           />
         );
@@ -214,12 +255,18 @@ export function FirstBlackJackSelection({
       <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
         <DealerSelectionStatus
           method='first_black_jack'
-          dealerFound={dealingComplete}
+          dealerFound={dealingComplete || !!dealingState?.blackJackFound}
           currentStep={currentCardIndex}
           totalSteps={gameState.deck?.length ?? 52}
-          currentPlayerName={players[currentPlayerIndex]?.name}
+          currentPlayerName={
+            dealingState?.blackJackFound
+              ? players.find(
+                  p => p.id === dealingState.blackJackFound?.playerId
+                )?.name
+              : players[currentPlayerIndex]?.name
+          }
         />
       </div>
-    </div>
+    </>
   );
 }

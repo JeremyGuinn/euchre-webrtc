@@ -89,6 +89,7 @@ export type GameState = {
     currentPlayerIndex: number;
     currentCardIndex: number;
     dealtCards: Array<{ playerId: string; card: Card }>;
+    blackJackFound?: { playerId: string; card: Card };
   };
 };
 

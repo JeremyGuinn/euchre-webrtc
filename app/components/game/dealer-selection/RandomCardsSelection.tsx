@@ -9,7 +9,6 @@ interface RandomCardsSelectionProps {
   isVisible: boolean;
   dealerSelectionCards?: Record<string, Card>;
   onCardPicked?: (cardIndex: number) => void;
-  onComplete: () => void;
 }
 
 export function RandomCardsSelection({
@@ -18,7 +17,6 @@ export function RandomCardsSelection({
   isVisible,
   dealerSelectionCards,
   onCardPicked,
-  onComplete: _onComplete,
 }: RandomCardsSelectionProps) {
   const getPlayerPosition = (player: Player, myPosition: number) => {
     const relativePosition = (player.position - myPosition + 4) % 4;

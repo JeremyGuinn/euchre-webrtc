@@ -48,7 +48,7 @@ export type GameAction =
         isBlackJack: boolean;
       };
     }
-  | { type: 'COMPLETE_DEALER_SELECTION' }
+  | { type: 'COMPLETE_BLACKJACK_DEALER_SELECTION' }
   | { type: 'PROCEED_TO_DEALING' }
   | { type: 'DEAL_CARDS' }
   | { type: 'PLACE_BID'; payload: { bid: Bid } }
@@ -330,103 +330,38 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         dealtCards: [],
       };
 
-      const newDealtCards = [...currentDealing.dealtCards, { playerId, card }];
-
-      // If this is a black jack, we found our dealer
-      if (isBlackJack) {
-        // Find the dealer player and arrange players
-        const dealer = state.players.find(p => p.id === playerId);
-        if (!dealer) {
-          return state; // Should not happen
-        }
-
-        const dealerOriginalPosition = dealer.position;
-        const arrangedPlayers: Player[] = [];
-
-        state.players.forEach(player => {
-          const newPosition = ((player.position - dealerOriginalPosition + 4) %
-            4) as 0 | 1 | 2 | 3;
-          arrangedPlayers[newPosition] = {
-            ...player,
-            position: newPosition,
-            teamId: (newPosition % 2) as 0 | 1,
-          };
-        });
-
-        return {
-          ...state,
-          players: arrangedPlayers,
-          currentDealerId: dealer.id,
-          phase: 'team_summary',
-          firstBlackJackDealing: undefined,
-        };
-      }
-
-      // Continue dealing - update the dealing state
-      const nextPlayerIndex =
-        (currentDealing.currentPlayerIndex + 1) % state.players.length;
+      const updatedDealing = {
+        currentPlayerIndex:
+          (currentDealing.currentPlayerIndex + 1) % state.players.length,
+        currentCardIndex: cardIndex + 1,
+        dealtCards: [...currentDealing.dealtCards, { playerId, card }],
+        blackJackFound: isBlackJack
+          ? { playerId, card }
+          : currentDealing.blackJackFound,
+      };
 
       return {
         ...state,
-        firstBlackJackDealing: {
-          currentPlayerIndex: nextPlayerIndex,
-          currentCardIndex: cardIndex + 1,
-          dealtCards: newDealtCards,
-        },
+        firstBlackJackDealing: updatedDealing,
       };
     }
 
-    case 'COMPLETE_DEALER_SELECTION': {
-      if (state.options.dealerSelection === 'first_black_jack') {
-        const { dealer, arrangedPlayers } = findFirstBlackJackDealer(
-          state.deck,
-          state.players
-        );
-
-        return {
-          ...state,
-          players: arrangedPlayers,
-          currentDealerId: dealer.id,
-          phase: 'team_summary',
-          dealerSelectionCards: undefined,
-        };
-      } else {
-        // Use random card selection method
-        if (
-          !state.dealerSelectionCards ||
-          Object.keys(state.dealerSelectionCards).length !== 4
-        ) {
-          return state; // Need all 4 players to have drawn cards
-        }
-
-        let dealer: Player;
-        let arrangedPlayers: Player[];
-
-        if (state.options.teamSelection === 'random_cards') {
-          // Use cards to determine both dealer and teams
-          const result = selectDealerAndTeams(
-            state.players,
-            state.dealerSelectionCards
-          );
-          dealer = result.dealer;
-          arrangedPlayers = result.arrangedPlayers;
-        } else {
-          // Use cards only for dealer selection, keep predetermined teams
-          const result = selectDealerOnly(
-            state.players,
-            state.dealerSelectionCards
-          );
-          dealer = result.dealer;
-          arrangedPlayers = result.arrangedPlayers;
-        }
-
-        return {
-          ...state,
-          players: arrangedPlayers,
-          currentDealerId: dealer.id,
-          phase: 'team_summary',
-        };
+    case 'COMPLETE_BLACKJACK_DEALER_SELECTION': {
+      if (!state.firstBlackJackDealing?.blackJackFound) {
+        return state; // No black jack found yet
       }
+
+      const { dealer, arrangedPlayers } = findFirstBlackJackDealer(
+        state.deck,
+        state.players
+      );
+
+      return {
+        ...state,
+        players: arrangedPlayers,
+        currentDealerId: dealer.id,
+        phase: 'team_summary',
+      };
     }
 
     case 'PROCEED_TO_DEALING':

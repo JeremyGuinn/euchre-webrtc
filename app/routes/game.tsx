@@ -55,7 +55,6 @@ export default function Game({ params }: Route.ComponentProps) {
     playCard,
     placeBid,
     drawDealerCard,
-    completeDealerSelection,
     proceedToDealing,
     completeDealingAnimation,
     selectDealer,
@@ -609,7 +608,6 @@ export default function Game({ params }: Route.ComponentProps) {
                 method={gameState.options.dealerSelection}
                 dealerSelectionCards={gameState.dealerSelectionCards}
                 onCardPicked={drawDealerCard}
-                onComplete={completeDealerSelection}
               />
             </div>
           )}

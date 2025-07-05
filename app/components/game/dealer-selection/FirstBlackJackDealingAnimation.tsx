@@ -56,7 +56,7 @@ export function FirstBlackJackDealingAnimation({
       setTimeout(() => {
         setAnimatingCard(null);
         onAnimationComplete();
-      }, 500); // Increased duration to match dealing timing
+      }, 250); // Increased duration to match dealing timing
     }, 50); // Reduced initial delay
   }, [currentCard, targetPlayerId, isVisible, onAnimationComplete]);
 
@@ -192,7 +192,7 @@ export function FirstBlackJackDealingAnimation({
                 ? `translate(${targetPos.x}px, ${targetPos.y}px) scale(0.9) rotate(${targetPos.rotation}deg)`
                 : `translate(0px, 0px) scale(1) rotate(0deg)`,
               transition: animatingCard.isAnimating
-                ? 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                ? 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
                 : 'none',
             }}
           >

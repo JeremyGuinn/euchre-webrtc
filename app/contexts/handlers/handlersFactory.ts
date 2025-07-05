@@ -6,7 +6,7 @@ import {
 } from './connection';
 import {
   handleBidMessage,
-  handleCompleteDealerSelection,
+  handleCompleteBlackJackDealerSelection,
   handleDealCards,
   handleDealerCardDealt,
   handleDealerDiscard,
@@ -37,7 +37,7 @@ export const createMessageHandlers = (): MessageHandlers => ({
   SELECT_DEALER: handleSelectDealer,
   DRAW_DEALER_CARD: handleDrawDealerCard,
   DEALER_CARD_DEALT: handleDealerCardDealt,
-  COMPLETE_DEALER_SELECTION: handleCompleteDealerSelection,
+  COMPLETE_BLACKJACK_DEALER_SELECTION: handleCompleteBlackJackDealerSelection,
   BID: handleBidMessage,
   DEALER_DISCARD: handleDealerDiscard,
   PLAY_CARD: handlePlayCardMessage,

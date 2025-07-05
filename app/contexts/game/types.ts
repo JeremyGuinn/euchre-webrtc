@@ -13,8 +13,8 @@ export interface GameContextType {
   startGame: () => void;
   selectDealer: () => void;
   drawDealerCard: (cardIndex?: number) => void;
-  completeDealerSelection: () => void;
   dealFirstBlackJackCard: () => void;
+  completeBlackJackDealerSelection: () => void;
   proceedToDealing: () => void;
   completeDealingAnimation: () => void;
   placeBid: (suit: Card['suit'] | 'pass', alone?: boolean) => void;
