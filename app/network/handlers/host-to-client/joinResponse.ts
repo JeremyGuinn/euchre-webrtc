@@ -35,5 +35,9 @@ const handleJoinResponseImpl: MessageHandler<JoinResponseMessage> = (
  * @param context - Handler context with dispatch functions
  */
 export const handleJoinResponse = createHostToClientHandler(
-  handleJoinResponseImpl
+  handleJoinResponseImpl,
+  [],
+  // Skip permission check since this is a response to a join request,
+  // and the first time we'll be syncing the game state
+  true
 );

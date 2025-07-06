@@ -2,6 +2,7 @@ import type { Player } from '~/types/game';
 import type { HandlerContext } from '~/types/handlers';
 import type { JoinRequestMessage } from '~/types/messages';
 
+import { createPublicGameState } from '~/utils/gameState';
 import { makeNameUnique } from '~/utils/playerUtils';
 import { createMessageId } from '~/utils/protocol';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
@@ -61,6 +62,15 @@ const handleJoinRequestImpl = (
 
   dispatch({ type: 'ADD_PLAYER', payload: { player: newPlayer } });
 
+  // Create the updated game state with the new player
+  const updatedGameState = {
+    ...gameState,
+    players: [...gameState.players, newPlayer],
+  };
+
+  // Create public game state for the JOIN_RESPONSE (with the new player's hand if they have one)
+  const publicGameState = createPublicGameState(updatedGameState, senderId);
+
   networkManager?.sendMessage(
     {
       type: 'JOIN_RESPONSE',
@@ -68,17 +78,15 @@ const handleJoinRequestImpl = (
       messageId: createMessageId(),
       payload: {
         success: true,
-        gameState,
+        gameState: publicGameState,
         player: newPlayer,
       },
     },
     senderId
   );
 
-  const updatedGameState = {
-    ...gameState,
-    players: [...gameState.players, newPlayer],
-  };
+  // Create public game state for PLAYER_JOINED broadcast (no specific player hand)
+  const broadcastGameState = createPublicGameState(updatedGameState);
 
   networkManager?.sendMessage({
     type: 'PLAYER_JOINED',
@@ -86,7 +94,7 @@ const handleJoinRequestImpl = (
     messageId: createMessageId(),
     payload: {
       player: newPlayer,
-      gameState: updatedGameState,
+      gameState: broadcastGameState,
     },
   });
 };

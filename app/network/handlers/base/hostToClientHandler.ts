@@ -13,12 +13,13 @@ export const createHostToClientHandler = <T extends HostToClientMessage>(
   handler: HostToClientHandler<T>,
   additionalValidations?: Array<
     (senderId: string, context: HandlerContext, message: T) => ValidationResult
-  >
+  >,
+  skipPermissionCheck = false
 ): HostToClientHandler<T> => {
   return (message: T, senderId: string, context: HandlerContext) => {
     // First, validate client permission
     const clientValidation = validatePermissionForClient(senderId, context);
-    if (!clientValidation.isValid) {
+    if (!clientValidation.isValid && !skipPermissionCheck) {
       console.warn(`[H2C] ${message.type}: ${clientValidation.reason}`, {
         senderId,
         isHost: context.isHost,
