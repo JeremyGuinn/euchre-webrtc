@@ -8,6 +8,16 @@ interface StackProps {
   as?: React.ElementType;
 }
 
+const spacingMap = {
+  '1': 'space-y-1',
+  '2': 'space-y-2',
+  '3': 'space-y-3',
+  '4': 'space-y-4',
+  '5': 'space-y-5',
+  '6': 'space-y-6',
+  '8': 'space-y-8',
+} as const;
+
 /**
  * Stack component for consistent vertical spacing using space-y utilities
  *
@@ -21,7 +31,7 @@ export function Stack({
   className,
   as: Component = 'div',
 }: StackProps) {
-  const spacingClass = `space-y-${spacing}`;
+  const spacingClass = spacingMap[spacing];
 
   return (
     <Component className={cn(spacingClass, className)}>{children}</Component>
