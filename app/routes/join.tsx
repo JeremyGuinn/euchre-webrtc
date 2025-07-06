@@ -8,7 +8,7 @@ import PageContainer from '~/components/layout/PageContainer';
 import Button from '~/components/ui/Button';
 import LinkButton from '~/components/ui/LinkButton';
 import { Stack } from '~/components/ui/Stack';
-import { useGame } from '~/contexts/GameContext';
+import { useGame } from '~/contexts/game/GameContext';
 import { useIsClient } from '~/hooks/useClientOnly';
 import { isValidGameCode, normalizeGameCode } from '~/utils/gameCode';
 

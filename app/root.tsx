@@ -11,7 +11,7 @@ import {
 import type { Route } from './+types/root';
 import './app.css';
 import { ErrorBoundary } from './components/error/ErrorBoundary';
-import { GameProvider } from './contexts/GameContext';
+import { GameProvider } from './contexts/game/GameContext';
 
 declare global {
   interface Window {

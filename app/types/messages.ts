@@ -1,29 +1,39 @@
 import type { Bid, Card, Player, PublicGameState } from './game';
 
-export type MessageType =
+// Client-to-Host message types (sent by clients to the host)
+export type ClientToHostMessageType =
   | 'JOIN_REQUEST'
+  | 'BID'
+  | 'DEALER_DISCARD'
+  | 'DRAW_DEALER_CARD'
+  | 'FARMERS_HAND_SWAP'
+  | 'FARMERS_HAND_DECLINE'
+  | 'PLAY_CARD'
+  | 'RENAME_PLAYER'
+  | 'RENAME_TEAM'
+  | 'SET_PREDETERMINED_DEALER';
+
+// Host-to-Client message types (sent by host to clients)
+export type HostToClientMessageType =
   | 'JOIN_RESPONSE'
   | 'PLAYER_JOINED'
   | 'PLAYER_LEFT'
   | 'START_GAME'
   | 'SELECT_DEALER'
-  | 'DRAW_DEALER_CARD'
   | 'DEALER_CARD_DEALT'
   | 'COMPLETE_BLACKJACK_DEALER_SELECTION'
-  | 'SET_PREDETERMINED_DEALER'
   | 'GAME_STATE_UPDATE'
-  | 'FARMERS_HAND_SWAP'
-  | 'FARMERS_HAND_DECLINE'
-  | 'BID'
-  | 'DEALER_DISCARD'
-  | 'PLAY_CARD'
-  | 'DEAL_CARDS'
-  | 'HEARTBEAT'
-  | 'RENAME_PLAYER'
-  | 'RENAME_TEAM'
   | 'KICK_PLAYER'
-  | 'MOVE_PLAYER'
-  | 'ERROR';
+  | 'MOVE_PLAYER';
+
+// Peer-to-Peer message types (can be sent by any peer)
+export type PeerToPeerMessageType = 'HEARTBEAT' | 'ERROR';
+
+// Combined message type for backwards compatibility
+export type MessageType =
+  | ClientToHostMessageType
+  | HostToClientMessageType
+  | PeerToPeerMessageType;
 
 export interface BaseMessage {
   type: MessageType;
@@ -31,14 +41,27 @@ export interface BaseMessage {
   messageId: string;
 }
 
-export interface JoinRequestMessage extends BaseMessage {
+export interface BaseClientToHostMessage extends BaseMessage {
+  type: ClientToHostMessageType;
+}
+
+export interface BaseHostToClientMessage extends BaseMessage {
+  type: HostToClientMessageType;
+}
+
+export interface BasePeerToPeerMessage extends BaseMessage {
+  type: PeerToPeerMessageType;
+}
+
+// Client-to-Host Messages
+export interface JoinRequestMessage extends BaseClientToHostMessage {
   type: 'JOIN_REQUEST';
   payload: {
     playerName: string;
   };
 }
 
-export interface JoinResponseMessage extends BaseMessage {
+export interface JoinResponseMessage extends BaseHostToClientMessage {
   type: 'JOIN_RESPONSE';
   payload: {
     success: boolean;
@@ -48,7 +71,7 @@ export interface JoinResponseMessage extends BaseMessage {
   };
 }
 
-export interface PlayerJoinedMessage extends BaseMessage {
+export interface PlayerJoinedMessage extends BaseHostToClientMessage {
   type: 'PLAYER_JOINED';
   payload: {
     player: Player;
@@ -56,7 +79,7 @@ export interface PlayerJoinedMessage extends BaseMessage {
   };
 }
 
-export interface PlayerLeftMessage extends BaseMessage {
+export interface PlayerLeftMessage extends BaseHostToClientMessage {
   type: 'PLAYER_LEFT';
   payload: {
     playerId: string;
@@ -64,57 +87,49 @@ export interface PlayerLeftMessage extends BaseMessage {
   };
 }
 
-export interface StartGameMessage extends BaseMessage {
+export interface StartGameMessage extends BaseHostToClientMessage {
   type: 'START_GAME';
   payload: {
     gameState: PublicGameState;
   };
 }
 
-export interface GameStateUpdateMessage extends BaseMessage {
+export interface GameStateUpdateMessage extends BaseHostToClientMessage {
   type: 'GAME_STATE_UPDATE';
   payload: {
     gameState: PublicGameState;
   };
 }
 
-export interface BidMessage extends BaseMessage {
+export interface BidMessage extends BaseClientToHostMessage {
   type: 'BID';
   payload: {
     bid: Bid;
   };
 }
 
-export interface DealerDiscardMessage extends BaseMessage {
+export interface DealerDiscardMessage extends BaseClientToHostMessage {
   type: 'DEALER_DISCARD';
   payload: {
     card: Card;
   };
 }
 
-export interface PlayCardMessage extends BaseMessage {
+export interface PlayCardMessage extends BaseClientToHostMessage {
   type: 'PLAY_CARD';
   payload: {
     card: Card;
   };
 }
 
-export interface DealCardsMessage extends BaseMessage {
-  type: 'DEAL_CARDS';
-  payload: {
-    hand: Card[];
-    kitty: Card;
-  };
-}
-
-export interface HeartbeatMessage extends BaseMessage {
+export interface HeartbeatMessage extends BasePeerToPeerMessage {
   type: 'HEARTBEAT';
   payload: {
     gameId: string;
   };
 }
 
-export interface ErrorMessage extends BaseMessage {
+export interface ErrorMessage extends BasePeerToPeerMessage {
   type: 'ERROR';
   payload: {
     message: string;
@@ -122,14 +137,14 @@ export interface ErrorMessage extends BaseMessage {
   };
 }
 
-export interface RenamePlayerMessage extends BaseMessage {
+export interface RenamePlayerMessage extends BaseClientToHostMessage {
   type: 'RENAME_PLAYER';
   payload: {
     newName: string;
   };
 }
 
-export interface RenameTeamMessage extends BaseMessage {
+export interface RenameTeamMessage extends BaseClientToHostMessage {
   type: 'RENAME_TEAM';
   payload: {
     teamId: 0 | 1;
@@ -137,14 +152,14 @@ export interface RenameTeamMessage extends BaseMessage {
   };
 }
 
-export interface KickPlayerMessage extends BaseMessage {
+export interface KickPlayerMessage extends BaseHostToClientMessage {
   type: 'KICK_PLAYER';
   payload: {
     targetPlayerId: string;
   };
 }
 
-export interface MovePlayerMessage extends BaseMessage {
+export interface MovePlayerMessage extends BaseHostToClientMessage {
   type: 'MOVE_PLAYER';
   payload: {
     targetPlayerId: string;
@@ -152,21 +167,21 @@ export interface MovePlayerMessage extends BaseMessage {
   };
 }
 
-export interface SelectDealerMessage extends BaseMessage {
+export interface SelectDealerMessage extends BaseHostToClientMessage {
   type: 'SELECT_DEALER';
   payload: {
     gameState: PublicGameState;
   };
 }
 
-export interface DrawDealerCardMessage extends BaseMessage {
+export interface DrawDealerCardMessage extends BaseClientToHostMessage {
   type: 'DRAW_DEALER_CARD';
   payload: {
     cardIndex?: number;
   };
 }
 
-export interface DealerCardDealtMessage extends BaseMessage {
+export interface DealerCardDealtMessage extends BaseHostToClientMessage {
   type: 'DEALER_CARD_DEALT';
   payload: {
     playerId: string;
@@ -176,51 +191,60 @@ export interface DealerCardDealtMessage extends BaseMessage {
   };
 }
 
-export interface CompleteBlackJackDealerSelectionMessage extends BaseMessage {
+export interface CompleteBlackJackDealerSelectionMessage
+  extends BaseHostToClientMessage {
   type: 'COMPLETE_BLACKJACK_DEALER_SELECTION';
   payload: Record<string, never>;
 }
 
-export interface SetPredeterminedDealerMessage extends BaseMessage {
+export interface SetPredeterminedDealerMessage extends BaseClientToHostMessage {
   type: 'SET_PREDETERMINED_DEALER';
   payload: {
     dealerId: string;
   };
 }
 
-export interface FarmersHandSwapMessage extends BaseMessage {
+export interface FarmersHandSwapMessage extends BaseClientToHostMessage {
   type: 'FARMERS_HAND_SWAP';
   payload: {
     cardsToSwap: Card[];
   };
 }
 
-export interface FarmersHandDeclineMessage extends BaseMessage {
+export interface FarmersHandDeclineMessage extends BaseClientToHostMessage {
   type: 'FARMERS_HAND_DECLINE';
   payload: Record<string, never>;
 }
 
-export type GameMessage =
+// Union types for each message direction
+export type ClientToHostMessage =
   | JoinRequestMessage
+  | BidMessage
+  | DealerDiscardMessage
+  | DrawDealerCardMessage
+  | FarmersHandSwapMessage
+  | FarmersHandDeclineMessage
+  | PlayCardMessage
+  | RenamePlayerMessage
+  | RenameTeamMessage
+  | SetPredeterminedDealerMessage;
+
+export type HostToClientMessage =
   | JoinResponseMessage
   | PlayerJoinedMessage
   | PlayerLeftMessage
   | StartGameMessage
   | SelectDealerMessage
-  | DrawDealerCardMessage
   | DealerCardDealtMessage
   | CompleteBlackJackDealerSelectionMessage
-  | SetPredeterminedDealerMessage
-  | FarmersHandSwapMessage
-  | FarmersHandDeclineMessage
   | GameStateUpdateMessage
-  | BidMessage
-  | DealerDiscardMessage
-  | PlayCardMessage
-  | DealCardsMessage
-  | HeartbeatMessage
-  | RenamePlayerMessage
-  | RenameTeamMessage
   | KickPlayerMessage
-  | MovePlayerMessage
-  | ErrorMessage;
+  | MovePlayerMessage;
+
+export type PeerToPeerMessage = HeartbeatMessage | ErrorMessage;
+
+// Combined union type for all messages
+export type GameMessage =
+  | ClientToHostMessage
+  | HostToClientMessage
+  | PeerToPeerMessage;

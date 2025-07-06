@@ -17,7 +17,7 @@ import Button from '../components/ui/Button';
 import { Center } from '../components/ui/Center';
 import { Spinner } from '../components/ui/Spinner';
 import { Stack } from '../components/ui/Stack';
-import { useGame } from '../contexts/GameContext';
+import { useGame } from '../contexts/game/GameContext';
 import type { Card as CardType, Player } from '../types/game';
 import { isDealerScrewed } from '../utils/gameState';
 

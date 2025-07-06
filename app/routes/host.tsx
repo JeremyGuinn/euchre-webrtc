@@ -8,7 +8,7 @@ import PageContainer from '~/components/layout/PageContainer';
 import GameCodeSharing from '~/components/lobby/GameCodeSharing';
 import Button from '~/components/ui/Button';
 import { Spinner } from '~/components/ui/Spinner';
-import { useGame } from '~/contexts/GameContext';
+import { useGame } from '~/contexts/game/GameContext';
 
 export function meta() {
   return [
