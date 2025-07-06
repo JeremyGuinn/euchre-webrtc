@@ -34,6 +34,9 @@ export function HostControlsInfo({ isHost }: HostControlsInfoProps) {
             <p className='text-sm text-blue-700'>
               Hover over your name to edit it
             </p>
+            <p className='text-sm text-blue-700'>
+              Hover over your team name to edit it
+            </p>
           </div>
         </div>
       </div>
@@ -110,6 +113,24 @@ export function HostControlsInfo({ isHost }: HostControlsInfoProps) {
                 </svg>
               </IconContainer>
               <span>Drag and drop players to reorganize teams</span>
+            </div>
+            <div className='flex items-center space-x-2 text-sm text-amber-800'>
+              <IconContainer size='sm' variant='white'>
+                <svg
+                  className='w-3 h-3 text-blue-600'
+                  fill='none'
+                  stroke='currentColor'
+                  viewBox='0 0 24 24'
+                >
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={2}
+                    d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'
+                  />
+                </svg>
+              </IconContainer>
+              <span>Hover over any team name to rename them</span>
             </div>
           </Stack>
         </div>
