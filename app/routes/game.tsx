@@ -680,6 +680,7 @@ export default function Game({ params }: Route.ComponentProps) {
             players={gameState.players}
             myPlayer={myPlayer}
             isVisible={true}
+            currentDealerId={gameState.currentDealerId}
             onComplete={completeDealingAnimation}
           />
         </div>

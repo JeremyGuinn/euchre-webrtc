@@ -7,6 +7,7 @@ interface DealingAnimationProps {
   players: Player[];
   myPlayer: Player;
   isVisible: boolean;
+  currentDealerId: string;
   onComplete: () => void;
 }
 
@@ -27,6 +28,7 @@ export function DealingAnimation({
   players,
   myPlayer,
   isVisible,
+  currentDealerId,
   onComplete,
 }: DealingAnimationProps) {
   const [dealingSteps, setDealingSteps] = useState<DealingStep[]>([]);
@@ -293,7 +295,7 @@ export function DealingAnimation({
             >
               <div className='inline-block px-3 py-1 rounded-lg text-sm font-medium mb-2 bg-white/20 text-white'>
                 {player.name} {player.id === myPlayer.id && '(You)'}
-                {player.position === 0 && ' (Dealer)'}
+                {player.id === currentDealerId && '(Dealer)'}
               </div>
 
               {/* Show card backs for dealt cards */}
