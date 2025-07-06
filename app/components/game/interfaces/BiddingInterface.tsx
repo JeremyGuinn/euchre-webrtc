@@ -9,6 +9,7 @@ interface BiddingInterfaceProps {
   suitSymbols: Record<string, string>;
   suitColors: Record<string, string>;
   isDealer: boolean;
+  isDealerTeammate: boolean; // True when dealer is the player's teammate
   _screwTheDealer: boolean; // Not used directly, but kept for completeness
   isDealerScrewed: boolean; // True when dealer must call trump (can't pass)
   onBid: (suit: CardType['suit'] | 'pass', alone?: boolean) => void;
@@ -23,6 +24,7 @@ export function BiddingInterface({
   suitSymbols,
   suitColors,
   isDealer,
+  isDealerTeammate,
   _screwTheDealer,
   isDealerScrewed,
   onBid,
@@ -85,7 +87,7 @@ export function BiddingInterface({
                 <div className='space-y-2'>
                   <div className='text-center mb-3'>
                     <p className='text-xs text-gray-600'>
-                      Ordering up:
+                      {isDealerTeammate ? 'Assisting with:' : 'Ordering up:'}
                       <span
                         className={`font-medium pl-1 ${suitColors[selectedSuit]}`}
                       >
@@ -134,7 +136,11 @@ export function BiddingInterface({
                     onClick={() => handleSuitSelection(kitty!.suit)}
                     className='w-full px-3 py-1 text-xs'
                   >
-                    Order up ({suitSymbols[kitty!.suit]} {kitty!.suit})
+                    {isDealer
+                      ? 'Take it up'
+                      : isDealerTeammate
+                        ? 'Assist'
+                        : 'Order it up'}
                   </Button>
                   <Button
                     variant='secondary'
@@ -143,7 +149,7 @@ export function BiddingInterface({
                     className='w-full px-3 py-1 text-xs'
                   >
                     {/* Dealer sees "turn it down" instead of pass */}
-                    {isDealer ? 'Turn down' : 'Pass'}
+                    {isDealer ? 'Turn it down' : 'Pass'}
                   </Button>
                 </div>
               )}

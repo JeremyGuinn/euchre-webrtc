@@ -32,8 +32,6 @@ export function dealHands(deck: Card[]): {
   kitty: Card;
   remainingDeck: Card[];
 } {
-  return dealTestFarmersHand(deck);
-
   const hands: [Card[], Card[], Card[], Card[]] = [[], [], [], []];
   let cardIndex = 0;
 

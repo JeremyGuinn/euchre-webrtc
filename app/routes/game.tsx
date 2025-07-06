@@ -23,6 +23,18 @@ import { isDealerScrewed } from '~/utils/gameState';
 
 import type { Route } from './+types/game';
 
+// Auto-advance configuration
+const AUTO_ADVANCE_CONFIG = {
+  TRICK_COMPLETE_DELAY_MS: 1500,
+  PROGRESS_UPDATE_INTERVAL_MS: 100,
+  get PROGRESS_STEPS() {
+    return this.TRICK_COMPLETE_DELAY_MS / this.PROGRESS_UPDATE_INTERVAL_MS;
+  },
+  get PROGRESS_INCREMENT() {
+    return 100 / this.PROGRESS_STEPS;
+  },
+} as const;
+
 export function meta({ params }: Route.MetaArgs) {
   return [
     { title: `Euchre Game ${params.gameId}` },
@@ -97,14 +109,14 @@ export default function Game({ params }: Route.ComponentProps) {
 
       const progressInterval = setInterval(() => {
         setAutoAdvanceProgress(prev => {
-          const newProgress = prev + 100 / 30; // 30 intervals over 3 seconds = 100ms each
+          const newProgress = prev + AUTO_ADVANCE_CONFIG.PROGRESS_INCREMENT;
           return newProgress >= 100 ? 100 : newProgress;
         });
-      }, 100);
+      }, AUTO_ADVANCE_CONFIG.PROGRESS_UPDATE_INTERVAL_MS);
 
       const timer = setTimeout(() => {
         continueTrick();
-      }, 3000);
+      }, AUTO_ADVANCE_CONFIG.TRICK_COMPLETE_DELAY_MS);
 
       return () => {
         clearTimeout(timer);
@@ -538,6 +550,15 @@ export default function Game({ params }: Route.ComponentProps) {
                 phase={gameState.phase as 'bidding_round1' | 'bidding_round2'}
                 kitty={gameState.kitty}
                 isDealer={gameState.currentDealerId === myPlayer.id}
+                isDealerTeammate={(() => {
+                  const dealer = gameState.players.find(
+                    p => p.id === gameState.currentDealerId
+                  );
+                  return dealer
+                    ? dealer.teamId === myPlayer.teamId &&
+                        dealer.id !== myPlayer.id
+                    : false;
+                })()}
                 turnedDownSuit={gameState.turnedDownSuit}
                 suitSymbols={suitSymbols}
                 suitColors={suitColors}

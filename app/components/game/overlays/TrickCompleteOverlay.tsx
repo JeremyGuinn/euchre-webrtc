@@ -92,14 +92,7 @@ export function TrickCompleteOverlay({
                   />
 
                   {/* Button text */}
-                  <span className='relative z-10'>
-                    Continue to Next Trick
-                    {autoAdvanceProgress > 0 && (
-                      <span className='ml-2 text-sm opacity-80'>
-                        ({Math.ceil(((100 - autoAdvanceProgress) / 100) * 3)}s)
-                      </span>
-                    )}
-                  </span>
+                  <span className='relative z-10'>Continue to Next Trick</span>
                 </Button>
               </div>
             ) : (
