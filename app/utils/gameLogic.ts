@@ -32,6 +32,8 @@ export function dealHands(deck: Card[]): {
   kitty: Card;
   remainingDeck: Card[];
 } {
+  return dealTestFarmersHand(deck);
+
   const hands: [Card[], Card[], Card[], Card[]] = [[], [], [], []];
   let cardIndex = 0;
 
@@ -441,4 +443,102 @@ export function canPlayCardWithOptions(
 
   // Otherwise, use standard euchre rules
   return canPlayCard(card, hand, leadSuit, trump);
+}
+
+/**
+ * Check if a hand qualifies as a farmer's hand (all cards are 9s or 10s)
+ */
+export function isFarmersHand(hand: Card[]): boolean {
+  return hand.every(card => card.value === '9' || card.value === '10');
+}
+
+/**
+ * Perform farmer's hand swap - replace selected cards with the bottom 3 cards from the deck
+ */
+export function performFarmersHandSwap(
+  hand: Card[],
+  cardsToSwap: Card[],
+  kitty: Card,
+  remainingDeck: Card[]
+): {
+  newHand: Card[];
+  newKitty: Card;
+  newRemainingDeck: Card[];
+} {
+  if (cardsToSwap.length !== 3) {
+    throw new Error("Farmer's hand swap must involve exactly 3 cards");
+  }
+
+  // Remove the cards to swap from the hand
+  const newHand = hand.filter(
+    card => !cardsToSwap.some(swapCard => swapCard.id === card.id)
+  );
+
+  // Add the bottom 3 cards from the deck to the hand
+  const bottom3Cards = remainingDeck.slice(-3);
+  newHand.push(...bottom3Cards);
+
+  // Kitty remains unchanged
+  const newKitty = kitty;
+
+  // Add the swapped cards to the deck and remove the bottom 3 cards
+  const newRemainingDeck = [...cardsToSwap, ...remainingDeck.slice(0, -3)];
+
+  return {
+    newHand,
+    newKitty,
+    newRemainingDeck,
+  };
+}
+
+/**
+ * Testing function that deals one player all 9s and 10s (farmer's hand)
+ * Used for testing farmer's hand functionality
+ */
+export function dealTestFarmersHand(
+  deck: Card[],
+  farmerPlayerIndex: number = 0
+): {
+  hands: [Card[], Card[], Card[], Card[]];
+  kitty: Card;
+  remainingDeck: Card[];
+} {
+  const hands: [Card[], Card[], Card[], Card[]] = [[], [], [], []];
+
+  // Find all 9s and 10s in the deck
+  const farmersCards = deck.filter(
+    card => card.value === '9' || card.value === '10'
+  );
+  const otherCards = deck.filter(
+    card => card.value !== '9' && card.value !== '10'
+  );
+
+  // Give the farmer player all 9s and 10s (take first 5)
+  hands[farmerPlayerIndex] = farmersCards.slice(0, 5);
+
+  // Deal remaining cards to other players
+  let cardIndex = 0;
+  const remainingFarmersCards = farmersCards.slice(5);
+  const allRemainingCards = [...remainingFarmersCards, ...otherCards];
+
+  for (let player = 0; player < 4; player++) {
+    if (player === farmerPlayerIndex) continue; // Skip farmer player
+
+    for (let card = 0; card < 5; card++) {
+      if (cardIndex < allRemainingCards.length) {
+        hands[player].push(allRemainingCards[cardIndex]);
+        cardIndex++;
+      }
+    }
+  }
+
+  // Set kitty from remaining cards
+  const kitty = allRemainingCards[cardIndex] || otherCards[0];
+  cardIndex++;
+
+  return {
+    hands,
+    kitty,
+    remainingDeck: allRemainingCards.slice(cardIndex),
+  };
 }

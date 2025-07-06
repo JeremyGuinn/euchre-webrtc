@@ -12,6 +12,8 @@ export type MessageType =
   | 'COMPLETE_BLACKJACK_DEALER_SELECTION'
   | 'SET_PREDETERMINED_DEALER'
   | 'GAME_STATE_UPDATE'
+  | 'FARMERS_HAND_SWAP'
+  | 'FARMERS_HAND_DECLINE'
   | 'BID'
   | 'DEALER_DISCARD'
   | 'PLAY_CARD'
@@ -186,6 +188,18 @@ export interface SetPredeterminedDealerMessage extends BaseMessage {
   };
 }
 
+export interface FarmersHandSwapMessage extends BaseMessage {
+  type: 'FARMERS_HAND_SWAP';
+  payload: {
+    cardsToSwap: Card[];
+  };
+}
+
+export interface FarmersHandDeclineMessage extends BaseMessage {
+  type: 'FARMERS_HAND_DECLINE';
+  payload: Record<string, never>;
+}
+
 export type GameMessage =
   | JoinRequestMessage
   | JoinResponseMessage
@@ -197,6 +211,8 @@ export type GameMessage =
   | DealerCardDealtMessage
   | CompleteBlackJackDealerSelectionMessage
   | SetPredeterminedDealerMessage
+  | FarmersHandSwapMessage
+  | FarmersHandDeclineMessage
   | GameStateUpdateMessage
   | BidMessage
   | DealerDiscardMessage

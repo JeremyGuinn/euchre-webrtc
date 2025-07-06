@@ -19,6 +19,8 @@ export type GamePhase =
   | 'team_summary' // Show dealer and team assignments before dealing
   | 'dealing_animation' // Showing the dealing animation
   | 'dealing' // Cards being dealt (internal state)
+  | 'farmers_hand_check' // Check if any player has a farmer's hand (all 9s and 10s)
+  | 'farmers_hand_swap' // Player is swapping cards with the kitty
   | 'bidding_round1' // First round: can order up/assist the turned up card
   | 'bidding_round2' // Second round: can call any suit except the turned up suit
   | 'dealer_discard' // Dealer must discard a card after taking up the kitty
@@ -45,7 +47,10 @@ export type Trick = {
 
 export type GameOptions = {
   teamSelection: 'predetermined' | 'random_cards';
-  dealerSelection: 'random_cards' | 'first_black_jack' | 'predetermined_first_dealer';
+  dealerSelection:
+    | 'random_cards'
+    | 'first_black_jack'
+    | 'predetermined_first_dealer';
   predeterminedFirstDealerId?: string;
   allowReneging: boolean;
   screwTheDealer: boolean;
@@ -85,6 +90,7 @@ export type GameState = {
     teamId: 0 | 1;
     alone: boolean;
   };
+  farmersHandPlayer?: string; // Player who has a farmer's hand and can swap cards
   dealerSelectionCards?: Record<string, Card>; // Cards drawn for dealer selection
   firstBlackJackDealing?: {
     currentPlayerIndex: number;

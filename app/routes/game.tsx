@@ -6,6 +6,8 @@ import { DealerSelectionAnimation } from '../components/game/dealer-selection/De
 import { DealingAnimation } from '../components/game/DealingAnimation';
 import { CurrentTurnIndicator } from '../components/game/indicators/CurrentTurnIndicator';
 import { BiddingInterface } from '../components/game/interfaces/BiddingInterface';
+import { FarmersHandInterface } from '../components/game/overlays/FarmersHandInterface';
+import { FarmersHandWaiting } from '../components/game/overlays/FarmersHandWaiting';
 import { GameCompleteOverlay } from '../components/game/overlays/GameCompleteOverlay';
 import { HandCompleteOverlay } from '../components/game/overlays/HandCompleteOverlay';
 import { TeamSummaryOverlay } from '../components/game/overlays/TeamSummaryOverlay';
@@ -62,6 +64,8 @@ export default function Game({ params }: Route.ComponentProps) {
     continueTrick,
     completeHand,
     dealerDiscard,
+    swapFarmersHand,
+    declineFarmersHand,
     renameTeam,
     disconnect,
   } = useGame();
@@ -680,6 +684,29 @@ export default function Game({ params }: Route.ComponentProps) {
         suitColors={suitColors}
         onCompleteHand={completeHand}
       />
+
+      {/* Farmer's Hand Interface - Allow player to swap cards */}
+      {gameState.phase === 'farmers_hand_swap' && (
+        <>
+          {gameState.farmersHandPlayer === myPlayer.id ? (
+            <FarmersHandInterface
+              hand={myHand}
+              onSwap={swapFarmersHand}
+              onDecline={declineFarmersHand}
+            />
+          ) : (
+            gameState.farmersHandPlayer && (
+              <FarmersHandWaiting
+                farmersHandPlayer={
+                  gameState.players.find(
+                    p => p.id === gameState.farmersHandPlayer
+                  )!
+                }
+              />
+            )
+          )}
+        </>
+      )}
 
       {/* Game Complete - Show final results */}
       <GameCompleteOverlay

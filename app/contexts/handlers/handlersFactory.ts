@@ -11,6 +11,8 @@ import {
   handleDealerCardDealt,
   handleDealerDiscard,
   handleDrawDealerCard,
+  handleFarmersHandDecline,
+  handleFarmersHandSwap,
   handleGameStateUpdate,
   handlePlayCardMessage,
   handleSelectDealer,
@@ -43,6 +45,8 @@ export const createMessageHandlers = (): MessageHandlers => ({
   DEALER_DISCARD: handleDealerDiscard,
   PLAY_CARD: handlePlayCardMessage,
   DEAL_CARDS: handleDealCards,
+  FARMERS_HAND_SWAP: handleFarmersHandSwap,
+  FARMERS_HAND_DECLINE: handleFarmersHandDecline,
   GAME_STATE_UPDATE: handleGameStateUpdate,
 
   // Player management

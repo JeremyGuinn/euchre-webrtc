@@ -324,7 +324,8 @@ export function useGameActions(
     (playerId: string) => {
       if (!isHost) return;
       if (gameState.phase !== 'lobby') return;
-      if (gameState.options.dealerSelection !== 'predetermined_first_dealer') return;
+      if (gameState.options.dealerSelection !== 'predetermined_first_dealer')
+        return;
 
       // Validate the player exists
       const player = gameState.players.find(p => p.id === playerId);
@@ -351,7 +352,14 @@ export function useGameActions(
         });
       }
     },
-    [isHost, gameState.phase, gameState.options, gameState.players, dispatch, networkService]
+    [
+      isHost,
+      gameState.phase,
+      gameState.options,
+      gameState.players,
+      dispatch,
+      networkService,
+    ]
   );
 
   const continueTrick = useCallback(() => {
@@ -367,6 +375,61 @@ export function useGameActions(
 
     dispatch({ type: 'COMPLETE_HAND' });
   }, [isHost, gameState.phase, dispatch]);
+
+  const swapFarmersHand = useCallback(
+    (cardsToSwap: Card[]) => {
+      const myPlayer = gameState.players.find(p => p.id === myPlayerId);
+      if (!myPlayer || gameState.farmersHandPlayer !== myPlayerId) return;
+
+      if (isHost) {
+        dispatch({
+          type: 'FARMERS_HAND_SWAP',
+          payload: { playerId: myPlayerId, cardsToSwap },
+        });
+      } else {
+        networkService.sendMessage({
+          type: 'FARMERS_HAND_SWAP',
+          timestamp: Date.now(),
+          messageId: createMessageId(),
+          payload: { cardsToSwap },
+        });
+      }
+    },
+    [
+      gameState.players,
+      gameState.farmersHandPlayer,
+      myPlayerId,
+      isHost,
+      dispatch,
+      networkService,
+    ]
+  );
+
+  const declineFarmersHand = useCallback(() => {
+    const myPlayer = gameState.players.find(p => p.id === myPlayerId);
+    if (!myPlayer || gameState.farmersHandPlayer !== myPlayerId) return;
+
+    if (isHost) {
+      dispatch({
+        type: 'FARMERS_HAND_DECLINED',
+        payload: { playerId: myPlayerId },
+      });
+    } else {
+      networkService.sendMessage({
+        type: 'FARMERS_HAND_DECLINE',
+        timestamp: Date.now(),
+        messageId: createMessageId(),
+        payload: {},
+      });
+    }
+  }, [
+    gameState.players,
+    gameState.farmersHandPlayer,
+    myPlayerId,
+    isHost,
+    dispatch,
+    networkService,
+  ]);
 
   return {
     startGame,
@@ -387,5 +450,7 @@ export function useGameActions(
     setPredeterminedDealer,
     continueTrick,
     completeHand,
+    swapFarmersHand,
+    declineFarmersHand,
   };
 }

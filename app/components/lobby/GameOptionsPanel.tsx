@@ -67,7 +67,7 @@ export function GameOptionsPanel({
 
   const getFarmersHandDescription = () => {
     return options.farmersHand
-      ? 'Players can call for re-deal if they have no Aces, Kings, Queens, or Jacks'
+      ? 'Player may swap 3 cards with the kitty if all 5 cards are 9s or 10s'
       : 'Standard rule: play with any dealt hand';
   };
 
@@ -311,8 +311,8 @@ export function GameOptionsPanel({
                 <strong>Farmer&apos;s Hand</strong>
                 <br />
                 <span className='text-xs'>
-                  Players can call for re-deal if they have no Aces, Kings,
-                  Queens, or Jacks
+                  Player may swap 3 cards with the kitty if all 5 cards are 9s
+                  or 10s
                 </span>
               </span>
             </label>

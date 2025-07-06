@@ -4,6 +4,8 @@ export { handleDealCards } from './dealCards';
 export { handleDealerCardDealt } from './dealerCardDealt';
 export { handleDealerDiscard } from './dealerDiscard';
 export { handleDrawDealerCard } from './drawDealerCard';
+export { handleFarmersHandDecline } from './farmersHandDecline';
+export { handleFarmersHandSwap } from './farmersHandSwap';
 export { handleGameStateUpdate } from './gameStateUpdate';
 export { handlePlayCardMessage } from './playCard';
 export { handleSelectDealer } from './selectDealer';

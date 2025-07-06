@@ -13,6 +13,8 @@ import {
   findFirstBlackJackDealer,
   getEffectiveSuit,
   getWinningCard,
+  isFarmersHand,
+  performFarmersHandSwap,
   selectDealerAndTeams,
   selectDealerOnly,
 } from '~/utils/gameLogic';
@@ -51,6 +53,12 @@ export type GameAction =
   | { type: 'COMPLETE_BLACKJACK_DEALER_SELECTION' }
   | { type: 'PROCEED_TO_DEALING' }
   | { type: 'DEAL_CARDS' }
+  | { type: 'FARMERS_HAND_DETECTED'; payload: { playerId: string } }
+  | {
+      type: 'FARMERS_HAND_SWAP';
+      payload: { playerId: string; cardsToSwap: Card[] };
+    }
+  | { type: 'FARMERS_HAND_DECLINED'; payload: { playerId: string } }
   | { type: 'PLACE_BID'; payload: { bid: Bid } }
   | { type: 'DEALER_DISCARD'; payload: { card: Card } }
   | {
@@ -450,17 +458,100 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         playerHands[player.id] = hands[index];
       });
 
+      // Check for farmer's hand if the option is enabled
+      let nextPhase: GameState['phase'] = 'bidding_round1';
+      let farmersHandPlayer: string | undefined = undefined;
+      let currentPlayerId = getNextPlayer(state.currentDealerId, state.players);
+
+      if (state.options.farmersHand) {
+        // Find the first player with a farmer's hand
+        const playerWithFarmersHand = state.players.find(player => {
+          const hand = playerHands[player.id];
+          return hand && isFarmersHand(hand);
+        });
+
+        if (playerWithFarmersHand) {
+          nextPhase = 'farmers_hand_swap';
+          farmersHandPlayer = playerWithFarmersHand.id;
+          currentPlayerId = playerWithFarmersHand.id;
+        }
+      }
+
       return {
         ...state,
         deck: remainingDeck,
         hands: playerHands,
         kitty,
-        phase: 'bidding_round1',
+        phase: nextPhase,
         bids: [],
-        currentPlayerId: getNextPlayer(state.currentDealerId, state.players),
+        currentPlayerId,
         trump: undefined,
         maker: undefined,
         turnedDownSuit: undefined,
+        farmersHandPlayer,
+      };
+    }
+
+    case 'FARMERS_HAND_DETECTED': {
+      const { playerId } = action.payload;
+      return {
+        ...state,
+        phase: 'farmers_hand_swap',
+        farmersHandPlayer: playerId,
+        currentPlayerId: playerId,
+      };
+    }
+
+    case 'FARMERS_HAND_SWAP': {
+      const { playerId, cardsToSwap } = action.payload;
+
+      if (
+        !state.kitty ||
+        !state.farmersHandPlayer ||
+        state.farmersHandPlayer !== playerId
+      ) {
+        return state;
+      }
+
+      const playerHand = state.hands[playerId];
+      if (!playerHand) {
+        return state;
+      }
+
+      // Perform the swap
+      const { newHand, newKitty, newRemainingDeck } = performFarmersHandSwap(
+        playerHand,
+        cardsToSwap,
+        state.kitty,
+        state.deck
+      );
+
+      return {
+        ...state,
+        hands: {
+          ...state.hands,
+          [playerId]: newHand,
+        },
+        kitty: newKitty,
+        deck: newRemainingDeck,
+        phase: 'bidding_round1',
+        currentPlayerId: getNextPlayer(state.currentDealerId, state.players),
+        farmersHandPlayer: undefined,
+      };
+    }
+
+    case 'FARMERS_HAND_DECLINED': {
+      const { playerId } = action.payload;
+
+      if (!state.farmersHandPlayer || state.farmersHandPlayer !== playerId) {
+        return state;
+      }
+
+      return {
+        ...state,
+        phase: 'bidding_round1',
+        currentPlayerId: getNextPlayer(state.currentDealerId, state.players),
+        farmersHandPlayer: undefined,
       };
     }
 
@@ -831,6 +922,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         dealerSelectionCards: gameState.dealerSelectionCards,
         hands: playerHand ? { [receivingPlayerId]: playerHand } : {},
         deck: gameState.deck,
+        farmersHandPlayer: gameState.farmersHandPlayer,
       };
     }
 
@@ -942,6 +1034,7 @@ export function createPublicGameState(
     handScores: gameState.handScores,
     teamNames: gameState.teamNames,
     maker: gameState.maker,
+    farmersHandPlayer: gameState.farmersHandPlayer,
     dealerSelectionCards: gameState.dealerSelectionCards,
     firstBlackJackDealing: gameState.firstBlackJackDealing,
     deck: placeholderCards,
