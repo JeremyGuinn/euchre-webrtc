@@ -21,6 +21,7 @@ import {
   handleMovePlayer,
   handleRenamePlayer,
   handleRenameTeam,
+  handleSetPredeterminedDealer,
 } from './player';
 import { handleError, handleHeartbeat } from './system';
 import type { MessageHandlers } from './types';
@@ -49,6 +50,7 @@ export const createMessageHandlers = (): MessageHandlers => ({
   RENAME_TEAM: handleRenameTeam,
   KICK_PLAYER: handleKickPlayer,
   MOVE_PLAYER: handleMovePlayer,
+  SET_PREDETERMINED_DEALER: handleSetPredeterminedDealer,
 
   // System
   HEARTBEAT: handleHeartbeat,

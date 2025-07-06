@@ -45,7 +45,8 @@ export type Trick = {
 
 export type GameOptions = {
   teamSelection: 'predetermined' | 'random_cards';
-  dealerSelection: 'random_cards' | 'first_black_jack';
+  dealerSelection: 'random_cards' | 'first_black_jack' | 'predetermined_first_dealer';
+  predeterminedFirstDealerId?: string;
   allowReneging: boolean;
   screwTheDealer: boolean;
   farmersHand: boolean;

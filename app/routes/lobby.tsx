@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import ConnectionStatusDisplay from '~/components/feedback/ConnectionStatusDisplay';
@@ -6,6 +6,7 @@ import GameCodeSharing from '~/components/lobby/GameCodeSharing';
 import GameControlsPanel from '~/components/lobby/GameControlsPanel';
 import GameOptionsPanel from '~/components/lobby/GameOptionsPanel';
 import PlayersSection from '~/components/lobby/PlayersSection';
+import PredeterminedDealerSelector from '~/components/lobby/PredeterminedDealerSelector';
 import Button from '~/components/ui/Button';
 import Panel from '~/components/ui/Panel';
 import { Stack } from '~/components/ui/Stack';
@@ -38,6 +39,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
     kickPlayer,
     movePlayer,
     updateGameOptions,
+    setPredeterminedDealer,
   } = useGame();
   const { gameId } = params;
 
@@ -45,7 +47,25 @@ export default function Lobby({ params }: Route.ComponentProps) {
 
   const myPlayer = getMyPlayer();
   const connectedPlayers = gameState.players.filter(p => p.isConnected);
-  const canStartGame = isHost && connectedPlayers.length === 4;
+
+  // Check if all requirements are met to start the game
+  const canStartGame = useMemo(() => {
+    if (!isHost || connectedPlayers.length !== 4) {
+      return false;
+    }
+
+    // If predetermined dealer is selected, ensure a dealer is chosen
+    if (gameState.options.dealerSelection === 'predetermined_first_dealer') {
+      return !!gameState.options.predeterminedFirstDealerId;
+    }
+
+    return true;
+  }, [
+    isHost,
+    connectedPlayers.length,
+    gameState.options.dealerSelection,
+    gameState.options.predeterminedFirstDealerId,
+  ]);
 
   useEffect(() => {
     if (connectionStatus === 'disconnected') {
@@ -149,10 +169,21 @@ export default function Lobby({ params }: Route.ComponentProps) {
               disabled={gameState.phase !== 'lobby'}
             />
 
+            {gameState.options.dealerSelection ===
+              'predetermined_first_dealer' && (
+              <PredeterminedDealerSelector
+                players={gameState.players.filter(p => p.isConnected)}
+                selectedDealerId={gameState.options.predeterminedFirstDealerId}
+                onDealerSelect={setPredeterminedDealer}
+                isHost={isHost}
+              />
+            )}
+
             <GameControlsPanel
               connectedPlayersCount={connectedPlayers.length}
               isHost={isHost}
               canStartGame={canStartGame}
+              gameOptions={gameState.options}
               onStartGame={handleStartGame}
             />
           </Stack>

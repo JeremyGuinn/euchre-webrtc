@@ -1,10 +1,12 @@
 import Button from '~/components/ui/Button';
 import Panel from '~/components/ui/Panel';
+import type { GameOptions } from '~/types/game';
 
 interface GameControlsPanelProps {
   connectedPlayersCount: number;
   isHost: boolean;
   canStartGame: boolean;
+  gameOptions: GameOptions;
   onStartGame: () => void;
 }
 
@@ -12,6 +14,7 @@ export default function GameControlsPanel({
   connectedPlayersCount,
   isHost,
   canStartGame,
+  gameOptions,
   onStartGame,
 }: GameControlsPanelProps) {
   const playersNeeded = 4 - connectedPlayersCount;
@@ -31,17 +34,32 @@ export default function GameControlsPanel({
           </div>
         ) : isHost ? (
           <div>
-            <p className='text-green-600 font-medium mb-4'>
-              All players connected! Ready to start the game.
-            </p>
-            <Button
-              variant='success'
-              size='lg'
-              onClick={onStartGame}
-              disabled={!canStartGame}
-            >
-              Start Game
-            </Button>
+            {connectedPlayersCount === 4 &&
+            gameOptions.dealerSelection === 'predetermined_first_dealer' &&
+            !gameOptions.predeterminedFirstDealerId ? (
+              <div>
+                <p className='text-yellow-600 font-medium mb-4'>
+                  Please select a first dealer before starting the game.
+                </p>
+                <Button variant='secondary' size='lg' disabled={true}>
+                  Start Game
+                </Button>
+              </div>
+            ) : (
+              <div>
+                <p className='text-green-600 font-medium mb-4'>
+                  All players connected! Ready to start the game.
+                </p>
+                <Button
+                  variant='success'
+                  size='lg'
+                  onClick={onStartGame}
+                  disabled={!canStartGame}
+                >
+                  Start Game
+                </Button>
+              </div>
+            )}
           </div>
         ) : (
           <div>

@@ -320,6 +320,40 @@ export function useGameActions(
     [isHost, gameState.phase, dispatch]
   );
 
+  const setPredeterminedDealer = useCallback(
+    (playerId: string) => {
+      if (!isHost) return;
+      if (gameState.phase !== 'lobby') return;
+      if (gameState.options.dealerSelection !== 'predetermined_first_dealer') return;
+
+      // Validate the player exists
+      const player = gameState.players.find(p => p.id === playerId);
+      if (!player) return;
+
+      // Update the game options with the selected dealer
+      const updatedOptions: GameOptions = {
+        ...gameState.options,
+        predeterminedFirstDealerId: playerId,
+      };
+
+      dispatch({
+        type: 'UPDATE_GAME_OPTIONS',
+        payload: { options: updatedOptions },
+      });
+
+      // Optionally send a message to all clients about the dealer selection
+      if (networkService) {
+        networkService.sendMessage({
+          type: 'SET_PREDETERMINED_DEALER',
+          timestamp: Date.now(),
+          messageId: createMessageId(),
+          payload: { dealerId: playerId },
+        });
+      }
+    },
+    [isHost, gameState.phase, gameState.options, gameState.players, dispatch, networkService]
+  );
+
   const continueTrick = useCallback(() => {
     if (!isHost) return;
     if (gameState.phase !== 'trick_complete') return;
@@ -350,6 +384,7 @@ export function useGameActions(
     kickPlayer,
     movePlayer,
     updateGameOptions,
+    setPredeterminedDealer,
     continueTrick,
     completeHand,
   };

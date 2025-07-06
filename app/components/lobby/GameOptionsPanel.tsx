@@ -41,9 +41,16 @@ export function GameOptionsPanel({
   };
 
   const getDealerSelectionDescription = () => {
-    return options.dealerSelection === 'random_cards'
-      ? 'Players draw cards, lowest card deals'
-      : 'Deal cards around until someone gets a black Jack';
+    switch (options.dealerSelection) {
+      case 'random_cards':
+        return 'Players draw cards, lowest card deals';
+      case 'first_black_jack':
+        return 'Deal cards around until someone gets a black Jack';
+      case 'predetermined_first_dealer':
+        return 'Host selects the first dealer from the lobby';
+      default:
+        return 'Players draw cards, lowest card deals';
+    }
   };
 
   const getRenegingDescription = () => {
@@ -185,6 +192,37 @@ export function GameOptionsPanel({
                   <br />
                   <span className='text-xs'>
                     Deal cards around until someone gets a black Jack
+                  </span>
+                </span>
+              </label>
+              <label
+                className={`flex items-start ${options.teamSelection === 'random_cards' ? 'opacity-60' : ''}`}
+                id='predeterminedDealerLabel'
+              >
+                <input
+                  type='radio'
+                  aria-labelledby='predeterminedDealerLabel'
+                  name='dealerSelection'
+                  value='predetermined_first_dealer'
+                  checked={
+                    options.dealerSelection === 'predetermined_first_dealer'
+                  }
+                  onChange={() =>
+                    handleOptionChange(
+                      'dealerSelection',
+                      'predetermined_first_dealer'
+                    )
+                  }
+                  disabled={
+                    disabled || options.teamSelection === 'random_cards'
+                  }
+                  className='w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 mt-0.5'
+                />
+                <span className='ml-2 text-sm text-gray-600'>
+                  <strong>Predetermined First Dealer</strong>
+                  <br />
+                  <span className='text-xs'>
+                    Host selects the first dealer from the lobby
                   </span>
                 </span>
               </label>

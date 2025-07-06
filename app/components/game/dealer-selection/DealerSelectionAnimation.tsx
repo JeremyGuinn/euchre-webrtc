@@ -7,7 +7,7 @@ interface DealerSelectionAnimationProps {
   myPlayer: Player;
   isVisible: boolean;
   deck: Card[];
-  method: 'first_black_jack' | 'random_cards';
+  method: 'first_black_jack' | 'random_cards' | 'predetermined_first_dealer';
   dealerSelectionCards?: Record<string, Card>;
   onCardPicked?: (cardIndex: number) => void;
 }
@@ -41,6 +41,10 @@ export function DealerSelectionAnimation({
           deck={deck}
         />
       );
+    case 'predetermined_first_dealer':
+      // For predetermined dealer, we don't need an animation
+      // The dealer is already selected and game should proceed
+      return null;
     default:
       return null;
   }

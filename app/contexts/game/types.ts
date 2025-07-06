@@ -30,6 +30,7 @@ export interface GameContextType {
   kickPlayer: (playerId: string) => void;
   movePlayer: (playerId: string, newPosition: 0 | 1 | 2 | 3) => void;
   updateGameOptions: (options: GameOptions) => void;
+  setPredeterminedDealer: (playerId: string) => void;
 
   onKicked?: (message: string) => void;
 

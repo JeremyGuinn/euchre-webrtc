@@ -10,6 +10,7 @@ export type MessageType =
   | 'DRAW_DEALER_CARD'
   | 'DEALER_CARD_DEALT'
   | 'COMPLETE_BLACKJACK_DEALER_SELECTION'
+  | 'SET_PREDETERMINED_DEALER'
   | 'GAME_STATE_UPDATE'
   | 'BID'
   | 'DEALER_DISCARD'
@@ -178,6 +179,13 @@ export interface CompleteBlackJackDealerSelectionMessage extends BaseMessage {
   payload: Record<string, never>;
 }
 
+export interface SetPredeterminedDealerMessage extends BaseMessage {
+  type: 'SET_PREDETERMINED_DEALER';
+  payload: {
+    dealerId: string;
+  };
+}
+
 export type GameMessage =
   | JoinRequestMessage
   | JoinResponseMessage
@@ -188,6 +196,7 @@ export type GameMessage =
   | DrawDealerCardMessage
   | DealerCardDealtMessage
   | CompleteBlackJackDealerSelectionMessage
+  | SetPredeterminedDealerMessage
   | GameStateUpdateMessage
   | BidMessage
   | DealerDiscardMessage

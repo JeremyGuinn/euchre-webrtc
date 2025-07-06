@@ -19,44 +19,44 @@ import {
 
 export type GameAction =
   | {
-      type: 'INIT_GAME';
-      payload: { hostId: string; gameId: string; gameCode?: string };
-    }
+    type: 'INIT_GAME';
+    payload: { hostId: string; gameId: string; gameCode?: string };
+  }
   | { type: 'ADD_PLAYER'; payload: { player: Player } }
   | { type: 'REMOVE_PLAYER'; payload: { playerId: string } }
   | {
-      type: 'UPDATE_PLAYER_CONNECTION';
-      payload: { playerId: string; isConnected: boolean };
-    }
+    type: 'UPDATE_PLAYER_CONNECTION';
+    payload: { playerId: string; isConnected: boolean };
+  }
   | { type: 'RENAME_PLAYER'; payload: { playerId: string; newName: string } }
   | { type: 'RENAME_TEAM'; payload: { teamId: 0 | 1; newName: string } }
   | { type: 'KICK_PLAYER'; payload: { playerId: string } }
   | {
-      type: 'MOVE_PLAYER';
-      payload: { playerId: string; newPosition: 0 | 1 | 2 | 3 };
-    }
+    type: 'MOVE_PLAYER';
+    payload: { playerId: string; newPosition: 0 | 1 | 2 | 3 };
+  }
   | { type: 'UPDATE_GAME_OPTIONS'; payload: { options: GameOptions } }
   | { type: 'START_GAME' }
   | { type: 'SELECT_DEALER' }
   | { type: 'DRAW_DEALER_CARD'; payload: { playerId: string; card: Card } }
   | {
-      type: 'DEALER_CARD_DEALT';
-      payload: {
-        playerId: string;
-        card: Card;
-        cardIndex: number;
-        isBlackJack: boolean;
-      };
-    }
+    type: 'DEALER_CARD_DEALT';
+    payload: {
+      playerId: string;
+      card: Card;
+      cardIndex: number;
+      isBlackJack: boolean;
+    };
+  }
   | { type: 'COMPLETE_BLACKJACK_DEALER_SELECTION' }
   | { type: 'PROCEED_TO_DEALING' }
   | { type: 'DEAL_CARDS' }
   | { type: 'PLACE_BID'; payload: { bid: Bid } }
   | { type: 'DEALER_DISCARD'; payload: { card: Card } }
   | {
-      type: 'SET_TRUMP';
-      payload: { trump: Card['suit']; makerId: string; alone?: boolean };
-    }
+    type: 'SET_TRUMP';
+    payload: { trump: Card['suit']; makerId: string; alone?: boolean };
+  }
   | { type: 'PLAY_CARD'; payload: { card: Card; playerId: string } }
   | { type: 'COMPLETE_TRICK' }
   | { type: 'COMPLETE_HAND' }
@@ -64,13 +64,13 @@ export type GameAction =
   | { type: 'SET_CURRENT_PLAYER'; payload: { playerId: string } }
   | { type: 'SET_PHASE'; payload: { phase: GameState['phase'] } }
   | {
-      type: 'SYNC_STATE';
-      payload: {
-        gameState: PublicGameState;
-        playerHand?: Card[];
-        receivingPlayerId: string;
-      };
+    type: 'SYNC_STATE';
+    payload: {
+      gameState: PublicGameState;
+      playerHand?: Card[];
+      receivingPlayerId: string;
     };
+  };
 
 const initialGameState: GameState = {
   id: '',
@@ -243,12 +243,78 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         return state; // Need exactly 4 players
       }
 
-      // Always go to dealer selection phase to show the dealing animation
+      // For predetermined dealer, skip dealer selection and go directly to team summary
+      if (state.options.dealerSelection === 'predetermined_first_dealer') {
+        const predeterminedDealerId = state.options.predeterminedFirstDealerId;
+
+        if (!predeterminedDealerId) {
+          console.warn('Predetermined dealer selection chosen but no dealer selected');
+          return state;
+        }
+
+        // Validate the dealer exists
+        const dealer = state.players.find(p => p.id === predeterminedDealerId);
+        if (!dealer) {
+          console.warn('Predetermined dealer not found in players list');
+          return state;
+        }
+
+        // Arrange players so the predetermined dealer is at position 0
+        const arrangedPlayers: Player[] = [];
+        const dealerOriginalPosition = dealer.position;
+
+        // Rotate positions so dealer is at position 0
+        state.players.forEach(player => {
+          const newPosition = ((player.position - dealerOriginalPosition + 4) %
+            4) as 0 | 1 | 2 | 3;
+          arrangedPlayers[newPosition] = {
+            ...player,
+            position: newPosition,
+            teamId: getTeamId(newPosition),
+          };
+        });
+
+        // Set the dealer and move to team summary phase
+        return {
+          ...state,
+          players: arrangedPlayers,
+          currentDealerId: predeterminedDealerId,
+          phase: 'team_summary',
+          deck: createDeck(),
+        };
+      }
+
+      // For other dealer selection methods, go to dealer selection phase
       return {
         ...state,
         phase: 'dealer_selection',
       };
     case 'SELECT_DEALER': {
+      // For predetermined dealer, skip dealer selection and go directly to dealing
+      if (state.options.dealerSelection === 'predetermined_first_dealer') {
+        const predeterminedDealerId = state.options.predeterminedFirstDealerId;
+
+        if (!predeterminedDealerId) {
+          console.warn('Predetermined dealer selection chosen but no dealer selected');
+          return state;
+        }
+
+        // Validate the dealer exists
+        const dealer = state.players.find(p => p.id === predeterminedDealerId);
+        if (!dealer) {
+          console.warn('Predetermined dealer not found in players list');
+          return state;
+        }
+
+        // Set the dealer and move to team summary phase
+        return {
+          ...state,
+          currentDealerId: predeterminedDealerId,
+          phase: 'team_summary',
+          deck: createDeck(),
+        };
+      }
+
       // Create a shuffled deck for card drawing/dealing
       const deck = createDeck();
 

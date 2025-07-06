@@ -51,6 +51,7 @@ app/
 - Keep components focused—if a component does more than one thing, split it
 - Use Tailwind classes directly; avoid writing custom CSS unless necessary
 - All components should include accessibility features (e.g., `aria-*` attributes)
+- Use twMerge and clsx for conditional class names. Use the shared utility in `cn.ts`
 
 ---
 

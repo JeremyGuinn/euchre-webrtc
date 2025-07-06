@@ -569,6 +569,9 @@ export default function Game({ params }: Route.ComponentProps) {
                   {gameState.options.dealerSelection === 'first_black_jack' &&
                     gameState.options.teamSelection === 'random_cards' &&
                     'The player with the first Black Jack will be the dealer, and the two players with the lowest cards will form one team.'}
+                  {gameState.options.dealerSelection ===
+                    'predetermined_first_dealer' &&
+                    'The predetermined dealer has been selected and the game will continue.'}
                 </p>
                 {gameState.options.teamSelection === 'random_cards' &&
                   gameState.options.dealerSelection === 'random_cards' && (
@@ -583,7 +586,9 @@ export default function Game({ params }: Route.ComponentProps) {
                   <Button onClick={selectDealer} size='lg'>
                     {gameState.options.dealerSelection === 'random_cards'
                       ? 'Start Card Drawing'
-                      : 'Find First Black Jack'}
+                      : gameState.options.dealerSelection === 'first_black_jack'
+                        ? 'Find First Black Jack'
+                        : 'Continue Game'}
                   </Button>
                 ) : (
                   <div className='text-gray-400'>
