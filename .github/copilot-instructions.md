@@ -84,10 +84,25 @@ Avoid bloating the app with unnecessary dependencies.
 - Avoid class components
 - Don’t use `any` in TypeScript unless absolutely necessary
 - Avoid deeply nested ternary expressions
-- Don’t use inline `fetch`—wrap it in a service
+- Don’t use inline `fetch`
+  - Solution: create a service function for API calls
 - Avoid magic numbers or strings—use constants/enums
 - Don't use barrel files for exporting components (e.g., `index.ts` files that re-export everything)
-- Avoid using deep relative imports (e.g., `../../components/Button`), use absolute imports instead (e.g., `~/components/Button`)
+- Avoid using deep relative imports (e.g., `../../components/Button`)
+  - Solution: use absolute imports instead (e.g., `~/components/Button`)
+- Props Drilling
+  - Solution: Use state management like Redux, Context API, etc
+- Props Plowing
+  - Solution: use spread operators (…props)
+- Component Nesting
+  - The major problem here is every time the parent component is rendered, it will also redefine the child component which means it gets a new memory address and that could lead to performance issues and unpredictable behavior.
+  - Solution: Either not define a child component at all or to move the child component out of the parent and pass the function as a prop.
+- Heavy Work
+  - Solution: Use useMemo and useCallback to memoize values and functions
+- Useless Divs
+  - Solution: use shorthand syntax <> </>
+- Messy Events
+  - Solution: create a curried function
 
 ---
 
