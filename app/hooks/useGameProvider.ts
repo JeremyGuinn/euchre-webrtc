@@ -75,6 +75,43 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
 
   useGameStatePersistence(gameState, isHost, connectionStatus);
 
+  // Handle page unload to send leave message
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // If we're a connected client, try to send a leave message
+      if (!isHost && connectionStatus === 'connected') {
+        // Use sendBeacon for reliability during page unload
+        try {
+          networkService.sendMessage({
+            type: 'LEAVE_GAME',
+            timestamp: Date.now(),
+            messageId: `leave-${Date.now()}`,
+            payload: { reason: 'manual' },
+          });
+        } catch {
+          // If sendMessage fails, there's not much we can do during unload
+        }
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [networkService, isHost, connectionStatus]);
+
+  const connectionActions = useConnectionActions(
+    networkService,
+    connectionStatus,
+    myPlayerId,
+    isHost,
+    setMyPlayerId,
+    setIsHost,
+    setConnectionStatus,
+    dispatch,
+    setReconnectionStatus
+  );
+
   useNetworkHandlers(
     networkService,
     gameState,
@@ -85,17 +122,8 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
     onKicked,
     setConnectionStatus,
     setMyPlayerId,
-    setIsHost
-  );
-
-  const connectionActions = useConnectionActions(
-    networkService,
-    connectionStatus,
-    setMyPlayerId,
     setIsHost,
-    setConnectionStatus,
-    dispatch,
-    setReconnectionStatus
+    connectionActions.pollForHostReconnection
   );
 
   // Track if we've already attempted auto-reconnection to prevent infinite loops
@@ -113,12 +141,8 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
       const session = SessionStorageService.getSession();
       if (session && shouldAttemptAutoReconnection(session)) {
         hasAttemptedReconnection.current = true;
-        console.log('Starting auto-reconnection...');
         const success = await connectionActions.attemptReconnection();
-        if (success) {
-          console.log('Auto-reconnection succeeded');
-        } else {
-          console.log('Auto-reconnection failed');
+        if (!success) {
           setConnectionStatus('disconnected');
         }
       }

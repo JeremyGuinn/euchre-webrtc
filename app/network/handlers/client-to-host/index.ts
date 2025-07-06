@@ -7,6 +7,7 @@ export { handleDrawDealerCard } from './drawDealerCard';
 export { handleFarmersHandDecline } from './farmersHandDecline';
 export { handleFarmersHandSwap } from './farmersHandSwap';
 export { handleJoinRequest } from './joinRequest';
+export { handleLeaveGame } from './leaveGame';
 export { handlePlayCardMessage } from './playCard';
 export { handleReconnectRequest } from './reconnectRequest';
 export { handleRenamePlayer } from './renamePlayer';

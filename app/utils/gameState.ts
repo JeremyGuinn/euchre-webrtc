@@ -372,16 +372,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         const predeterminedDealerId = state.options.predeterminedFirstDealerId;
 
         if (!predeterminedDealerId) {
-          console.warn(
-            'Predetermined dealer selection chosen but no dealer selected'
-          );
           return state;
         }
 
         // Validate the dealer exists
         const dealer = state.players.find(p => p.id === predeterminedDealerId);
         if (!dealer) {
-          console.warn('Predetermined dealer not found in players list');
           return state;
         }
 
@@ -421,16 +417,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         const predeterminedDealerId = state.options.predeterminedFirstDealerId;
 
         if (!predeterminedDealerId) {
-          console.warn(
-            'Predetermined dealer selection chosen but no dealer selected'
-          );
           return state;
         }
 
         // Validate the dealer exists
         const dealer = state.players.find(p => p.id === predeterminedDealerId);
         if (!dealer) {
-          console.warn('Predetermined dealer not found in players list');
           return state;
         }
 
@@ -784,9 +776,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             if (state.options.screwTheDealer) {
               // With screw the dealer, dealer cannot pass in round 2
               // This should not happen in the UI, but handle it gracefully
-              console.warn(
-                'Dealer attempted to pass with screw-the-dealer enabled'
-              );
               return state; // Don't process the bid
             } else {
               // Standard rules: All players passed both rounds, deal new hand

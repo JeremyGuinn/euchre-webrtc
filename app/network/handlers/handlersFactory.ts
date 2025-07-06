@@ -6,6 +6,7 @@ import {
   handleFarmersHandDecline,
   handleFarmersHandSwap,
   handleJoinRequest,
+  handleLeaveGame,
   handlePlayCardMessage,
   handleReconnectRequest,
   handleRenamePlayer,
@@ -35,6 +36,7 @@ export const createMessageHandlers = (): MessageHandlers => ({
   // Connection management
   JOIN_REQUEST: handleJoinRequest,
   RECONNECT_REQUEST: handleReconnectRequest,
+  LEAVE_GAME: handleLeaveGame,
   JOIN_RESPONSE: handleJoinResponse,
   PLAYER_JOINED: handlePlayerJoined,
   PLAYER_LEFT: handlePlayerLeft,

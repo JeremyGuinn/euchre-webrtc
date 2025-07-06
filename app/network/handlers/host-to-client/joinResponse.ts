@@ -12,7 +12,6 @@ const handleJoinResponseImpl: MessageHandler<JoinResponseMessage> = (
   const { success, gameState: newGameState, player, error } = message.payload;
 
   if (!success || !newGameState || !player) {
-    console.error('Failed to join game:', error);
     setConnectionStatus('error');
     throw new Error(error || 'Failed to join game');
   }

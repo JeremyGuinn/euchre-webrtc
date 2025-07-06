@@ -33,7 +33,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
     startGame,
     connectionStatus,
     getMyPlayer,
-    disconnect,
+    leaveGame,
     renamePlayer,
     renameTeam,
     kickPlayer,
@@ -86,10 +86,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
     }
   };
 
-  const handleLeaveGame = () => {
-    disconnect();
-    navigate('/');
-  };
+  const handleLeaveGame = () => leaveGame();
 
   const handleRenamePlayer = (playerId: string, newName: string) => {
     if ((isHost || playerId === myPlayer?.id) && newName.trim()) {

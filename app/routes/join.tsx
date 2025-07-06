@@ -72,8 +72,7 @@ export default function Join({ params }: Route.ComponentProps) {
       await joinGame(gameCode, playerName.trim());
 
       // Navigation to lobby will be handled by the useEffect watching connectionStatus
-    } catch (err) {
-      console.error('Failed to join game:', err);
+    } catch {
       setError(
         'Failed to join game. Please check the game code and try again.'
       );

@@ -43,8 +43,7 @@ export default function Host() {
         setTimeout(() => {
           navigate(`/lobby/${gameCode}`);
         }, 2000);
-      } catch (err) {
-        console.error('Failed to host game:', err);
+      } catch {
         setError('Failed to create game. Please try again.');
       } finally {
         setIsLoading(false);

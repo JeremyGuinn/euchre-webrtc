@@ -45,10 +45,6 @@ export class ErrorBoundary extends Component<
       error,
       errorInfo,
     });
-
-    // Log the error for debugging
-    console.error('Error caught by boundary:', error);
-    console.error('Error info:', errorInfo);
   }
 
   private handleReset = () => {

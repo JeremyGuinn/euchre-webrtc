@@ -74,6 +74,24 @@ export class GameNetworkService {
     this.networkManager.disconnect();
   }
 
+  async leaveGame(
+    reason: 'manual' | 'error' | 'network' = 'manual'
+  ): Promise<void> {
+    // Send leave message to host before disconnecting
+    this.networkManager.sendMessage({
+      type: 'LEAVE_GAME',
+      timestamp: Date.now(),
+      messageId: createMessageId(),
+      payload: { reason },
+    });
+
+    // Give a brief moment for the message to be sent before disconnecting
+    await sleep(100);
+
+    // Now disconnect
+    this.disconnect();
+  }
+
   async reconnectAsHost(
     hostId: string,
     gameCode: string,
@@ -103,11 +121,6 @@ export class GameNetworkService {
 
         await this.networkManager.initialize(true, currentHostId);
 
-        // Host is ready to accept reconnections from previous peers
-        console.log(
-          `Host reconnected with ID: ${currentHostId}, game code: ${currentGameCode} (attempt ${attempt + 1})`
-        );
-
         // If we had to generate a new game code, update the session
         if (currentGameCode !== gameCode) {
           const { SessionStorageService } = await import(
@@ -120,16 +133,12 @@ export class GameNetworkService {
               gameCode: currentGameCode,
               playerId: currentHostId,
             });
-            console.log(
-              `Updated session with new game code: ${currentGameCode}`
-            );
           }
         }
 
         return { hostId: currentHostId, gameCode: currentGameCode }; // Success!
       } catch (error) {
         lastError = error as Error;
-        console.warn(`Host reconnection attempt ${attempt + 1} failed:`, error);
 
         // Check if this looks like an ID conflict error using the helper function
         const isIdConflict = isPeerJSIdConflictError(lastError);
@@ -143,9 +152,6 @@ export class GameNetworkService {
             );
             currentGameCode = generateGameCode();
             currentHostId = gameCodeToHostId(currentGameCode);
-            console.log(
-              `ID conflict detected, generated new game code: ${currentGameCode} with host ID: ${currentHostId}`
-            );
 
             // Clean up the old network manager before trying with the new ID
             this.networkManager.disconnect();
@@ -154,7 +160,6 @@ export class GameNetworkService {
           const delay =
             RECONNECTION_CONFIG.INITIAL_RETRY_DELAY_MS *
             Math.pow(RECONNECTION_CONFIG.RETRY_BACKOFF_MULTIPLIER, attempt);
-          console.log(`Retrying host reconnection in ${delay}ms...`);
           await sleep(delay);
         }
       }
@@ -230,14 +235,9 @@ export class GameNetworkService {
         // Attempt to reconnect
         await this.reconnectAsClient(gameCode, playerId, playerName);
 
-        console.log(`Client reconnection successful on attempt ${attempt + 1}`);
         return; // Success!
       } catch (error) {
         lastError = error as Error;
-        console.warn(
-          `Client reconnection attempt ${attempt + 1} failed:`,
-          error
-        );
 
         // If this isn't the last attempt, wait before retrying
         if (attempt < RECONNECTION_CONFIG.CLIENT_POLL_MAX_ATTEMPTS - 1) {
@@ -247,7 +247,6 @@ export class GameNetworkService {
               RECONNECTION_CONFIG.CLIENT_POLL_BACKOFF_MULTIPLIER,
               attempt
             );
-          console.log(`Retrying client reconnection in ${delay}ms...`);
           await sleep(delay);
         }
       }

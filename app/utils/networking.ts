@@ -220,18 +220,11 @@ export class NetworkManager {
         if (connection?.connection.open) {
           try {
             connection.connection.send(encodedMessage);
-          } catch (error) {
-            console.warn(
-              `Failed to send message to ${targetId}, connection may be closed:`,
-              error
-            );
+          } catch {
             this.handleConnectionError(targetId);
           }
         } else if (connection) {
           // Connection exists but is not open, handle as disconnected
-          console.warn(
-            `Attempted to send message to ${targetId} but connection is not open`
-          );
           this.handleConnectionClose(targetId);
         }
       } else {
@@ -243,17 +236,13 @@ export class NetworkManager {
         connectedPeers.forEach(connection => {
           try {
             connection.connection.send(encodedMessage);
-          } catch (error) {
-            console.warn(
-              `Failed to send message to ${connection.id}, connection may be closed:`,
-              error
-            );
+          } catch {
             this.handleConnectionError(connection.id);
           }
         });
       }
-    } catch (error) {
-      console.error('Failed to encode message:', error);
+    } catch {
+      // no-op
     }
   }
 
@@ -276,9 +265,6 @@ export class NetworkManager {
 
         // If connection appears disconnected but we haven't handled it yet, handle it now
         if (!isConnected && conn.status === 'connected') {
-          console.warn(
-            `Detected stale connection for peer ${conn.id}, handling disconnection`
-          );
           this.handleConnectionClose(conn.id);
         }
 
@@ -340,17 +326,6 @@ export class NetworkManager {
 
     this.connections.forEach((connection, peerId) => {
       if (now - connection.lastHeartbeat > timeout) {
-        console.warn(
-          `Connection to ${peerId} timed out (last heartbeat: ${new Date(connection.lastHeartbeat).toISOString()})`
-        );
-
-        // Check if connection is actually still open
-        if (connection.connection.open) {
-          console.warn(
-            `Connection to ${peerId} appears open but heartbeat timed out, treating as disconnected`
-          );
-        }
-
         this.handleConnectionError(peerId);
       }
     });
@@ -408,8 +383,6 @@ export class NetworkManager {
       connection.connection.close();
       this.connections.delete(peerId);
       this.notifyConnectionChange(peerId, false);
-    } else {
-      console.warn(`No connection found for peer ${peerId}`);
     }
   }
 
@@ -417,7 +390,6 @@ export class NetworkManager {
     // Clean up connections that are marked as connected but are actually closed
     this.connections.forEach((connection, peerId) => {
       if (connection.status === 'connected' && !connection.connection.open) {
-        console.warn(`Cleaning up stale connection for peer ${peerId}`);
         this.handleConnectionClose(peerId);
       }
     });

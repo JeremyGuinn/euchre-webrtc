@@ -35,7 +35,6 @@ export function useGameActions(
       gameState.firstBlackJackDealing;
 
     if (currentCardIndex >= gameState.deck.length) {
-      console.warn('No more cards in deck for first black jack dealing');
       return;
     }
 

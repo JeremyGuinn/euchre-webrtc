@@ -19,10 +19,6 @@ export const createClientToHostHandler = <T extends ClientToHostMessage>(
     // First, validate host permission
     const hostValidation = validatePermissionForHost(senderId, context);
     if (!hostValidation.isValid) {
-      console.warn(`[C2H] ${message.type}: ${hostValidation.reason}`, {
-        senderId,
-        isHost: context.isHost,
-      });
       return;
     }
 
@@ -31,10 +27,6 @@ export const createClientToHostHandler = <T extends ClientToHostMessage>(
       for (const validation of additionalValidations) {
         const result = validation(senderId, context, message);
         if (!result.isValid) {
-          console.warn(`[C2H] ${message.type}: ${result.reason}`, {
-            senderId,
-            messageType: message.type,
-          });
           return;
         }
       }

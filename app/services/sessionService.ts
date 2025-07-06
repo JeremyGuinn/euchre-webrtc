@@ -59,8 +59,7 @@ export class SessionStorageService {
       }
 
       return sessionData;
-    } catch (error) {
-      console.warn('Failed to parse session data:', error);
+    } catch {
       this.clearSession();
       return null;
     }

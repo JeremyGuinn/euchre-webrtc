@@ -4,6 +4,7 @@ import type { Bid, Card, Player, PublicGameState } from './game';
 export type ClientToHostMessageType =
   | 'JOIN_REQUEST'
   | 'RECONNECT_REQUEST'
+  | 'LEAVE_GAME'
   | 'BID'
   | 'DEALER_DISCARD'
   | 'DRAW_DEALER_CARD'
@@ -67,6 +68,13 @@ export interface ReconnectRequestMessage extends BaseClientToHostMessage {
   payload: {
     playerName: string;
     playerId: string;
+  };
+}
+
+export interface LeaveGameMessage extends BaseClientToHostMessage {
+  type: 'LEAVE_GAME';
+  payload: {
+    reason?: 'manual' | 'error' | 'network';
   };
 }
 
@@ -229,6 +237,7 @@ export interface FarmersHandDeclineMessage extends BaseClientToHostMessage {
 export type ClientToHostMessage =
   | JoinRequestMessage
   | ReconnectRequestMessage
+  | LeaveGameMessage
   | BidMessage
   | DealerDiscardMessage
   | DrawDealerCardMessage

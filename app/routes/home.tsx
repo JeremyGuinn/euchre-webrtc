@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router';
 
 import NotificationBanner from '~/components/feedback/NotificationBanner';
@@ -29,21 +29,13 @@ export default function Home() {
   const [gameCode, setGameCode] = useState('');
   const location = useLocation();
   const [kickMessage, setKickMessage] = useState<string | null>(null);
-  const { connectionStatus, reconnectionStatus } = useGame();
+  const { reconnectionStatus } = useGame();
 
   // Handle automatic reconnection and navigation
   useReconnectionNavigation();
 
   // Helper function to determine if we should show reconnection screen
-  const shouldShowReconnectionScreen = () => {
-    // Always show if we're in a reconnecting/connecting state
-    if (
-      connectionStatus === 'reconnecting' ||
-      connectionStatus === 'connecting'
-    ) {
-      return true;
-    }
-
+  const shouldShowReconnectionScreen = useMemo(() => {
     // Also show if we have retry status active
     if (reconnectionStatus.isReconnecting) {
       return true;
@@ -57,7 +49,7 @@ export default function Home() {
     }
 
     return false;
-  };
+  }, [reconnectionStatus]);
 
   // Check for kick message from navigation state
   useEffect(() => {
@@ -72,7 +64,7 @@ export default function Home() {
   }, [location.state]);
 
   // Show reconnection screen if we're reconnecting to prevent flash of home page content
-  if (shouldShowReconnectionScreen()) {
+  if (shouldShowReconnectionScreen) {
     return (
       <PageContainer>
         <ReconnectionScreen reconnectionStatus={reconnectionStatus} />

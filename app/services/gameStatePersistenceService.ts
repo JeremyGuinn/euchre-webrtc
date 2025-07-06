@@ -28,12 +28,8 @@ export class GameStatePersistenceService {
       const serialized = JSON.stringify(persistedState);
 
       window.localStorage.setItem(key, serialized);
-      console.log(`Game state saved for ${gameId}`, {
-        size: serialized.length,
-      });
       return true;
-    } catch (error) {
-      console.error('Failed to save game state:', error);
+    } catch {
       return false;
     }
   }
@@ -56,22 +52,18 @@ export class GameStatePersistenceService {
 
       // Check if the state is too old
       if (Date.now() - persistedState.timestamp > this.TTL_MS) {
-        console.log('Game state expired, removing...');
         this.removeGameState(gameId);
         return null;
       }
 
       // Version compatibility check (for future migrations)
       if (persistedState.version !== this.VERSION) {
-        console.warn('Game state version mismatch, removing old state');
         this.removeGameState(gameId);
         return null;
       }
 
-      console.log(`Game state loaded for ${gameId}`);
       return persistedState.gameState;
-    } catch (error) {
-      console.error('Failed to load game state:', error);
+    } catch {
       this.removeGameState(gameId); // Remove corrupted data
       return null;
     }
@@ -86,9 +78,8 @@ export class GameStatePersistenceService {
     try {
       const key = this.getKey(gameId);
       window.localStorage.removeItem(key);
-      console.log(`Game state removed for ${gameId}`);
-    } catch (error) {
-      console.error('Failed to remove game state:', error);
+    } catch {
+      // no-op
     }
   }
 
@@ -141,14 +132,9 @@ export class GameStatePersistenceService {
 
       keysToRemove.forEach(key => {
         window.localStorage.removeItem(key);
-        console.log('Cleaned up expired game state:', key);
       });
-
-      if (keysToRemove.length > 0) {
-        console.log(`Cleaned up ${keysToRemove.length} expired game states`);
-      }
-    } catch (error) {
-      console.error('Failed to cleanup game states:', error);
+    } catch {
+      // no-op
     }
   }
 
@@ -167,8 +153,8 @@ export class GameStatePersistenceService {
           gameIds.push(gameId);
         }
       }
-    } catch (error) {
-      console.error('Failed to get stored game IDs:', error);
+    } catch {
+      // no-op
     }
     return gameIds;
   }

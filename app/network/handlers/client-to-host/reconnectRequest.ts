@@ -108,10 +108,6 @@ const handleReconnectRequestImpl = (
       player.id
     );
   }
-
-  console.log(
-    `Player ${playerName} (${originalPlayerId}) reconnected with new peer ID: ${senderId}`
-  );
 };
 
 export const handleReconnectRequest = createClientToHostHandler(

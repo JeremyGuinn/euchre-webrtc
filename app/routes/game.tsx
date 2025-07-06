@@ -79,7 +79,7 @@ export default function Game({ params }: Route.ComponentProps) {
     swapFarmersHand,
     declineFarmersHand,
     renameTeam,
-    disconnect,
+    leaveGame,
   } = useGame();
   const { gameCode } = params;
 
@@ -166,10 +166,7 @@ export default function Game({ params }: Route.ComponentProps) {
     placeBid(suit, alone);
   };
 
-  const handleLeaveGame = () => {
-    disconnect();
-    navigate('/');
-  };
+  const handleLeaveGame = () => leaveGame();
 
   const getPlayerPosition = (player: Player, myPosition: number) => {
     const relativePosition = (player.position - myPosition + 4) % 4;

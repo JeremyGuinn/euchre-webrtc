@@ -33,7 +33,7 @@ export interface GameContextType {
   declineFarmersHand: () => void;
   continueTrick: () => void;
   completeHand: () => void;
-  disconnect: () => void;
+  leaveGame: (reason?: 'manual' | 'error' | 'network') => Promise<void>;
 
   renamePlayer: (playerId: string, newName: string) => void;
   renameTeam: (teamId: 0 | 1, newName: string) => void;

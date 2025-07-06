@@ -20,10 +20,6 @@ export const createHostToClientHandler = <T extends HostToClientMessage>(
     // First, validate client permission
     const clientValidation = validatePermissionForClient(senderId, context);
     if (!clientValidation.isValid && !skipPermissionCheck) {
-      console.warn(`[H2C] ${message.type}: ${clientValidation.reason}`, {
-        senderId,
-        isHost: context.isHost,
-      });
       return;
     }
 
@@ -32,10 +28,6 @@ export const createHostToClientHandler = <T extends HostToClientMessage>(
       for (const validation of additionalValidations) {
         const result = validation(senderId, context, message);
         if (!result.isValid) {
-          console.warn(`[H2C] ${message.type}: ${result.reason}`, {
-            senderId,
-            messageType: message.type,
-          });
           return;
         }
       }

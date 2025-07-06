@@ -45,16 +45,7 @@ export function useGameStatePersistence(
       lastSavedRef.current = currentStateString;
 
       // Save the full game state
-      const success = GameStatePersistenceService.saveGameState(
-        gameState.id,
-        gameState
-      );
-
-      if (success) {
-        console.log(`Game state persisted for game ${gameState.id}`);
-      } else {
-        console.warn(`Failed to persist game state for game ${gameState.id}`);
-      }
+      GameStatePersistenceService.saveGameState(gameState.id, gameState);
     }
   }, [gameState, isHost, isConnected]);
 
