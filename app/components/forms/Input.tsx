@@ -22,6 +22,7 @@ export function Input({
   className = '',
   copyButton = false,
   onCopy,
+  onKeyDown,
   ...props
 }: InputProps) {
   const baseClasses =
@@ -93,9 +94,11 @@ export function Input({
             }
           }}
           onKeyDown={e => {
-            if (e.key === 'Enter' && copyButton) {
+            if (e.key === 'Enter' && copyButton && !onKeyDown) {
               e.preventDefault(); // Prevent form submission
               handleCopy();
+            } else if (onKeyDown) {
+              onKeyDown(e); // Call the original onKeyDown if provided
             }
           }}
         />
