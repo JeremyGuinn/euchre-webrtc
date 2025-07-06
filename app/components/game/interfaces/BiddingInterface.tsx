@@ -9,6 +9,8 @@ interface BiddingInterfaceProps {
   suitSymbols: Record<string, string>;
   suitColors: Record<string, string>;
   isDealer: boolean;
+  _screwTheDealer: boolean; // Not used directly, but kept for completeness
+  isDealerScrewed: boolean; // True when dealer must call trump (can't pass)
   onBid: (suit: CardType['suit'] | 'pass', alone?: boolean) => void;
 }
 
@@ -21,6 +23,8 @@ export function BiddingInterface({
   suitSymbols,
   suitColors,
   isDealer,
+  _screwTheDealer,
+  isDealerScrewed,
   onBid,
 }: BiddingInterfaceProps) {
   const [selectedSuit, setSelectedSuit] = useState<CardType['suit'] | null>(
@@ -51,7 +55,11 @@ export function BiddingInterface({
       <div className='bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-3 border border-gray-200 max-w-xs'>
         <div className='text-center'>
           <h3 className='text-sm font-bold text-gray-800 mb-2'>
-            {phase === 'bidding_round1' ? 'Order It Up?' : 'Call Trump?'}
+            {phase === 'bidding_round1'
+              ? 'Order It Up?'
+              : isDealerScrewed
+                ? 'Must Call Trump!'
+                : 'Call Trump?'}
           </h3>
 
           {phase === 'bidding_round1' && kitty && (
@@ -60,6 +68,12 @@ export function BiddingInterface({
               <span className={`font-medium ${suitColors[kitty.suit]}`}>
                 {suitSymbols[kitty.suit]} {kitty.value}
               </span>
+            </div>
+          )}
+
+          {isDealerScrewed && (
+            <div className='text-xs text-red-600 font-medium mb-3 bg-red-50 p-2 rounded'>
+              ⚠️ Screw the Dealer: You must call trump!
             </div>
           )}
 
@@ -218,8 +232,9 @@ export function BiddingInterface({
                 size='sm'
                 onClick={() => handleBid('pass')}
                 className='w-full px-3 py-1 text-xs mt-2'
+                disabled={isDealerScrewed}
               >
-                Pass
+                {isDealerScrewed ? 'Must call trump' : 'Pass'}
               </Button>
             </div>
           )}

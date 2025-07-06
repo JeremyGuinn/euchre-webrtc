@@ -19,44 +19,44 @@ import {
 
 export type GameAction =
   | {
-    type: 'INIT_GAME';
-    payload: { hostId: string; gameId: string; gameCode?: string };
-  }
+      type: 'INIT_GAME';
+      payload: { hostId: string; gameId: string; gameCode?: string };
+    }
   | { type: 'ADD_PLAYER'; payload: { player: Player } }
   | { type: 'REMOVE_PLAYER'; payload: { playerId: string } }
   | {
-    type: 'UPDATE_PLAYER_CONNECTION';
-    payload: { playerId: string; isConnected: boolean };
-  }
+      type: 'UPDATE_PLAYER_CONNECTION';
+      payload: { playerId: string; isConnected: boolean };
+    }
   | { type: 'RENAME_PLAYER'; payload: { playerId: string; newName: string } }
   | { type: 'RENAME_TEAM'; payload: { teamId: 0 | 1; newName: string } }
   | { type: 'KICK_PLAYER'; payload: { playerId: string } }
   | {
-    type: 'MOVE_PLAYER';
-    payload: { playerId: string; newPosition: 0 | 1 | 2 | 3 };
-  }
+      type: 'MOVE_PLAYER';
+      payload: { playerId: string; newPosition: 0 | 1 | 2 | 3 };
+    }
   | { type: 'UPDATE_GAME_OPTIONS'; payload: { options: GameOptions } }
   | { type: 'START_GAME' }
   | { type: 'SELECT_DEALER' }
   | { type: 'DRAW_DEALER_CARD'; payload: { playerId: string; card: Card } }
   | {
-    type: 'DEALER_CARD_DEALT';
-    payload: {
-      playerId: string;
-      card: Card;
-      cardIndex: number;
-      isBlackJack: boolean;
-    };
-  }
+      type: 'DEALER_CARD_DEALT';
+      payload: {
+        playerId: string;
+        card: Card;
+        cardIndex: number;
+        isBlackJack: boolean;
+      };
+    }
   | { type: 'COMPLETE_BLACKJACK_DEALER_SELECTION' }
   | { type: 'PROCEED_TO_DEALING' }
   | { type: 'DEAL_CARDS' }
   | { type: 'PLACE_BID'; payload: { bid: Bid } }
   | { type: 'DEALER_DISCARD'; payload: { card: Card } }
   | {
-    type: 'SET_TRUMP';
-    payload: { trump: Card['suit']; makerId: string; alone?: boolean };
-  }
+      type: 'SET_TRUMP';
+      payload: { trump: Card['suit']; makerId: string; alone?: boolean };
+    }
   | { type: 'PLAY_CARD'; payload: { card: Card; playerId: string } }
   | { type: 'COMPLETE_TRICK' }
   | { type: 'COMPLETE_HAND' }
@@ -64,13 +64,13 @@ export type GameAction =
   | { type: 'SET_CURRENT_PLAYER'; payload: { playerId: string } }
   | { type: 'SET_PHASE'; payload: { phase: GameState['phase'] } }
   | {
-    type: 'SYNC_STATE';
-    payload: {
-      gameState: PublicGameState;
-      playerHand?: Card[];
-      receivingPlayerId: string;
+      type: 'SYNC_STATE';
+      payload: {
+        gameState: PublicGameState;
+        playerHand?: Card[];
+        receivingPlayerId: string;
+      };
     };
-  };
 
 const initialGameState: GameState = {
   id: '',
@@ -248,7 +248,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         const predeterminedDealerId = state.options.predeterminedFirstDealerId;
 
         if (!predeterminedDealerId) {
-          console.warn('Predetermined dealer selection chosen but no dealer selected');
+          console.warn(
+            'Predetermined dealer selection chosen but no dealer selected'
+          );
           return state;
         }
 
@@ -295,7 +297,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         const predeterminedDealerId = state.options.predeterminedFirstDealerId;
 
         if (!predeterminedDealerId) {
-          console.warn('Predetermined dealer selection chosen but no dealer selected');
+          console.warn(
+            'Predetermined dealer selection chosen but no dealer selected'
+          );
           return state;
         }
 
@@ -569,9 +573,22 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           );
 
           if (currentPlayerIndex === dealerIndex) {
-            // All players passed both rounds, deal new hand
-            newPhase = 'dealing_animation';
-            currentPlayer = getNextDealer(state.currentDealerId, state.players);
+            // Dealer passed in round 2
+            if (state.options.screwTheDealer) {
+              // With screw the dealer, dealer cannot pass in round 2
+              // This should not happen in the UI, but handle it gracefully
+              console.warn(
+                'Dealer attempted to pass with screw-the-dealer enabled'
+              );
+              return state; // Don't process the bid
+            } else {
+              // Standard rules: All players passed both rounds, deal new hand
+              newPhase = 'dealing_animation';
+              currentPlayer = getNextDealer(
+                state.currentDealerId,
+                state.players
+              );
+            }
           } else {
             // Continue round 2
             currentPlayer = getNextPlayerWithAlone(
@@ -936,4 +953,34 @@ export function createPublicGameState(
   }
 
   return publicState;
+}
+
+export function isDealerScrewed(gameState: GameState): boolean {
+  // Only applies in round 2 with screw-the-dealer enabled
+  if (
+    gameState.phase !== 'bidding_round2' ||
+    !gameState.options.screwTheDealer
+  ) {
+    return false;
+  }
+
+  // Check if current player is the dealer
+  if (gameState.currentPlayerId !== gameState.currentDealerId) {
+    return false;
+  }
+
+  // In round 2, the dealer is screwed if everyone else has passed
+  // We need to count how many players have passed since round 2 started
+
+  // Find where round 2 started (when the dealer passed at the end of round 1)
+  const round1Passes = gameState.players.length; // Each player passes once in round 1
+  const round2Bids = gameState.bids.slice(round1Passes); // Bids from round 2
+
+  // Count how many non-dealer players have passed in round 2
+  const round2Passes = round2Bids.filter(
+    bid => bid.suit === 'pass' && bid.playerId !== gameState.currentDealerId
+  ).length;
+
+  // If all 3 other players have passed in round 2, dealer is screwed
+  return round2Passes === 3;
 }

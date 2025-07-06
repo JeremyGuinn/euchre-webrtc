@@ -17,6 +17,7 @@ import { Spinner } from '../components/ui/Spinner';
 import { Stack } from '../components/ui/Stack';
 import { useGame } from '../contexts/GameContext';
 import type { Card as CardType, Player } from '../types/game';
+import { isDealerScrewed } from '../utils/gameState';
 
 import type { Route } from './+types/game';
 
@@ -536,6 +537,8 @@ export default function Game({ params }: Route.ComponentProps) {
                 turnedDownSuit={gameState.turnedDownSuit}
                 suitSymbols={suitSymbols}
                 suitColors={suitColors}
+                _screwTheDealer={gameState.options.screwTheDealer}
+                isDealerScrewed={isDealerScrewed(gameState)}
                 onBid={handleBid}
               />
             )}
