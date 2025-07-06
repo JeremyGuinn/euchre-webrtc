@@ -26,7 +26,13 @@ export const handleJoinRequest: MessageHandler<JoinRequestMessage> = (
 
   const uniqueName = makeNameUnique(playerName, gameState.players);
 
-  if (gameState.players.length >= 4) {
+  // Find the first available position (0-3)
+  const occupiedPositions = new Set(gameState.players.map(p => p.position));
+  const availablePosition = ([0, 1, 2, 3] as const).find(
+    pos => !occupiedPositions.has(pos)
+  );
+
+  if (availablePosition === undefined) {
     networkManager?.sendMessage(
       {
         type: 'ERROR',
@@ -46,8 +52,8 @@ export const handleJoinRequest: MessageHandler<JoinRequestMessage> = (
     name: uniqueName,
     isHost: false,
     isConnected: true,
-    position: gameState.players.length as 0 | 1 | 2 | 3,
-    teamId: (gameState.players.length % 2) as 0 | 1,
+    position: availablePosition,
+    teamId: (availablePosition % 2) as 0 | 1,
   };
 
   dispatch({ type: 'ADD_PLAYER', payload: { player: newPlayer } });

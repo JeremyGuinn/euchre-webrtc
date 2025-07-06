@@ -212,16 +212,21 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'ADD_PLAYER': {
       const { player } = action.payload;
-      const newPosition = state.players.length as 0 | 1 | 2 | 3;
 
-      if (newPosition >= 4) {
+      // Find the first available position (0-3)
+      const occupiedPositions = new Set(state.players.map(p => p.position));
+      const availablePosition = ([0, 1, 2, 3] as const).find(
+        pos => !occupiedPositions.has(pos)
+      );
+
+      if (availablePosition === undefined) {
         return state; // Game is full
       }
 
       const newPlayer: Player = {
         ...player,
-        position: newPosition,
-        teamId: getTeamId(newPosition),
+        position: availablePosition,
+        teamId: getTeamId(availablePosition),
       };
 
       return {
