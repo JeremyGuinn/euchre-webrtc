@@ -87,20 +87,27 @@ const handleReconnectRequestImpl = (
   // Broadcast player reconnection to other players
   const broadcastGameState = createPublicGameState(updatedGameState);
 
-  networkManager?.sendMessage({
-    type: 'PLAYER_JOINED',
-    timestamp: Date.now(),
-    messageId: createMessageId(),
-    payload: {
-      player: {
-        ...existingPlayer,
-        id: senderId,
-        name: playerName,
-        isConnected: true,
+  for (const player of updatedGameState.players) {
+    if (player.id === senderId) continue; // Skip sending to the reconnecting player
+
+    networkManager?.sendMessage(
+      {
+        type: 'PLAYER_JOINED',
+        timestamp: Date.now(),
+        messageId: createMessageId(),
+        payload: {
+          player: {
+            ...existingPlayer,
+            id: senderId,
+            name: playerName,
+            isConnected: true,
+          },
+          gameState: broadcastGameState,
+        },
       },
-      gameState: broadcastGameState,
-    },
-  });
+      player.id
+    );
+  }
 
   console.log(
     `Player ${playerName} (${originalPlayerId}) reconnected with new peer ID: ${senderId}`

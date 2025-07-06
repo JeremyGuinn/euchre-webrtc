@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
 
-import LoadingScreen from '~/components/feedback/LoadingScreen';
 import NotificationBanner from '~/components/feedback/NotificationBanner';
+import ReconnectionScreen from '~/components/feedback/ReconnectionScreen';
 import Input from '~/components/forms/Input';
 import PageContainer from '~/components/layout/PageContainer';
 import ButtonDivider from '~/components/ui/ButtonDivider';
@@ -10,7 +10,9 @@ import LinkButton from '~/components/ui/LinkButton';
 import { Stack } from '~/components/ui/Stack';
 import { useGame } from '~/contexts/game/GameContext';
 import { useReconnectionNavigation } from '~/hooks/useReconnectionNavigation';
+import { SessionStorageService } from '~/services/sessionService';
 import { isValidGameCode, normalizeGameCode } from '~/utils/gameCode';
+import { shouldAttemptAutoReconnection } from '~/utils/reconnection';
 
 export function meta() {
   return [
@@ -27,10 +29,35 @@ export default function Home() {
   const [gameCode, setGameCode] = useState('');
   const location = useLocation();
   const [kickMessage, setKickMessage] = useState<string | null>(null);
-  const { connectionStatus } = useGame();
+  const { connectionStatus, reconnectionStatus } = useGame();
 
   // Handle automatic reconnection and navigation
   useReconnectionNavigation();
+
+  // Helper function to determine if we should show reconnection screen
+  const shouldShowReconnectionScreen = () => {
+    // Always show if we're in a reconnecting/connecting state
+    if (
+      connectionStatus === 'reconnecting' ||
+      connectionStatus === 'connecting'
+    ) {
+      return true;
+    }
+
+    // Also show if we have retry status active
+    if (reconnectionStatus.isReconnecting) {
+      return true;
+    }
+
+    // Show if we have a valid session that should trigger auto-reconnection
+    // This catches cases where the component renders before connection status is set
+    const session = SessionStorageService.getSession();
+    if (session && shouldAttemptAutoReconnection(session)) {
+      return true;
+    }
+
+    return false;
+  };
 
   // Check for kick message from navigation state
   useEffect(() => {
@@ -44,14 +71,11 @@ export default function Home() {
     }
   }, [location.state]);
 
-  // Show loading screen if we're reconnecting to prevent flash of home page content
-  if (connectionStatus === 'reconnecting') {
+  // Show reconnection screen if we're reconnecting to prevent flash of home page content
+  if (shouldShowReconnectionScreen()) {
     return (
       <PageContainer>
-        <LoadingScreen
-          title='Reconnecting...'
-          message='Returning you to your game'
-        />
+        <ReconnectionScreen reconnectionStatus={reconnectionStatus} />
       </PageContainer>
     );
   }

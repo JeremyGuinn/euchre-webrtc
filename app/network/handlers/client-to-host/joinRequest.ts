@@ -85,18 +85,25 @@ const handleJoinRequestImpl = (
     senderId
   );
 
-  // Create public game state for PLAYER_JOINED broadcast (no specific player hand)
+  // Create public game state for PLAYER_JOINED for all players except the new player
   const broadcastGameState = createPublicGameState(updatedGameState);
 
-  networkManager?.sendMessage({
-    type: 'PLAYER_JOINED',
-    timestamp: Date.now(),
-    messageId: createMessageId(),
-    payload: {
-      player: newPlayer,
-      gameState: broadcastGameState,
-    },
-  });
+  for (const player of updatedGameState.players) {
+    if (player.id === senderId) continue; // Skip sending to the new player
+
+    networkManager?.sendMessage(
+      {
+        type: 'PLAYER_JOINED',
+        timestamp: Date.now(),
+        messageId: createMessageId(),
+        payload: {
+          player: newPlayer,
+          gameState: broadcastGameState,
+        },
+      },
+      player.id
+    );
+  }
 };
 
 export const handleJoinRequest = createClientToHostHandler(

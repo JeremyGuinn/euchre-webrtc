@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router';
 import { GameStatePersistenceService } from '~/services/gameStatePersistenceService';
 import { GameNetworkService } from '~/services/networkService';
 import { SessionStorageService } from '~/services/sessionService';
+import type { ReconnectionStatus } from '~/types/gameContext';
 import type { GameAction } from '~/utils/gameState';
 import type { ConnectionStatus } from '~/utils/networking';
 import {
@@ -18,7 +19,8 @@ export function useConnectionActions(
   setMyPlayerId: (id: string) => void,
   setIsHost: (isHost: boolean) => void,
   setConnectionStatus: (status: ConnectionStatus) => void,
-  dispatch: React.Dispatch<GameAction>
+  dispatch: React.Dispatch<GameAction>,
+  setReconnectionStatus: (status: ReconnectionStatus) => void
 ) {
   const navigate = useNavigate();
 
@@ -96,16 +98,39 @@ export function useConnectionActions(
     }
 
     try {
-      setConnectionStatus('reconnecting');
+      // Reset reconnection status
+      setReconnectionStatus({
+        isReconnecting: true,
+        attempt: 0,
+        maxRetries: 0,
+      });
 
       if (session.isHost) {
-        // Reconnect as host with timeout
-        await withTimeout(
-          networkService.reconnectAsHost(session.playerId, session.gameCode),
+        // Reconnect as host with timeout and retry callback
+        const onRetryAttempt = (
+          attempt: number,
+          maxRetries: number,
+          reason?: string
+        ) => {
+          setReconnectionStatus({
+            isReconnecting: true,
+            attempt,
+            maxRetries,
+            reason,
+          });
+        };
+
+        const reconnectionResult = await withTimeout(
+          networkService.reconnectAsHost(
+            session.playerId,
+            session.gameCode,
+            onRetryAttempt
+          ),
           RECONNECTION_CONFIG.TIMEOUT_MS,
           'Host reconnection timed out'
         );
-        setMyPlayerId(session.playerId);
+
+        setMyPlayerId(reconnectionResult.hostId);
         setIsHost(true);
 
         // Try to restore the full game state from localStorage
@@ -114,12 +139,23 @@ export function useConnectionActions(
         );
 
         if (savedGameState) {
+          // If game code changed, update the game state with the new code
+          const gameStateToRestore =
+            reconnectionResult.gameCode !== session.gameCode
+              ? { ...savedGameState, gameCode: reconnectionResult.gameCode }
+              : savedGameState;
+
           // Restore the complete game state
           dispatch({
             type: 'RESTORE_GAME_STATE',
-            payload: { gameState: savedGameState },
+            payload: { gameState: gameStateToRestore },
           });
-          console.log('Host reconnected with saved game state');
+          console.log(
+            'Host reconnected with saved game state',
+            reconnectionResult.gameCode !== session.gameCode
+              ? `(new game code: ${reconnectionResult.gameCode})`
+              : ''
+          );
         } else {
           // If no saved state, we'll return to home
           navigate('/');
@@ -127,6 +163,14 @@ export function useConnectionActions(
 
         SessionStorageService.updateLastConnectionTime();
         setConnectionStatus('connected');
+
+        // Reset reconnection status on success
+        setReconnectionStatus({
+          isReconnecting: false,
+          attempt: 0,
+          maxRetries: 0,
+        });
+
         console.log('Host reconnected successfully');
         return true;
       } else {
@@ -158,6 +202,13 @@ export function useConnectionActions(
       console.error('Reconnection failed:', error);
       setConnectionStatus('error');
 
+      // Reset reconnection status on failure
+      setReconnectionStatus({
+        isReconnecting: false,
+        attempt: 0,
+        maxRetries: 0,
+      });
+
       // Clear session if reconnection failed
       setTimeout(() => {
         SessionStorageService.clearSession();
@@ -173,6 +224,7 @@ export function useConnectionActions(
     setIsHost,
     dispatch,
     navigate,
+    setReconnectionStatus,
   ]);
 
   return {

@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useReducer, useState } from 'react';
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 
 import { GameNetworkService } from '~/services/networkService';
 import { SessionStorageService } from '~/services/sessionService';
 import { gameReducer } from '~/utils/gameState';
 import { shouldAttemptAutoReconnection } from '~/utils/reconnection';
 
-import type { GameContextType } from '~/types/gameContext';
+import type { GameContextType, ReconnectionStatus } from '~/types/gameContext';
 import type { ConnectionStatus } from '~/utils/networking';
 import { useConnectionActions } from './useConnectionActions';
 import { useGameActions } from './useGameActions';
@@ -57,6 +57,12 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
   );
   const [myPlayerId, setMyPlayerId] = useState('');
   const [isHost, setIsHost] = useState(false);
+  const [reconnectionStatus, setReconnectionStatus] =
+    useState<ReconnectionStatus>({
+      isReconnecting: false,
+      attempt: 0,
+      maxRetries: 0,
+    });
 
   const networkService = useMemo(() => new GameNetworkService(), []);
 
@@ -88,20 +94,25 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
     setMyPlayerId,
     setIsHost,
     setConnectionStatus,
-    dispatch
+    dispatch,
+    setReconnectionStatus
   );
+
+  // Track if we've already attempted auto-reconnection to prevent infinite loops
+  const hasAttemptedReconnection = useRef(false);
 
   // Check for existing session and attempt reconnection on mount
   useEffect(() => {
-    let isCancelled = false;
+    // Only attempt once
+    if (hasAttemptedReconnection.current) {
+      return;
+    }
 
     const attemptAutoReconnection = async () => {
-      if (isCancelled) {
-        return; // Effect was cancelled
-      }
-
-      // Only attempt reconnection if we're in reconnecting state (which means we had a valid session)
-      if (connectionStatus === 'reconnecting') {
+      // Check if we have a valid session that should trigger auto-reconnection
+      const session = SessionStorageService.getSession();
+      if (session && shouldAttemptAutoReconnection(session)) {
+        hasAttemptedReconnection.current = true;
         console.log('Starting auto-reconnection...');
         const success = await connectionActions.attemptReconnection();
         if (success) {
@@ -113,15 +124,9 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
       }
     };
 
-    // Start immediately if we're in reconnecting state, otherwise don't attempt
-    if (connectionStatus === 'reconnecting') {
-      attemptAutoReconnection();
-    }
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [connectionActions, connectionStatus]);
+    attemptAutoReconnection();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount - ignore ESLint warning about connectionActions
 
   const gameActions = useGameActions(
     gameState,
@@ -139,6 +144,7 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
     myPlayerId,
     isHost,
     connectionStatus,
+    reconnectionStatus,
     ...connectionActions,
     ...gameActions,
     ...gameUtils,

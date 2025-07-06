@@ -1,12 +1,20 @@
 import type { ConnectionStatus, NetworkManager } from '~/utils/networking';
 import type { Card, GameOptions, GameState, Player } from './game';
 
+export interface ReconnectionStatus {
+  isReconnecting: boolean;
+  attempt: number;
+  maxRetries: number;
+  reason?: string;
+}
+
 export interface GameContextType {
   gameState: GameState;
   networkManager: NetworkManager | null;
   myPlayerId: string;
   isHost: boolean;
   connectionStatus: ConnectionStatus;
+  reconnectionStatus: ReconnectionStatus;
 
   hostGame: () => Promise<string>;
   joinGame: (gameCode: string, playerName: string) => Promise<void>;
