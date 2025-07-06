@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import type { Player } from '../../types/game';
+import type { Player } from '~/types/game';
 import { CardBack } from './Card';
 
 interface DealingAnimationProps {

@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef } from 'react';
 
+import { GameNetworkService } from '~/services/networkService';
 import type { GameState, Player } from '~/types/game';
-import { GameNetworkService } from '../services/networkService';
-import { createPublicGameState } from '../utils/gameState';
-import { createMessageId } from '../utils/protocol';
+import { createPublicGameState } from '~/utils/gameState';
+import { createMessageId } from '~/utils/protocol';
 
 export function useGameStateEffects(
   gameState: GameState,

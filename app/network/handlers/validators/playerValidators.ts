@@ -1,10 +1,10 @@
+import type { HandlerContext, ValidationResult } from '~/types/handlers';
 import type {
   FarmersHandDeclineMessage,
   FarmersHandSwapMessage,
   JoinRequestMessage,
   RenameTeamMessage,
 } from '~/types/messages';
-import type { HandlerContext, ValidationResult } from '../types';
 
 /**
  * Validates that the sender is a valid player in the game

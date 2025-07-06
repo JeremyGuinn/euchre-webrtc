@@ -1,6 +1,6 @@
+import type { MessageHandler } from '~/types/handlers';
 import type { KickPlayerMessage } from '~/types/messages';
 import { createHostToClientHandler } from '../base/hostToClientHandler';
-import type { MessageHandler } from '../types';
 
 const handleKickPlayerImpl: MessageHandler<KickPlayerMessage> = (
   message,

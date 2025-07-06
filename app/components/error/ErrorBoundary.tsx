@@ -5,8 +5,8 @@ import {
   debugVariants,
   layoutVariants,
   textVariants,
-} from '../../utils/classVariants';
-import { cn } from '../../utils/cn';
+} from '~/utils/classVariants';
+import { cn } from '~/utils/cn';
 import Button from '../ui/Button';
 import ButtonDivider from '../ui/ButtonDivider';
 import LinkButton from '../ui/LinkButton';

@@ -1,6 +1,6 @@
+import type { MessageHandler } from '~/types/handlers';
 import type { DealerCardDealtMessage } from '~/types/messages';
 import { createHostToClientHandler } from '../base/hostToClientHandler';
-import type { MessageHandler } from '../types';
 import { validateGameOption, validateGamePhase } from '../validators';
 
 const handleDealerCardDealtImpl: MessageHandler<DealerCardDealtMessage> = (

@@ -1,6 +1,6 @@
+import type { HandlerContext, ValidationResult } from '~/types/handlers';
 import type { FarmersHandSwapMessage } from '~/types/messages';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
-import type { HandlerContext, ValidationResult } from '../types';
 import {
   validateGameOption,
   validateGamePhase,

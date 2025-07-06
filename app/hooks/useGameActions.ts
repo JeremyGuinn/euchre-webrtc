@@ -1,10 +1,10 @@
 import { useCallback } from 'react';
 
+import { GameNetworkService } from '~/services/networkService';
 import type { Bid, Card, GameOptions, GameState } from '~/types/game';
-import { GameNetworkService } from '../services/networkService';
-import type { GameAction } from '../utils/gameState';
-import { makeNameUnique } from '../utils/playerUtils';
-import { createMessageId } from '../utils/protocol';
+import type { GameAction } from '~/utils/gameState';
+import { makeNameUnique } from '~/utils/playerUtils';
+import { createMessageId } from '~/utils/protocol';
 
 export function useGameActions(
   gameState: GameState,

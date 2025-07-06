@@ -1,6 +1,6 @@
+import type { MessageHandler } from '~/types/handlers';
 import type { BidMessage } from '~/types/messages';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
-import type { MessageHandler } from '../types';
 import { validatePlayerExists, validatePlayerTurn } from '../validators';
 
 const handleBidMessageImpl: MessageHandler<BidMessage> = (

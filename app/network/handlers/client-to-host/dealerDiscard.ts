@@ -1,6 +1,6 @@
+import type { MessageHandler } from '~/types/handlers';
 import type { DealerDiscardMessage } from '~/types/messages';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
-import type { MessageHandler } from '../types';
 import { validatePlayerExists, validateSenderIsDealer } from '../validators';
 
 const handleDealerDiscardImpl: MessageHandler<DealerDiscardMessage> = (

@@ -1,10 +1,10 @@
-import type { MovePlayerMessage } from '~/types/messages';
-import { createHostToClientHandler } from '../base/hostToClientHandler';
 import type {
   HandlerContext,
   MessageHandler,
   ValidationResult,
-} from '../types';
+} from '~/types/handlers';
+import type { MovePlayerMessage } from '~/types/messages';
+import { createHostToClientHandler } from '../base/hostToClientHandler';
 
 /**
  * Validates the target player exists

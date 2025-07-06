@@ -1,7 +1,7 @@
+import type { HandlerContext } from '~/types/handlers';
 import type { RenamePlayerMessage } from '~/types/messages';
 import { makeNameUnique } from '~/utils/playerUtils';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
-import type { HandlerContext } from '../types';
 import { validatePlayerExists } from '../validators';
 
 /**

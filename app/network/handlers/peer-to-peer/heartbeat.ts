@@ -1,5 +1,5 @@
+import type { PeerToPeerHandler } from '~/types/handlers';
 import type { HeartbeatMessage } from '~/types/messages';
-import type { PeerToPeerHandler } from '../types';
 
 /**
  * Handles HEARTBEAT messages sent periodically to maintain connection status.

@@ -1,6 +1,6 @@
+import type { MessageHandler } from '~/types/handlers';
 import type { GameStateUpdateMessage } from '~/types/messages';
 import { createHostToClientHandler } from '../base/hostToClientHandler';
-import type { MessageHandler } from '../types';
 
 const handleGameStateUpdateImpl: MessageHandler<GameStateUpdateMessage> = (
   message,

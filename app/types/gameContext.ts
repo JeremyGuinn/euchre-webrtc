@@ -1,5 +1,5 @@
-import type { Card, GameOptions, GameState, Player } from '../../types/game';
-import type { ConnectionStatus, NetworkManager } from '../../utils/networking';
+import type { ConnectionStatus, NetworkManager } from '~/utils/networking';
+import type { Card, GameOptions, GameState, Player } from './game';
 
 export interface GameContextType {
   gameState: GameState;

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { cn } from '../../utils/cn';
+import { cn } from '~/utils/cn';
 
 export type PanelVariant = 'default' | 'compact' | 'large' | 'modal';
 export type PanelShadow = 'sm' | 'md' | 'lg' | 'xl' | '2xl';

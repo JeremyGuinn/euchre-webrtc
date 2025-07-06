@@ -1,5 +1,5 @@
+import type { PeerToPeerHandler } from '~/types/handlers';
 import type { ErrorMessage } from '~/types/messages';
-import type { PeerToPeerHandler } from '../types';
 
 /**
  * Handles ERROR messages sent when something goes wrong during message processing.

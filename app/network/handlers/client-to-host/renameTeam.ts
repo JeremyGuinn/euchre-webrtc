@@ -1,6 +1,6 @@
+import type { HandlerContext } from '~/types/handlers';
 import type { RenameTeamMessage } from '~/types/messages';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
-import type { HandlerContext } from '../types';
 import {
   validatePlayerCanRenameTeam,
   validatePlayerExists,

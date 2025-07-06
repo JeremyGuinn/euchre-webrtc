@@ -1,6 +1,6 @@
+import type { HandlerContext, ValidationResult } from '~/types/handlers';
 import type { FarmersHandSwapMessage, PlayCardMessage } from '~/types/messages';
 import { canPlayCardWithOptions, getEffectiveSuit } from '~/utils/gameLogic';
-import type { HandlerContext, ValidationResult } from '../types';
 
 /**
  * Validates that the player has the card they're trying to play

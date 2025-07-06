@@ -3,12 +3,12 @@ import { useMemo, useReducer, useState } from 'react';
 import { GameNetworkService } from '~/services/networkService';
 import { gameReducer } from '~/utils/gameState';
 
+import { useConnectionActions } from '~/hooks/useConnectionActions';
+import { useGameActions } from '~/hooks/useGameActions';
+import { useGameUtils } from '~/hooks/useGameUtils';
 import type { GameContextType } from '~/types/gameContext';
 import type { ConnectionStatus } from '~/utils/networking';
-import { useConnectionActions } from './useConnectionActions';
-import { useGameActions } from './useGameActions';
 import { useGameStateEffects } from './useGameStateEffects';
-import { useGameUtils } from './useGameUtils';
 import { useNetworkHandlers } from './useNetworkHandlers';
 
 interface UseGameProviderOptions {

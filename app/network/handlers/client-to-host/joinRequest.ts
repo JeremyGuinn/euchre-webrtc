@@ -1,6 +1,6 @@
 import type { Player } from '~/types/game';
+import type { HandlerContext } from '~/types/handlers';
 import type { JoinRequestMessage } from '~/types/messages';
-import type { HandlerContext } from '../types';
 
 import { makeNameUnique } from '~/utils/playerUtils';
 import { createMessageId } from '~/utils/protocol';

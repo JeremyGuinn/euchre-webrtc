@@ -1,9 +1,9 @@
+import type { HandlerContext, ValidationResult } from '~/types/handlers';
 import type {
   JoinRequestMessage,
   RenameTeamMessage,
   SetPredeterminedDealerMessage,
 } from '~/types/messages';
-import type { HandlerContext, ValidationResult } from '../types';
 
 /**
  * Validates that the game is in the expected phase before processing a message

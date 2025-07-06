@@ -1,9 +1,9 @@
-import type { ClientToHostMessage } from '~/types/messages';
 import type {
   ClientToHostHandler,
   HandlerContext,
   ValidationResult,
-} from '../types';
+} from '~/types/handlers';
+import type { ClientToHostMessage } from '~/types/messages';
 import { validatePermissionForHost } from '../validators';
 
 /**

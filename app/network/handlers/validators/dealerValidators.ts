@@ -1,9 +1,9 @@
+import type { HandlerContext, ValidationResult } from '~/types/handlers';
 import type {
   DealerDiscardMessage,
   DrawDealerCardMessage,
   SetPredeterminedDealerMessage,
 } from '~/types/messages';
-import type { HandlerContext, ValidationResult } from '../types';
 
 /**
  * Validates that the sender is actually the current dealer

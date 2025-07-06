@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 import { createMessageHandlers } from '~/network/handlers';
-import type { MessageHandler } from '~/network/handlers/types';
 import { GameNetworkService } from '~/services/networkService';
 import type { GameState } from '~/types/game';
+import type { MessageHandler } from '~/types/handlers';
 import type { GameMessage } from '~/types/messages';
 import type { GameAction } from '~/utils/gameState';
 import type { ConnectionStatus, PeerMessageHandler } from '~/utils/networking';

@@ -27,8 +27,8 @@ import {
 } from './host-to-client';
 
 // Peer-to-Peer handlers
+import type { MessageHandlers } from '~/types/handlers';
 import { handleError, handleHeartbeat } from './peer-to-peer';
-import type { MessageHandlers } from './types';
 
 export const createMessageHandlers = (): MessageHandlers => ({
   // Connection management

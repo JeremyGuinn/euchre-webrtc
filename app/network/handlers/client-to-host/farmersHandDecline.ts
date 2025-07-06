@@ -1,6 +1,6 @@
+import type { HandlerContext } from '~/types/handlers';
 import type { FarmersHandDeclineMessage } from '~/types/messages';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
-import type { HandlerContext } from '../types';
 import {
   validateGameOption,
   validatePlayerExists,

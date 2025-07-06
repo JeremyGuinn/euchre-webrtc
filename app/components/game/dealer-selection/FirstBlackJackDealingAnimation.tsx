@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import type { Card, Player } from '../../../types/game';
+import type { Card, Player } from '~/types/game';
 import { CardBack } from '../Card';
 
 interface FirstBlackJackDealingAnimationProps {

@@ -1,6 +1,6 @@
+import type { MessageHandler } from '~/types/handlers';
 import type { SelectDealerMessage } from '~/types/messages';
 import { createHostToClientHandler } from '../base/hostToClientHandler';
-import type { MessageHandler } from '../types';
 
 const handleSelectDealerImpl: MessageHandler<SelectDealerMessage> = (
   message,

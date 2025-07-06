@@ -1,6 +1,6 @@
+import type { MessageHandler } from '~/types/handlers';
 import type { CompleteBlackJackDealerSelectionMessage } from '~/types/messages';
 import { createHostToClientHandler } from '../base/hostToClientHandler';
-import type { MessageHandler } from '../types';
 import { validateGamePhase } from '../validators';
 
 const handleCompleteBlackJackDealerSelectionImpl: MessageHandler<

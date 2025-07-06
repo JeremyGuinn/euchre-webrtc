@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react';
 
-import { useGameProvider } from '../../hooks/useGameProvider';
-import type { GameContextType, GameProviderProps } from './types';
+import { useGameProvider } from '~/hooks/useGameProvider';
+import type { GameContextType, GameProviderProps } from '~/types/gameContext';
 
 const GameContext = createContext<GameContextType | null>(null);
 

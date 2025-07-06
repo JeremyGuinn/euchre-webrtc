@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
 
+import { GameNetworkService } from '~/services/networkService';
+import { SessionStorageService } from '~/services/sessionService';
+import type { GameAction } from '~/utils/gameState';
 import type { ConnectionStatus } from '~/utils/networking';
-import { GameNetworkService } from '../services/networkService';
-import { SessionStorageService } from '../services/sessionService';
-import type { GameAction } from '../utils/gameState';
 
 export function useConnectionActions(
   networkService: GameNetworkService,

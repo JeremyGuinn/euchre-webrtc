@@ -9,5 +9,5 @@ export * from './validators';
 export * from './handlersFactory';
 
 // Export types
-export * from './types';
-export type { ValidationResult } from './types';
+export * from '~/types/handlers';
+export type { ValidationResult } from '~/types/handlers';

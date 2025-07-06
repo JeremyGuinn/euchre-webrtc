@@ -1,5 +1,5 @@
+import type { HandlerContext, ValidationResult } from '~/types/handlers';
 import type { SetPredeterminedDealerMessage } from '~/types/messages';
-import type { HandlerContext, ValidationResult } from '../types';
 
 /**
  * Validates that the current client is the host and should process client-to-host messages
