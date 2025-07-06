@@ -7,6 +7,7 @@ import {
   handleFarmersHandSwap,
   handleJoinRequest,
   handlePlayCardMessage,
+  handleReconnectRequest,
   handleRenamePlayer,
   handleRenameTeam,
   handleSetPredeterminedDealer,
@@ -33,6 +34,7 @@ import { handleError, handleHeartbeat } from './peer-to-peer';
 export const createMessageHandlers = (): MessageHandlers => ({
   // Connection management
   JOIN_REQUEST: handleJoinRequest,
+  RECONNECT_REQUEST: handleReconnectRequest,
   JOIN_RESPONSE: handleJoinResponse,
   PLAYER_JOINED: handlePlayerJoined,
   PLAYER_LEFT: handlePlayerLeft,

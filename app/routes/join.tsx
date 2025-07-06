@@ -9,23 +9,22 @@ import Button from '~/components/ui/Button';
 import LinkButton from '~/components/ui/LinkButton';
 import { Stack } from '~/components/ui/Stack';
 import { useGame } from '~/contexts/game/GameContext';
-import { useIsClient } from '~/hooks/useClientOnly';
 import { isValidGameCode, normalizeGameCode } from '~/utils/gameCode';
 
+import { SessionStorageService } from '~/services/sessionService';
 import type { Route } from './+types/join';
 
 export function meta({ params }: Route.MetaArgs) {
   return [
-    { title: `Join Game ${params.gameId} - Euchre Online` },
+    { title: `Join Game ${params.gameCode} - Euchre Online` },
     { name: 'description', content: 'Join a Euchre game with friends' },
   ];
 }
 
 export default function Join({ params }: Route.ComponentProps) {
   const navigate = useNavigate();
-  const isClientSide = useIsClient();
   const { joinGame, connectionStatus } = useGame();
-  const gameId = normalizeGameCode(params.gameId || '');
+  const gameCode = normalizeGameCode(params.gameCode || '');
 
   const [playerName, setPlayerName] = useState('');
   const [isJoining, setIsJoining] = useState(false);
@@ -33,32 +32,29 @@ export default function Join({ params }: Route.ComponentProps) {
 
   useEffect(() => {
     // Validate the game code
-    if (!isValidGameCode(gameId)) {
+    if (!isValidGameCode(gameCode)) {
       setError('Invalid game code. Please check the code and try again.');
       return;
     }
 
-    // Check if we have a saved player name (only on client side)
-    if (isClientSide && typeof sessionStorage !== 'undefined') {
-      const savedName = sessionStorage.getItem('euchre-player-name');
-      if (savedName) {
-        setPlayerName(savedName);
-      }
+    const savedName = SessionStorageService.getPlayerName();
+    if (savedName) {
+      setPlayerName(savedName);
     }
-  }, [gameId, isClientSide]);
+  }, [gameCode]);
 
   // Handle connection status changes
   useEffect(() => {
     // If we successfully connect, navigate to lobby
     if (connectionStatus === 'connected') {
-      navigate(`/lobby/${gameId}`);
+      navigate(`/lobby/${gameCode}`);
     }
     // If connection fails or errors out, show error
     if (connectionStatus === 'error') {
       setError('Connection failed. Please try again.');
       setIsJoining(false);
     }
-  }, [connectionStatus, navigate, gameId]);
+  }, [connectionStatus, navigate, gameCode]);
 
   const handleJoinGame = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,12 +68,8 @@ export default function Join({ params }: Route.ComponentProps) {
     setError('');
 
     try {
-      // Save player name for future use (only on client side)
-      if (isClientSide && typeof sessionStorage !== 'undefined') {
-        sessionStorage.setItem('euchre-player-name', playerName.trim());
-      }
-
-      await joinGame(gameId, playerName.trim());
+      SessionStorageService.savePlayerName(playerName.trim());
+      await joinGame(gameCode, playerName.trim());
 
       // Navigation to lobby will be handled by the useEffect watching connectionStatus
     } catch (err) {
@@ -94,7 +86,7 @@ export default function Join({ params }: Route.ComponentProps) {
       <div className='text-center mb-8'>
         <h1 className='text-2xl font-bold text-gray-800 mb-2'>Join Game</h1>
         <p className='text-gray-600'>
-          Game Code: <span className='font-mono font-semibold'>{gameId}</span>
+          Game Code: <span className='font-mono font-semibold'>{gameCode}</span>
         </p>
       </div>
 

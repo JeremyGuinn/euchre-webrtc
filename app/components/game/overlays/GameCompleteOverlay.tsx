@@ -8,7 +8,7 @@ interface GameCompleteOverlayProps {
   gameState: GameState;
   myPlayer: Player;
   isHost: boolean;
-  gameId: string;
+  gameCode: string;
   onLeaveGame: () => void;
 }
 
@@ -16,7 +16,7 @@ export function GameCompleteOverlay({
   gameState,
   myPlayer,
   isHost,
-  gameId,
+  gameCode,
   onLeaveGame,
 }: GameCompleteOverlayProps) {
   const navigate = useNavigate();
@@ -173,7 +173,7 @@ export function GameCompleteOverlay({
                   className='w-full'
                   onClick={() => {
                     // Reset game for new game - you might want to implement this
-                    navigate(`/lobby/${gameId}`);
+                    navigate(`/lobby/${gameCode}`);
                   }}
                 >
                   Start New Game

@@ -30,6 +30,10 @@ export type GameAction =
       type: 'UPDATE_PLAYER_CONNECTION';
       payload: { playerId: string; isConnected: boolean };
     }
+  | {
+      type: 'RECONNECT_PLAYER';
+      payload: { oldPlayerId: string; newPlayerId: string; playerName: string };
+    }
   | { type: 'RENAME_PLAYER'; payload: { playerId: string; newName: string } }
   | { type: 'RENAME_TEAM'; payload: { teamId: 0 | 1; newName: string } }
   | { type: 'KICK_PLAYER'; payload: { playerId: string } }
@@ -71,6 +75,7 @@ export type GameAction =
   | { type: 'NEXT_HAND' }
   | { type: 'SET_CURRENT_PLAYER'; payload: { playerId: string } }
   | { type: 'SET_PHASE'; payload: { phase: GameState['phase'] } }
+  | { type: 'RESTORE_GAME_STATE'; payload: { gameState: GameState } }
   | {
       type: 'SYNC_STATE';
       payload: {
@@ -250,6 +255,112 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             : p
         ),
       };
+
+    case 'RECONNECT_PLAYER': {
+      const { oldPlayerId, newPlayerId, playerName } = action.payload;
+
+      // Find the player to reconnect
+      const playerToReconnect = state.players.find(p => p.id === oldPlayerId);
+      if (!playerToReconnect) {
+        return state; // Player not found
+      }
+
+      // Update the player ID and mark as connected
+      const updatedPlayer: Player = {
+        ...playerToReconnect,
+        id: newPlayerId,
+        name: playerName,
+        isConnected: true,
+      };
+
+      // Update all references to the old player ID throughout the game state
+      const newHands: Record<string, Card[]> = { ...state.hands };
+      if (state.hands[oldPlayerId]) {
+        newHands[newPlayerId] = state.hands[oldPlayerId];
+        delete newHands[oldPlayerId];
+      }
+
+      const newDealerSelectionCards = state.dealerSelectionCards
+        ? { ...state.dealerSelectionCards }
+        : undefined;
+      if (
+        newDealerSelectionCards &&
+        state.dealerSelectionCards?.[oldPlayerId]
+      ) {
+        newDealerSelectionCards[newPlayerId] =
+          state.dealerSelectionCards[oldPlayerId];
+        delete newDealerSelectionCards[oldPlayerId];
+      }
+
+      const updatedState: GameState = {
+        ...state,
+        players: state.players.map(p =>
+          p.id === oldPlayerId ? updatedPlayer : p
+        ),
+        // Update current dealer if it was the reconnecting player
+        currentDealerId:
+          state.currentDealerId === oldPlayerId
+            ? newPlayerId
+            : state.currentDealerId,
+        // Update current player if it was the reconnecting player
+        currentPlayerId:
+          state.currentPlayerId === oldPlayerId
+            ? newPlayerId
+            : state.currentPlayerId,
+        // Update farmer's hand player if it was the reconnecting player
+        farmersHandPlayer:
+          state.farmersHandPlayer === oldPlayerId
+            ? newPlayerId
+            : state.farmersHandPlayer,
+        // Update hands mapping
+        hands: newHands,
+        // Update bids to reference new player ID
+        bids: state.bids.map(bid =>
+          bid.playerId === oldPlayerId ? { ...bid, playerId: newPlayerId } : bid
+        ),
+        // Update maker if it was the reconnecting player
+        maker:
+          state.maker?.playerId === oldPlayerId
+            ? { ...state.maker, playerId: newPlayerId }
+            : state.maker,
+        // Update current trick if the reconnecting player was involved
+        currentTrick: state.currentTrick
+          ? {
+              ...state.currentTrick,
+              leaderId:
+                state.currentTrick.leaderId === oldPlayerId
+                  ? newPlayerId
+                  : state.currentTrick.leaderId,
+              winnerId:
+                state.currentTrick.winnerId === oldPlayerId
+                  ? newPlayerId
+                  : state.currentTrick.winnerId,
+              cards: state.currentTrick.cards.map(card =>
+                card.playerId === oldPlayerId
+                  ? { ...card, playerId: newPlayerId }
+                  : card
+              ),
+            }
+          : state.currentTrick,
+        // Update completed tricks
+        completedTricks: state.completedTricks.map(trick => ({
+          ...trick,
+          leaderId:
+            trick.leaderId === oldPlayerId ? newPlayerId : trick.leaderId,
+          winnerId:
+            trick.winnerId === oldPlayerId ? newPlayerId : trick.winnerId,
+          cards: trick.cards.map(card =>
+            card.playerId === oldPlayerId
+              ? { ...card, playerId: newPlayerId }
+              : card
+          ),
+        })),
+        // Update dealer selection cards if they exist
+        dealerSelectionCards: newDealerSelectionCards,
+      };
+
+      return updatedState;
+    }
 
     case 'START_GAME':
       if (state.players.length !== 4) {
@@ -903,6 +1014,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         phase: action.payload.phase,
       };
 
+    case 'RESTORE_GAME_STATE': {
+      // Completely restore the game state (for host reconnection)
+      const { gameState } = action.payload;
+      return gameState;
+    }
+
     case 'SYNC_STATE': {
       const { gameState, playerHand, receivingPlayerId } = action.payload;
 
@@ -1024,6 +1141,7 @@ export function createPublicGameState(
 
   const publicState: PublicGameState = {
     id: gameState.id,
+    gameCode: gameState.gameCode,
     players: gameState.players,
     phase: gameState.phase,
     options: gameState.options,

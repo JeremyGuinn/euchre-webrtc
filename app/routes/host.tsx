@@ -36,12 +36,12 @@ export default function Host() {
       setError('');
 
       try {
-        const newGameId = await hostGameFn();
-        setGameId(newGameId);
+        const gameCode = await hostGameFn();
+        setGameId(gameCode);
 
         // Navigate to lobby
         setTimeout(() => {
-          navigate(`/lobby/${newGameId}`);
+          navigate(`/lobby/${gameCode}`);
         }, 2000);
       } catch (err) {
         console.error('Failed to host game:', err);

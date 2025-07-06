@@ -69,6 +69,43 @@ export class GameNetworkService {
     this.networkManager.disconnect();
   }
 
+  async reconnectAsHost(hostId: string, gameCode: string): Promise<void> {
+    await this.networkManager.initialize(true, hostId);
+
+    // Host is ready to accept reconnections from previous peers
+    console.log(`Host reconnected with ID: ${hostId}, game code: ${gameCode}`);
+  }
+
+  async reconnectAsClient(
+    gameCode: string,
+    playerId: string,
+    playerName: string
+  ): Promise<void> {
+    const hostId = gameCodeToHostId(gameCode);
+
+    // For client reconnection, we don't use the old player ID as the peer ID
+    // because PeerJS generates new IDs. Instead, we use the stored player ID
+    // in the message payload to identify ourselves to the host.
+    await this.networkManager.initialize(false);
+
+    // Connect to the host
+    await this.networkManager.connectToPeer(hostId);
+
+    // Send a reconnection request with our original player ID
+    this.networkManager.sendMessage(
+      {
+        type: 'RECONNECT_REQUEST',
+        timestamp: Date.now(),
+        messageId: createMessageId(),
+        payload: {
+          playerName,
+          playerId, // This is our original game player ID, not the new peer ID
+        },
+      },
+      hostId
+    );
+  }
+
   getNetworkManager(): NetworkManager | null {
     return this.networkManager;
   }

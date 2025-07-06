@@ -10,6 +10,7 @@ export interface GameContextType {
 
   hostGame: () => Promise<string>;
   joinGame: (gameCode: string, playerName: string) => Promise<void>;
+  attemptReconnection: () => Promise<boolean>;
   startGame: () => void;
   selectDealer: () => void;
   drawDealerCard: (cardIndex?: number) => void;

@@ -11,6 +11,7 @@ import {
 export type ConnectionStatus =
   | 'disconnected'
   | 'connecting'
+  | 'reconnecting'
   | 'connected'
   | 'error';
 

@@ -17,7 +17,7 @@ import type { Route } from './+types/lobby';
 
 export function meta({ params }: Route.MetaArgs) {
   return [
-    { title: `Game Lobby ${params.gameId} - Euchre Online` },
+    { title: `Game Lobby ${params.gameCode} - Euchre Online` },
     {
       name: 'description',
       content: 'Waiting for players to join the Euchre game',
@@ -41,7 +41,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
     updateGameOptions,
     setPredeterminedDealer,
   } = useGame();
-  const { gameId } = params;
+  const { gameCode } = params;
 
   const [draggedPlayer, setDraggedPlayer] = useState<string | null>(null);
 
@@ -76,9 +76,9 @@ export default function Lobby({ params }: Route.ComponentProps) {
   useEffect(() => {
     // Redirect to game if it has started
     if (gameState.phase !== 'lobby') {
-      navigate(`/game/${gameId}`);
+      navigate(`/game/${gameCode}`);
     }
-  }, [gameState.phase, gameId, navigate]);
+  }, [gameState.phase, gameCode, navigate]);
 
   const handleStartGame = () => {
     if (canStartGame) {
@@ -141,7 +141,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
           </div>
         </div>
 
-        <GameCodeSharing gameId={gameId} layout='horizontal' />
+        <GameCodeSharing gameId={gameCode} layout='horizontal' />
       </Panel>
 
       {/* Main content - responsive layout */}

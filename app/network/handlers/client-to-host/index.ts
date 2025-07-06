@@ -8,6 +8,7 @@ export { handleFarmersHandDecline } from './farmersHandDecline';
 export { handleFarmersHandSwap } from './farmersHandSwap';
 export { handleJoinRequest } from './joinRequest';
 export { handlePlayCardMessage } from './playCard';
+export { handleReconnectRequest } from './reconnectRequest';
 export { handleRenamePlayer } from './renamePlayer';
 export { handleRenameTeam } from './renameTeam';
 export { handleSetPredeterminedDealer } from './setPredeterminedDealer';

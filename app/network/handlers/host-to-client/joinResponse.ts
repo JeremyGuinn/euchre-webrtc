@@ -1,3 +1,4 @@
+import { SessionStorageService } from '~/services/sessionService';
 import type { MessageHandler } from '~/types/handlers';
 import type { JoinResponseMessage } from '~/types/messages';
 import { createHostToClientHandler } from '../base/hostToClientHandler';
@@ -7,12 +8,24 @@ const handleJoinResponseImpl: MessageHandler<JoinResponseMessage> = (
   _senderId,
   context
 ) => {
-  const { dispatch, myPlayerId } = context;
+  const { dispatch, myPlayerId, setConnectionStatus } = context;
   const { success, gameState: newGameState, player, error } = message.payload;
 
   if (!success || !newGameState || !player) {
     console.error('Failed to join game:', error);
+    setConnectionStatus('error');
     throw new Error(error || 'Failed to join game');
+  }
+
+  // Save session data for reconnection (for clients)
+  if (newGameState.gameCode && !player.isHost) {
+    SessionStorageService.saveSession({
+      playerId: myPlayerId, // Use the current player ID (which is the new peer ID)
+      gameId: newGameState.id,
+      gameCode: newGameState.gameCode,
+      isHost: false,
+      playerName: player.name,
+    });
   }
 
   dispatch({
@@ -24,6 +37,8 @@ const handleJoinResponseImpl: MessageHandler<JoinResponseMessage> = (
       receivingPlayerId: myPlayerId,
     },
   });
+
+  setConnectionStatus('connected');
 };
 
 /**

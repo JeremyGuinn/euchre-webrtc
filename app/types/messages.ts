@@ -3,6 +3,7 @@ import type { Bid, Card, Player, PublicGameState } from './game';
 // Client-to-Host message types (sent by clients to the host)
 export type ClientToHostMessageType =
   | 'JOIN_REQUEST'
+  | 'RECONNECT_REQUEST'
   | 'BID'
   | 'DEALER_DISCARD'
   | 'DRAW_DEALER_CARD'
@@ -58,6 +59,14 @@ export interface JoinRequestMessage extends BaseClientToHostMessage {
   type: 'JOIN_REQUEST';
   payload: {
     playerName: string;
+  };
+}
+
+export interface ReconnectRequestMessage extends BaseClientToHostMessage {
+  type: 'RECONNECT_REQUEST';
+  payload: {
+    playerName: string;
+    playerId: string;
   };
 }
 
@@ -219,6 +228,7 @@ export interface FarmersHandDeclineMessage extends BaseClientToHostMessage {
 // Union types for each message direction
 export type ClientToHostMessage =
   | JoinRequestMessage
+  | ReconnectRequestMessage
   | BidMessage
   | DealerDiscardMessage
   | DrawDealerCardMessage

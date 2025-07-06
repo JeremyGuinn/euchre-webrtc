@@ -37,7 +37,7 @@ const AUTO_ADVANCE_CONFIG = {
 
 export function meta({ params }: Route.MetaArgs) {
   return [
-    { title: `Euchre Game ${params.gameId}` },
+    { title: `Euchre Game ${params.gameCode}` },
     { name: 'description', content: 'Playing Euchre online with friends' },
   ];
 }
@@ -81,7 +81,7 @@ export default function Game({ params }: Route.ComponentProps) {
     renameTeam,
     disconnect,
   } = useGame();
-  const { gameId } = params;
+  const { gameCode } = params;
 
   const [hoveredDiscardCard, setHoveredDiscardCard] = useState<CardType | null>(
     null
@@ -96,9 +96,9 @@ export default function Game({ params }: Route.ComponentProps) {
   useEffect(() => {
     // Redirect to lobby if game hasn't started
     if (gameState.phase === 'lobby') {
-      navigate(`/lobby/${gameId}`);
+      navigate(`/lobby/${gameCode}`);
     }
-  }, [gameState.phase, gameId, navigate]);
+  }, [gameState.phase, gameCode, navigate]);
 
   const [autoAdvanceProgress, setAutoAdvanceProgress] = useState(0);
 
@@ -735,7 +735,7 @@ export default function Game({ params }: Route.ComponentProps) {
         gameState={gameState}
         myPlayer={myPlayer}
         isHost={isHost}
-        gameId={gameId}
+        gameCode={gameCode}
         onLeaveGame={handleLeaveGame}
       />
     </GameContainer>

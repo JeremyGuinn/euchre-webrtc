@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
 
+import LoadingScreen from '~/components/feedback/LoadingScreen';
 import NotificationBanner from '~/components/feedback/NotificationBanner';
 import Input from '~/components/forms/Input';
 import PageContainer from '~/components/layout/PageContainer';
 import ButtonDivider from '~/components/ui/ButtonDivider';
 import LinkButton from '~/components/ui/LinkButton';
 import { Stack } from '~/components/ui/Stack';
+import { useGame } from '~/contexts/game/GameContext';
+import { useReconnectionNavigation } from '~/hooks/useReconnectionNavigation';
 import { isValidGameCode, normalizeGameCode } from '~/utils/gameCode';
 
 export function meta() {
@@ -24,6 +27,10 @@ export default function Home() {
   const [gameCode, setGameCode] = useState('');
   const location = useLocation();
   const [kickMessage, setKickMessage] = useState<string | null>(null);
+  const { connectionStatus } = useGame();
+
+  // Handle automatic reconnection and navigation
+  useReconnectionNavigation();
 
   // Check for kick message from navigation state
   useEffect(() => {
@@ -36,6 +43,18 @@ export default function Home() {
       return () => clearTimeout(timer);
     }
   }, [location.state]);
+
+  // Show loading screen if we're reconnecting to prevent flash of home page content
+  if (connectionStatus === 'reconnecting') {
+    return (
+      <PageContainer>
+        <LoadingScreen
+          title='Reconnecting...'
+          message='Returning you to your game'
+        />
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer>

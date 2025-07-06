@@ -1,3 +1,4 @@
+import { SessionStorageService } from '~/services/sessionService';
 import type { MessageHandler } from '~/types/handlers';
 import type { KickPlayerMessage } from '~/types/messages';
 import { createHostToClientHandler } from '../base/hostToClientHandler';
@@ -30,7 +31,7 @@ const handleKickPlayerImpl: MessageHandler<KickPlayerMessage> = (
     setMyPlayerId('');
     setIsHost(false);
 
-    sessionStorage.clear();
+    SessionStorageService.clearSession();
 
     if (onKicked) {
       onKicked('You have been removed from the game by the host.');
