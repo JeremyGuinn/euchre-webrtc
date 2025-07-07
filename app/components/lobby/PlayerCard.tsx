@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { useLogger } from '~/services/loggingService';
 import Input from '../forms/Input';
 
 interface PlayerCardProps {
@@ -29,24 +30,75 @@ export function PlayerCard({
   onKick,
   onDragStart,
 }: PlayerCardProps) {
+  const logger = useLogger('PlayerCard', {
+    playerId: player.id,
+    playerName: player.name,
+    isCurrentUser,
+    isHost: player.isHost,
+    isConnected: player.isConnected,
+  });
+
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(player.name);
 
+  logger.trace('PlayerCard rendered', {
+    canEdit,
+    canKick,
+    canDrag,
+    isEditing,
+  });
+
   const handleStartEdit = () => {
+    logger.debug('Starting player name edit', { originalName: player.name });
     setIsEditing(true);
     setNewName(player.name);
   };
 
   const handleSave = () => {
-    if (newName.trim() && newName.trim() !== player.name) {
-      onRename(player.id, newName.trim());
+    const trimmedName = newName.trim();
+
+    if (!trimmedName) {
+      logger.warn('Attempted to save empty player name');
+      return;
     }
+
+    if (trimmedName === player.name) {
+      logger.debug('Player name unchanged, canceling edit');
+      setIsEditing(false);
+      return;
+    }
+
+    logger.info('Saving player name change', {
+      originalName: player.name,
+      newName: trimmedName,
+    });
+
+    onRename(player.id, trimmedName);
     setIsEditing(false);
   };
 
   const handleCancel = () => {
+    logger.debug('Canceling player name edit');
     setIsEditing(false);
     setNewName(player.name);
+  };
+
+  const handleKick = () => {
+    logger.warn('Kicking player', {
+      targetPlayerId: player.id,
+      targetPlayerName: player.name,
+    });
+    onKick(player.id);
+  };
+
+  const handleDragStart = () => {
+    if (onDragStart) {
+      logger.debug('Starting player drag operation', {
+        playerId: player.id,
+        playerName: player.name,
+      });
+      onDragStart(player.id);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -192,7 +244,7 @@ export function PlayerCard({
           {/* Kick button */}
           {canKick && !isEditing && (
             <button
-              onClick={() => onKick(player.id)}
+              onClick={handleKick}
               className='opacity-0 group-hover:opacity-100 p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-all'
               title='Remove player'
             >

@@ -48,6 +48,14 @@ export default function Lobby({ params }: Route.ComponentProps) {
   const [draggedPlayer, setDraggedPlayer] = useState<string | null>(null);
 
   const myPlayer = getMyPlayer();
+
+  logger.trace('Lobby component rendered', {
+    gamePhase: gameState.phase,
+    playerCount: gameState.players.length,
+    isHost,
+    myPlayerId: myPlayer?.id,
+    connectionStatus,
+  });
   const connectedPlayers = gameState.players.filter(p => p.isConnected);
 
   // Log lobby state changes
@@ -89,47 +97,107 @@ export default function Lobby({ params }: Route.ComponentProps) {
 
   useEffect(() => {
     if (connectionStatus === 'disconnected') {
+      logger.warn('Connection lost, navigating to home', {
+        previousConnectionStatus: connectionStatus,
+      });
       navigate(`/`);
     }
-  }, [connectionStatus, navigate]);
+  }, [connectionStatus, navigate, logger]);
 
   useEffect(() => {
     // Redirect to game if it has started
     if (gameState.phase !== 'lobby') {
+      logger.info('Game started, navigating to game screen', {
+        gamePhase: gameState.phase,
+        playerCount: gameState.players.length,
+      });
       navigate(`/game/${gameCode}`);
     }
-  }, [gameState.phase, gameCode, navigate]);
+  }, [gameState.phase, gameCode, navigate, logger, gameState.players.length]);
 
   const handleStartGame = () => {
-    if (canStartGame) {
-      startGame();
-    }
+    logger.info('Host starting game', {
+      playerCount: connectedPlayers.length,
+      gameOptions: gameState.options,
+      canStartGame,
+    });
+    startGame();
   };
 
-  const handleLeaveGame = () => leaveGame();
+  const handleLeaveGame = () => {
+    logger.info('Player leaving game', {
+      playerId: myPlayer?.id,
+      playerName: myPlayer?.name,
+      isHost,
+    });
+    leaveGame();
+  };
 
   const handleRenamePlayer = (playerId: string, newName: string) => {
-    if ((isHost || playerId === myPlayer?.id) && newName.trim()) {
-      renamePlayer(playerId, newName.trim());
-    }
+    logger.info('Renaming player', {
+      playerId,
+      newName,
+      isHost,
+    });
+    renamePlayer(playerId, newName);
+  };
+
+  const handleRenameTeam = (teamId: 0 | 1, newName: string) => {
+    logger.info('Renaming team', {
+      teamId,
+      newName,
+      isHost,
+    });
+    renameTeam(teamId, newName);
   };
 
   const handleKickPlayer = (playerId: string) => {
-    if (isHost && playerId !== myPlayer?.id) {
-      kickPlayer(playerId);
-    }
+    const targetPlayer = gameState.players.find(p => p.id === playerId);
+    logger.warn('Kicking player', {
+      targetPlayerId: playerId,
+      targetPlayerName: targetPlayer?.name,
+      isHost,
+    });
+    kickPlayer(playerId);
   };
 
   const handleMovePlayer = (playerId: string, newPosition: 0 | 1 | 2 | 3) => {
-    if (isHost) {
-      movePlayer(playerId, newPosition);
-    }
+    const targetPlayer = gameState.players.find(p => p.id === playerId);
+    logger.info('Moving player', {
+      targetPlayerId: playerId,
+      targetPlayerName: targetPlayer?.name,
+      newPosition,
+      isHost,
+    });
+    movePlayer(playerId, newPosition);
+  };
+
+  const handleUpdateGameOptions = (
+    options: Parameters<typeof updateGameOptions>[0]
+  ) => {
+    logger.info('Updating game options', {
+      options,
+      isHost,
+    });
+    updateGameOptions(options);
+  };
+
+  const handleSetPredeterminedDealer = (playerId: string) => {
+    const targetPlayer = gameState.players.find(p => p.id === playerId);
+    logger.info('Setting predetermined dealer', {
+      dealerId: playerId,
+      dealerName: targetPlayer?.name,
+      isHost,
+    });
+    setPredeterminedDealer(playerId);
   };
 
   const handleDragStart = (playerId: string) => {
-    if (isHost) {
-      setDraggedPlayer(playerId);
-    }
+    logger.debug('Starting player drag operation', {
+      playerId,
+      isHost,
+    });
+    setDraggedPlayer(playerId);
   };
 
   const handleDragOver = (e: React.DragEvent) => {

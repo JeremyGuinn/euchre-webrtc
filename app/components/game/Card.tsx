@@ -30,7 +30,24 @@ export function Card({
   className = '',
   size = 'medium',
 }: CardProps) {
-  const logger = useLogger('Card');
+  const logger = useLogger('Card', {
+    cardValue: card.value,
+    cardSuit: card.suit,
+    size,
+    disabled,
+    isClickable: !!(onClick && !disabled),
+  });
+
+  // Validation logging
+  if (!card || !card.value || !card.suit) {
+    logger.error('Invalid card data provided', { card });
+    return null;
+  }
+
+  if (!suitSymbols[card.suit]) {
+    logger.error('Invalid card suit', { suit: card.suit });
+    return null;
+  }
 
   const sizeClasses = {
     small: 'w-12 h-16',
@@ -47,17 +64,37 @@ export function Card({
   const isClickable = onClick && !disabled;
 
   const handleClick = () => {
-    if (isClickable) {
-      logger.debug('Card clicked', {
-        card: `${card.value} of ${card.suit}`,
-        disabled,
-      });
+    if (!onClick) {
+      logger.debug('Card click ignored - no onClick handler');
+      return;
+    }
+
+    if (disabled) {
+      logger.debug('Card click ignored - disabled state');
+      return;
+    }
+
+    logger.info('Card selected', {
+      card: `${card.value} of ${card.suit}`,
+      size,
+    });
+
+    try {
       onClick();
+    } catch (error) {
+      logger.error('Error during card click handler', {
+        error: error instanceof Error ? error.message : String(error),
+        card: `${card.value} of ${card.suit}`,
+      });
     }
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (isClickable && (event.key === 'Enter' || event.key === ' ')) {
+      logger.debug('Card activated via keyboard', {
+        key: event.key,
+        card: `${card.value} of ${card.suit}`,
+      });
       event.preventDefault();
       handleClick();
     }
