@@ -13,6 +13,7 @@ import { Stack } from '~/components/ui/Stack';
 import { useGame } from '~/contexts/game/GameContext';
 
 import PageContainer from '~/components/layout/PageContainer';
+import { useLogger } from '~/services/loggingService';
 import type { Route } from './+types/lobby';
 
 export function meta({ params }: Route.MetaArgs) {
@@ -27,6 +28,7 @@ export function meta({ params }: Route.MetaArgs) {
 
 export default function Lobby({ params }: Route.ComponentProps) {
   const navigate = useNavigate();
+  const logger = useLogger('Lobby', { gameCode: params.gameCode });
   const {
     gameState,
     isHost,
@@ -47,6 +49,24 @@ export default function Lobby({ params }: Route.ComponentProps) {
 
   const myPlayer = getMyPlayer();
   const connectedPlayers = gameState.players.filter(p => p.isConnected);
+
+  // Log lobby state changes
+  useEffect(() => {
+    logger.info('Lobby state updated', {
+      totalPlayers: gameState.players.length,
+      connectedPlayers: connectedPlayers.length,
+      connectionStatus,
+      isHost,
+      teamSelection: gameState.options.teamSelection,
+    });
+  }, [
+    logger,
+    gameState.players.length,
+    connectedPlayers.length,
+    connectionStatus,
+    isHost,
+    gameState.options.teamSelection,
+  ]);
 
   // Check if all requirements are met to start the game
   const canStartGame = useMemo(() => {

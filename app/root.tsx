@@ -1,5 +1,5 @@
 import type { Config } from '@react-router/dev/config';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import {
   Links,
   Meta,
@@ -12,6 +12,10 @@ import type { Route } from './+types/root';
 import './app.css';
 import { ErrorBoundary } from './components/error/ErrorBoundary';
 import { GameProvider } from './contexts/game/GameContext';
+import {
+  createScopedLogger,
+  initializeLogger,
+} from './services/loggingService';
 
 declare global {
   interface Window {
@@ -71,10 +75,26 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const navigate = useNavigate();
+  const logger = createScopedLogger('App');
+
+  // Initialize logging on app startup
+  useEffect(() => {
+    logger.withOperation('app-initialization', () => {
+      initializeLogger();
+      logger.info('Application initialized', {
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+        environment: import.meta.env.MODE,
+      });
+    });
+  }, [logger]);
 
   const handleKicked = useCallback(
-    (message: string) => navigate('/', { state: { kickMessage: message } }),
-    [navigate]
+    (message: string) => {
+      logger.warn('Player was kicked from game', { kickMessage: message });
+      navigate('/', { state: { kickMessage: message } });
+    },
+    [navigate, logger]
   );
 
   return (

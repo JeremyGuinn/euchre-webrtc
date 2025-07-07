@@ -1,5 +1,6 @@
 import type { DataConnection } from 'peerjs';
 import Peer from 'peerjs';
+import { createScopedLogger } from '~/services/loggingService';
 import type { GameMessage } from '~/types/messages';
 import {
   decodeMessage,
@@ -40,6 +41,7 @@ export class NetworkManager {
   private connectionHandlers = new Set<PeerConnectionHandler>();
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private readonly heartbeatIntervalMs = 10000;
+  private readonly logger = createScopedLogger('NetworkManager');
 
   private _myId: string = '';
   get myId(): string {
@@ -52,6 +54,7 @@ export class NetworkManager {
   }
 
   async initialize(isHost: boolean, gameId?: string): Promise<string> {
+    this.logger.trace('Initializing network manager', { isHost, gameId });
     this._isHost = isHost;
 
     const peerId = isHost ? gameId || crypto.randomUUID() : crypto.randomUUID();
@@ -92,12 +95,23 @@ export class NetworkManager {
 
       this.peer.on('open', id => {
         this._myId = id;
+        this.logger.info('Peer connection established', {
+          peerId: id,
+          isHost,
+          role: isHost ? 'host' : 'client',
+        });
         this.notifyStatusChange('connected');
         this.startHeartbeat();
         resolve(id);
       });
 
       this.peer.on('error', error => {
+        this.logger.error('Peer connection failed', {
+          error: error.message,
+          errorType: error.type || 'unknown',
+          isHost,
+          peerId,
+        });
         this.notifyStatusChange('error');
         reject(error);
       });

@@ -1,6 +1,10 @@
+import { createScopedLogger } from '~/services/loggingService';
 import type { Card, Player } from '~/types/game';
 
+const logger = createScopedLogger('GameLogic');
+
 export function createDeck(): Card[] {
+  logger.debug('Creating new deck');
   const suits: Card['suit'][] = ['spades', 'hearts', 'diamonds', 'clubs'];
   const values: Card['value'][] = ['9', '10', 'J', 'Q', 'K', 'A'];
   const deck: Card[] = [];
@@ -15,7 +19,9 @@ export function createDeck(): Card[] {
     }
   }
 
-  return shuffleDeck(deck);
+  const shuffledDeck = shuffleDeck(deck);
+  logger.debug('Deck created and shuffled', { deckSize: shuffledDeck.length });
+  return shuffledDeck;
 }
 
 export function shuffleDeck(deck: Card[]): Card[] {
@@ -32,6 +38,7 @@ export function dealHands(deck: Card[]): {
   kitty: Card;
   remainingDeck: Card[];
 } {
+  logger.info('Dealing hands', { deckSize: deck.length });
   const hands: [Card[], Card[], Card[], Card[]] = [[], [], [], []];
   let cardIndex = 0;
 
@@ -48,12 +55,21 @@ export function dealHands(deck: Card[]): {
   }
 
   const kitty = deck[cardIndex];
-  cardIndex++;
+  const remainingDeck = deck.slice(cardIndex + 1);
+
+  logger.debug('Hands dealt', {
+    handsDealt: hands.map((hand, index) => ({
+      player: index,
+      cardCount: hand.length,
+    })),
+    kittyCard: `${kitty.value} of ${kitty.suit}`,
+    remainingCards: remainingDeck.length,
+  });
 
   return {
     hands,
     kitty,
-    remainingDeck: deck.slice(cardIndex),
+    remainingDeck,
   };
 }
 

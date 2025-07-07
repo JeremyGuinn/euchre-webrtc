@@ -1,3 +1,4 @@
+import { useLogger } from '~/services/loggingService';
 import type { Card as CardType } from '~/types/game';
 
 interface CardProps {
@@ -29,6 +30,8 @@ export function Card({
   className = '',
   size = 'medium',
 }: CardProps) {
+  const logger = useLogger('Card');
+
   const sizeClasses = {
     small: 'w-12 h-16',
     medium: 'w-16 h-24',
@@ -43,6 +46,23 @@ export function Card({
 
   const isClickable = onClick && !disabled;
 
+  const handleClick = () => {
+    if (isClickable) {
+      logger.debug('Card clicked', {
+        card: `${card.value} of ${card.suit}`,
+        disabled,
+      });
+      onClick();
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (isClickable && (event.key === 'Enter' || event.key === ' ')) {
+      event.preventDefault();
+      handleClick();
+    }
+  };
+
   return (
     <div
       className={`
@@ -51,13 +71,19 @@ export function Card({
         flex flex-col items-center justify-between p-1
         ${
           isClickable
-            ? 'cursor-pointer hover:shadow-md hover:scale-105 transition-all duration-200'
+            ? 'cursor-pointer hover:shadow-md hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500'
             : ''
         }
         ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
         ${className}
       `}
-      onClick={isClickable ? onClick : undefined}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      tabIndex={isClickable ? 0 : -1}
+      role={isClickable ? 'button' : undefined}
+      aria-label={
+        isClickable ? `Play ${card.value} of ${card.suit}` : undefined
+      }
     >
       <div
         className={`font-bold ${suitColors[card.suit]} ${

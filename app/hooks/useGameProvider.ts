@@ -5,6 +5,7 @@ import { SessionStorageService } from '~/services/sessionService';
 import { gameReducer } from '~/utils/gameState';
 import { shouldAttemptAutoReconnection } from '~/utils/reconnection';
 
+import { createScopedLogger } from '~/services/loggingService';
 import type { GameContextType, ReconnectionStatus } from '~/types/gameContext';
 import type { ConnectionStatus } from '~/utils/networking';
 import { useConnectionActions } from './useConnectionActions';
@@ -20,13 +21,20 @@ interface UseGameProviderOptions {
 
 export function useGameProvider(options: UseGameProviderOptions = {}) {
   const { onKicked } = options;
+  const logger = createScopedLogger('useGameProvider');
 
   // Check for existing session to determine initial connection status
   const getInitialConnectionStatus = (): ConnectionStatus => {
     const session = SessionStorageService.getSession();
     if (session && shouldAttemptAutoReconnection(session)) {
+      logger.info('Found existing session, starting in reconnecting state', {
+        gameCode: session.gameCode,
+        playerId: session.playerId,
+        isHost: session.isHost,
+      });
       return 'reconnecting'; // Start in reconnecting state if we have a valid session
     }
+    logger.debug('No existing session found, starting disconnected');
     return 'disconnected';
   };
 
