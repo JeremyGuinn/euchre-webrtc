@@ -1,6 +1,6 @@
-# 🧭 Copilot Instructions
+# Copilot Instructions
 
-## 📝 Project Description
+## Project Description
 
 This is a **React** application built with:
 
@@ -13,9 +13,7 @@ This is a **React** application built with:
 
 The app should follow clean architecture principles: clear separation between UI components, business logic, and API layers.
 
----
-
-## 🏗 Folder Structure
+## Folder Structure
 
 Use the following folder structure:
 
@@ -31,9 +29,7 @@ app/
   routes/          # Route-based components
 ```
 
----
-
-## ✅ Best Practices
+## Best Practices
 
 - Prefer **composition over inheritance**
 - Use **React Query** or **SWR** for data fetching
@@ -42,9 +38,7 @@ app/
 - Extract logic-heavy code from components into hooks or services
 - Keep components **pure**, avoid side effects in render
 
----
-
-## 🔍 Component Guidelines
+## Component Guidelines
 
 - Components should be **typed**, with props and state interfaces
 - Use `React.FC` sparingly; prefer explicit prop typing
@@ -53,33 +47,27 @@ app/
 - All components should include accessibility features (e.g., `aria-*` attributes)
 - Use twMerge and clsx for conditional class names. Use the shared utility in `cn.ts`
 
----
+## Testing
 
-## 🧪 Testing
-
-- Skip all testing for now, but keep in mind that tests will be added later.
-
-<!--
-- Use **Vitest** or **Jest** for unit testing
+- Use **Vitest** for unit testing
 - Use **Testing Library** for component testing
-- Write tests for components, hooks, and services
-- Include edge cases and user flows in test coverage -->
+- Write tests for libraries
+- Include edge cases and user flows in test coverage
+- Avoid over testing; focus on critical paths and user interactions
+- Avoid testing implementation details; test behavior instead
+- Avoid over mocking; use real implementations when possible
 
----
-
-## 📦 Third-Party Libraries
+## Third-Party Libraries
 
 Commonly used and allowed libraries:
 
-- `clsx` (for conditional class names)
+- `clsx` and `twmerge` (for conditional class names)
 - `tailwindcss`
 - `zustand` or `redux-toolkit` (if needed for global state)
 
 Avoid bloating the app with unnecessary dependencies.
 
----
-
-## 🚫 Anti-Patterns to Avoid
+## Anti-Patterns to Avoid
 
 - Avoid class components
 - Don’t use `any` in TypeScript unless absolutely necessary
@@ -104,9 +92,7 @@ Avoid bloating the app with unnecessary dependencies.
 - Messy Events
   - Solution: create a curried function
 
----
-
-## 📌 Commit Message Format
+## Commit Message Format
 
 Follow Conventional Commits:
 
@@ -116,3 +102,32 @@ fix: resolve bug in form validation
 refactor: cleanup button props
 test: add unit tests for useAuth hook
 ```
+
+## Logging Guidelines
+
+The app uses a custom logging library (`@euchre/logging`) with structured logging capabilities. All logging should be contextual, performant, and follow consistent patterns.
+
+Use appropriate log levels:
+
+- **`trace`**: Very detailed debugging, helps with tracing code paths
+- **`debug`**: Development debugging info, performance metrics, and other diagnostic information, usually only a developer would care about this information
+- **`info`**: General application flow, user actions, a user may care about this information
+- **`warn`**: Recoverable errors, deprecated usage
+- **`error`**: Unrecoverable errors, exceptions
+
+**Do:**
+
+- Use structured logging with metadata objects
+- Include relevant context (gameId, playerId, etc.)
+- Log user actions and state changes
+- Use performance logging for expensive operations
+- Log errors with full context and error details
+- Use consistent component naming for loggers
+
+**Don't:**
+
+- Don't log sensitive information (passwords, tokens)
+- Don't over-log in production (avoid excessive debug logs)
+- Don't log without context - always include relevant metadata
+- Don't use `console.log` directly - use the logging service
+- Don't log objects without serialization (can cause circular references)
