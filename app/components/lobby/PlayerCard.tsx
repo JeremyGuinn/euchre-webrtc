@@ -91,16 +91,6 @@ export function PlayerCard({
     onKick(player.id);
   };
 
-  const handleDragStart = () => {
-    if (onDragStart) {
-      logger.debug('Starting player drag operation', {
-        playerId: player.id,
-        playerName: player.name,
-      });
-      onDragStart(player.id);
-    }
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSave();

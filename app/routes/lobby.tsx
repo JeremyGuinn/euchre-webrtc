@@ -142,15 +142,6 @@ export default function Lobby({ params }: Route.ComponentProps) {
     renamePlayer(playerId, newName);
   };
 
-  const handleRenameTeam = (teamId: 0 | 1, newName: string) => {
-    logger.info('Renaming team', {
-      teamId,
-      newName,
-      isHost,
-    });
-    renameTeam(teamId, newName);
-  };
-
   const handleKickPlayer = (playerId: string) => {
     const targetPlayer = gameState.players.find(p => p.id === playerId);
     logger.warn('Kicking player', {
@@ -170,26 +161,6 @@ export default function Lobby({ params }: Route.ComponentProps) {
       isHost,
     });
     movePlayer(playerId, newPosition);
-  };
-
-  const handleUpdateGameOptions = (
-    options: Parameters<typeof updateGameOptions>[0]
-  ) => {
-    logger.info('Updating game options', {
-      options,
-      isHost,
-    });
-    updateGameOptions(options);
-  };
-
-  const handleSetPredeterminedDealer = (playerId: string) => {
-    const targetPlayer = gameState.players.find(p => p.id === playerId);
-    logger.info('Setting predetermined dealer', {
-      dealerId: playerId,
-      dealerName: targetPlayer?.name,
-      isHost,
-    });
-    setPredeterminedDealer(playerId);
   };
 
   const handleDragStart = (playerId: string) => {
