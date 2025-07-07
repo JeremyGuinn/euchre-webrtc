@@ -16,6 +16,7 @@
     "prepare": "lefthook install && pnpm validate"
   },
   "dependencies": {
+    "@euchre/logging": "workspace:*",
     "@msgpack/msgpack": "^3.1.2",
     "@react-router/node": "^7.5.3",
     "@react-router/serve": "^7.5.3",

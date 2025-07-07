@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "composite": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "noEmit": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["dist", "tests", "**/*.test.ts", "**/*.spec.ts", "node_modules"]
+}
