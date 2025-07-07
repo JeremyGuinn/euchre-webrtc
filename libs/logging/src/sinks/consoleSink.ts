@@ -33,6 +33,11 @@ export interface ConsoleSinkOptions {
   includeStackTrace?: boolean;
 
   /**
+   * Whether to output as JSON objects (better for browser console inspection)
+   */
+  outputAsJson?: boolean;
+
+  /**
    * Custom console object (for testing or custom implementations)
    */
   console?: Console;
@@ -49,6 +54,7 @@ export class ConsoleSink extends BaseSink {
   private readonly includeTimestamp: boolean;
   private readonly includeMetadata: boolean;
   private readonly includeStackTrace: boolean;
+  private readonly outputAsJson: boolean;
   private readonly console: Console;
 
   constructor(options: ConsoleSinkOptions = {}) {
@@ -59,6 +65,7 @@ export class ConsoleSink extends BaseSink {
     this.includeTimestamp = options.includeTimestamp ?? true;
     this.includeMetadata = options.includeMetadata ?? true;
     this.includeStackTrace = options.includeStackTrace ?? true;
+    this.outputAsJson = options.outputAsJson ?? true;
     this.console = options.console ?? console;
   }
 
@@ -71,13 +78,21 @@ export class ConsoleSink extends BaseSink {
     }
 
     const consoleMethod = this.getConsoleMethod(entry.level);
-    const formattedMessage = this.formatMessage(entry);
-    const additionalData = this.getAdditionalData(entry);
 
-    if (additionalData.length > 0) {
-      consoleMethod(formattedMessage, ...additionalData);
+    if (this.outputAsJson) {
+      // Output as a structured JSON object for better browser console inspection
+      const logObject = this.createLogObject(entry);
+      consoleMethod(logObject);
     } else {
-      consoleMethod(formattedMessage);
+      // Output as formatted string (legacy mode)
+      const formattedMessage = this.formatMessage(entry);
+      const additionalData = this.getAdditionalData(entry);
+
+      if (additionalData.length > 0) {
+        consoleMethod(formattedMessage, ...additionalData);
+      } else {
+        consoleMethod(formattedMessage);
+      }
     }
   }
 
@@ -131,15 +146,80 @@ export class ConsoleSink extends BaseSink {
     // Add the main message
     parts.push(entry.message);
 
-    // Add metadata if enabled
+    return parts.join(' ');
+  }
+
+  /**
+   * Create a structured log object for JSON output
+   */
+  private createLogObject(entry: LogEntry): Record<string, unknown> {
+    const logObject: Record<string, unknown> = {
+      level: LogLevel[entry.level],
+      message: entry.message,
+    };
+
+    // Add timestamp if enabled
+    if (this.includeTimestamp) {
+      logObject.timestamp = entry.timestamp;
+      logObject.timestampFormatted = LogFormatter.formatTimestamp(
+        entry.timestamp
+      );
+    }
+
+    // Add logger name if present
+    if (entry.logger) {
+      logObject.logger = entry.logger;
+    }
+
+    // Add metadata if enabled and present
     if (this.includeMetadata && entry.metadata) {
-      const metadataStr = LogFormatter.formatMetadata(entry.metadata);
-      if (metadataStr) {
-        parts.push(metadataStr);
+      logObject.metadata = entry.metadata;
+    }
+
+    // Add additional data if present
+    if (entry.data && Object.keys(entry.data).length > 0) {
+      logObject.data = entry.data;
+    }
+
+    // Add performance metrics if present
+    if (entry.performance) {
+      logObject.performance = entry.performance;
+    }
+
+    // Add context if present
+    if (entry.context && Object.keys(entry.context).length > 0) {
+      logObject.context = entry.context;
+    }
+
+    // Add error information
+    if (entry.error) {
+      if (this.includeStackTrace) {
+        logObject.error = {
+          name: entry.error.name,
+          message: entry.error.message,
+          stack: entry.error.stack,
+          // Include any additional error properties
+          ...Object.getOwnPropertyNames(entry.error).reduce(
+            (acc, key) => {
+              if (!['name', 'message', 'stack'].includes(key)) {
+                acc[key] = (entry.error as unknown as Record<string, unknown>)[
+                  key
+                ];
+              }
+              return acc;
+            },
+            {} as Record<string, unknown>
+          ),
+        };
+      } else {
+        logObject.error = {
+          name: entry.error.name,
+          message: entry.error.message,
+        };
       }
     }
 
-    return parts.join(' ');
+    return logObject;
   }
 
   /**
@@ -148,31 +228,51 @@ export class ConsoleSink extends BaseSink {
   private getAdditionalData(entry: LogEntry): unknown[] {
     const additionalData: unknown[] = [];
 
-    // Add error information
-    if (entry.error) {
-      if (this.includeStackTrace) {
-        additionalData.push('\n' + LogFormatter.formatError(entry.error));
-      } else {
-        additionalData.push(`Error: ${entry.error.message}`);
+    // Create a combined data object for better browser console inspection
+    const logData: Record<string, unknown> = {};
+    let hasData = false;
+
+    // Add metadata if enabled
+    if (this.includeMetadata && entry.metadata) {
+      // Filter out correlationId since it's already in the message
+      const { correlationId: _correlationId, ...otherMetadata } =
+        entry.metadata;
+      if (Object.keys(otherMetadata).length > 0) {
+        logData.metadata = otherMetadata;
+        hasData = true;
       }
     }
 
     // Add additional data
-    if (entry.data) {
-      const dataStr = LogFormatter.formatData(entry.data);
-      if (dataStr) {
-        additionalData.push(dataStr);
-      }
+    if (entry.data && Object.keys(entry.data).length > 0) {
+      logData.data = entry.data;
+      hasData = true;
     }
 
     // Add performance metrics if present
     if (entry.performance) {
-      additionalData.push('\nPerformance:', entry.performance);
+      logData.performance = entry.performance;
+      hasData = true;
     }
 
-    // Add context if present and not already included in metadata
+    // Add context if present
     if (entry.context && Object.keys(entry.context).length > 0) {
-      additionalData.push('\nContext:', entry.context);
+      logData.context = entry.context;
+      hasData = true;
+    }
+
+    // Add the combined data object if it has content
+    if (hasData) {
+      additionalData.push(logData);
+    }
+
+    // Add error information separately for better stack trace display
+    if (entry.error) {
+      if (this.includeStackTrace) {
+        additionalData.push(entry.error);
+      } else {
+        additionalData.push({ error: entry.error.message });
+      }
     }
 
     return additionalData;
