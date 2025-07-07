@@ -13,7 +13,7 @@
     "format": "prettier --cache --write . ",
     "format:check": "prettier --cache --check .",
     "validate": "pnpm lint && pnpm typecheck && pnpm format:check",
-    "prepare": "lefthook install && pnpm validate"
+    "prepare": "lefthook install"
   },
   "dependencies": {
     "@euchre/logging": "workspace:*",
