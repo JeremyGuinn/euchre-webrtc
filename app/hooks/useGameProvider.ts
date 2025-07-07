@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { useNavigate } from 'react-router';
 
 import { GameNetworkService } from '~/services/networkService';
 import { SessionStorageService } from '~/services/sessionService';
@@ -15,12 +16,8 @@ import { useGameStatePersistence } from './useGameStatePersistence';
 import { useGameUtils } from './useGameUtils';
 import { useNetworkHandlers } from './useNetworkHandlers';
 
-interface UseGameProviderOptions {
-  onKicked?: (message: string) => void;
-}
-
-export function useGameProvider(options: UseGameProviderOptions = {}) {
-  const { onKicked } = options;
+export function useGameProvider() {
+  const navigate = useNavigate();
   const logger = createScopedLogger('useGameProvider');
 
   // Check for existing session to determine initial connection status
@@ -120,6 +117,12 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
     setReconnectionStatus
   );
 
+  // Handle when a player gets kicked from the game
+  const handleKicked = (message: string) => {
+    logger.warn('Player was kicked from game', { kickMessage: message });
+    connectionActions.leaveGame('kicked', { message });
+  };
+
   useNetworkHandlers(
     networkService,
     gameState,
@@ -127,7 +130,7 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
     isHost,
     dispatch,
     broadcastGameState,
-    onKicked,
+    handleKicked,
     setConnectionStatus,
     setMyPlayerId,
     setIsHost,
@@ -180,7 +183,6 @@ export function useGameProvider(options: UseGameProviderOptions = {}) {
     ...connectionActions,
     ...gameActions,
     ...gameUtils,
-    onKicked,
   };
 
   return contextValue;

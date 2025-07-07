@@ -43,8 +43,6 @@ export interface GameContextType {
   updateGameOptions: (options: GameOptions) => void;
   setPredeterminedDealer: (playerId: string) => void;
 
-  onKicked?: (message: string) => void;
-
   canPlay: (card: Card) => boolean;
   isMyTurn: () => boolean;
   isSittingOut: () => boolean;
@@ -54,5 +52,4 @@ export interface GameContextType {
 
 export interface GameProviderProps {
   children: React.ReactNode;
-  onKicked?: (message: string) => void;
 }

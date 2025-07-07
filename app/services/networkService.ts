@@ -176,21 +176,23 @@ export class GameNetworkService {
   }
 
   async leaveGame(
-    reason: 'manual' | 'error' | 'network' = 'manual'
+    reason: 'manual' | 'error' | 'network' | 'kicked' = 'manual'
   ): Promise<void> {
     this.logger.info('Leaving game', { reason });
 
     try {
-      // Send leave message to host before disconnecting
-      this.networkManager.sendMessage({
-        type: 'LEAVE_GAME',
-        timestamp: Date.now(),
-        messageId: createMessageId(),
-        payload: { reason },
-      });
+      if (reason !== 'kicked') {
+        // Send leave message to host before disconnecting
+        this.networkManager.sendMessage({
+          type: 'LEAVE_GAME',
+          timestamp: Date.now(),
+          messageId: createMessageId(),
+          payload: { reason },
+        });
 
-      // Give a brief moment for the message to be sent before disconnecting
-      await sleep(100);
+        // Give a brief moment for the message to be sent before disconnecting
+        await sleep(100);
+      }
 
       // Now disconnect
       this.disconnect();

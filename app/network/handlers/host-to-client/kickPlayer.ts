@@ -1,4 +1,3 @@
-import { SessionStorageService } from '~/services/sessionService';
 import type { MessageHandler } from '~/types/handlers';
 import type { KickPlayerMessage } from '~/types/messages';
 import { createHostToClientHandler } from '../base/hostToClientHandler';
@@ -8,15 +7,7 @@ const handleKickPlayerImpl: MessageHandler<KickPlayerMessage> = (
   _senderId,
   context
 ) => {
-  const {
-    myPlayerId,
-    dispatch,
-    networkManager,
-    onKicked,
-    setConnectionStatus,
-    setMyPlayerId,
-    setIsHost,
-  } = context;
+  const { myPlayerId, dispatch, handleKicked } = context;
 
   const { targetPlayerId } = message.payload;
 
@@ -26,16 +17,7 @@ const handleKickPlayerImpl: MessageHandler<KickPlayerMessage> = (
   });
 
   if (targetPlayerId === myPlayerId) {
-    networkManager?.disconnect();
-    setConnectionStatus('disconnected');
-    setMyPlayerId('');
-    setIsHost(false);
-
-    SessionStorageService.clearSession();
-
-    if (onKicked) {
-      onKicked('You have been removed from the game by the host.');
-    }
+    handleKicked('You have been removed from the game by the host.');
   }
 };
 

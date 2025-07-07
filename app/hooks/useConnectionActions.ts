@@ -291,7 +291,10 @@ export function useConnectionActions(
   ]);
 
   const leaveGame = useCallback(
-    async (reason: 'manual' | 'error' | 'network' = 'manual') => {
+    async (
+      reason: 'manual' | 'error' | 'network' | 'kicked' = 'manual',
+      additionalContext: Record<string, unknown> = {}
+    ) => {
       setConnectionStatus('disconnected');
       setMyPlayerId('');
       setIsHost(false);
@@ -308,7 +311,24 @@ export function useConnectionActions(
 
       // Navigate to home page after leaving
       networkService.disconnect();
-      navigate('/');
+
+      switch (reason) {
+        case 'manual':
+        case 'error':
+        case 'network':
+          navigate('/');
+          break;
+        case 'kicked':
+          navigate('/', {
+            state: {
+              kickMessage:
+                'message' in additionalContext
+                  ? additionalContext.message
+                  : undefined,
+            },
+          });
+          break;
+      }
     },
     [
       networkService,

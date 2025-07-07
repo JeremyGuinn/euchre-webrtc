@@ -1,13 +1,6 @@
 import type { Config } from '@react-router/dev/config';
-import { useCallback, useEffect } from 'react';
-import {
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-  useNavigate,
-} from 'react-router';
+import { useEffect } from 'react';
+import { Links, Meta, Outlet, Scripts, ScrollRestoration } from 'react-router';
 import type { Route } from './+types/root';
 import './app.css';
 import { ErrorBoundary } from './components/error/ErrorBoundary';
@@ -74,7 +67,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const navigate = useNavigate();
   const logger = createScopedLogger('App');
 
   // Initialize logging on app startup
@@ -89,17 +81,9 @@ export default function App() {
     });
   }, [logger]);
 
-  const handleKicked = useCallback(
-    (message: string) => {
-      logger.warn('Player was kicked from game', { kickMessage: message });
-      navigate('/', { state: { kickMessage: message } });
-    },
-    [navigate, logger]
-  );
-
   return (
     <ErrorBoundary>
-      <GameProvider onKicked={handleKicked}>
+      <GameProvider>
         <Outlet />
       </GameProvider>
     </ErrorBoundary>

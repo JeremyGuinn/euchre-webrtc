@@ -34,8 +34,8 @@ export interface HandlerContext {
   /** Function to broadcast the current game state to all connected players */
   broadcastGameState: () => void;
 
-  /** Optional callback triggered when this player is kicked from the game */
-  onKicked?: (message: string) => void;
+  /** Callback triggered when this player is kicked from the game */
+  handleKicked: (message: string) => void;
 
   /** Function to update the connection status in the UI */
   setConnectionStatus: (status: ConnectionStatus) => void;

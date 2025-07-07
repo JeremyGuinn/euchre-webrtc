@@ -18,12 +18,12 @@ export function useGame() {
   return context;
 }
 
-export function GameProvider({ children, onKicked }: GameProviderProps) {
+export function GameProvider({ children }: GameProviderProps) {
   const logger = createScopedLogger('GameProvider');
 
   logger.debug('GameProvider mounting');
 
-  const contextValue = useGameProvider({ onKicked });
+  const contextValue = useGameProvider();
 
   return (
     <GameContext.Provider value={contextValue}>{children}</GameContext.Provider>
