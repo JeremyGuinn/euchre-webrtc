@@ -1,7 +1,6 @@
 import type { ErrorInfo, ReactNode } from 'react';
 import { Component } from 'react';
 
-import { createScopedLogger } from '~/services/loggingService';
 import {
   debugVariants,
   layoutVariants,
@@ -28,8 +27,6 @@ export class ErrorBoundary extends Component<
   ErrorBoundaryProps,
   ErrorBoundaryState
 > {
-  private logger = createScopedLogger('ErrorBoundary');
-
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = {
@@ -37,7 +34,6 @@ export class ErrorBoundary extends Component<
       error: null,
       errorInfo: null,
     };
-    this.logger.debug('ErrorBoundary initialized');
   }
 
   static getDerivedStateFromError(): Partial<ErrorBoundaryState> {
@@ -45,16 +41,6 @@ export class ErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Log the error with full context
-    this.logger.error('Application error caught by ErrorBoundary', {
-      errorMessage: error.message,
-      errorStack: error.stack,
-      componentStack: errorInfo.componentStack,
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
-    });
-
     this.setState({
       error,
       errorInfo,
@@ -62,7 +48,6 @@ export class ErrorBoundary extends Component<
   }
 
   private handleReset = () => {
-    this.logger.info('User attempted to reset error boundary');
     this.setState({
       hasError: false,
       error: null,
@@ -71,7 +56,6 @@ export class ErrorBoundary extends Component<
   };
 
   private reloadHomePgae = () => {
-    this.logger.info('User navigating to home page after error');
     window.location.href = '/';
   };
 

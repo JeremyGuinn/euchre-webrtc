@@ -1,5 +1,4 @@
 import React from 'react';
-import { createScopedLogger } from '~/services/loggingService';
 import { cn } from '~/utils/cn';
 
 export type ButtonVariant =
@@ -31,23 +30,10 @@ const Button: React.FC<ButtonProps> = ({
   onClick,
   ...props
 }) => {
-  const logger = createScopedLogger('Button');
-
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (disabled || loading) {
-      logger.debug('Button click ignored (disabled or loading)', {
-        variant,
-        disabled,
-        loading,
-      });
       return;
     }
-
-    logger.debug('Button clicked', {
-      variant,
-      size,
-      children: typeof children === 'string' ? children : 'complex-content',
-    });
 
     onClick?.(event);
   };

@@ -1,4 +1,3 @@
-import { useLogger } from '~/services/loggingService';
 import type { Card as CardType } from '~/types/game';
 
 interface CardProps {
@@ -30,22 +29,12 @@ export function Card({
   className = '',
   size = 'medium',
 }: CardProps) {
-  const logger = useLogger('Card', {
-    cardValue: card.value,
-    cardSuit: card.suit,
-    size,
-    disabled,
-    isClickable: !!(onClick && !disabled),
-  });
-
   // Validation logging
   if (!card || !card.value || !card.suit) {
-    logger.error('Invalid card data provided', { card });
     return null;
   }
 
   if (!suitSymbols[card.suit]) {
-    logger.error('Invalid card suit', { suit: card.suit });
     return null;
   }
 
@@ -65,36 +54,18 @@ export function Card({
 
   const handleClick = () => {
     if (!onClick) {
-      logger.debug('Card click ignored - no onClick handler');
       return;
     }
 
     if (disabled) {
-      logger.debug('Card click ignored - disabled state');
       return;
     }
 
-    logger.info('Card selected', {
-      card: `${card.value} of ${card.suit}`,
-      size,
-    });
-
-    try {
-      onClick();
-    } catch (error) {
-      logger.error('Error during card click handler', {
-        error: error instanceof Error ? error.message : String(error),
-        card: `${card.value} of ${card.suit}`,
-      });
-    }
+    onClick();
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (isClickable && (event.key === 'Enter' || event.key === ' ')) {
-      logger.debug('Card activated via keyboard', {
-        key: event.key,
-        card: `${card.value} of ${card.suit}`,
-      });
       event.preventDefault();
       handleClick();
     }

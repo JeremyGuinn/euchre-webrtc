@@ -13,7 +13,6 @@ import { Stack } from '~/components/ui/Stack';
 import { useGame } from '~/contexts/game/GameContext';
 
 import PageContainer from '~/components/layout/PageContainer';
-import { useLogger } from '~/services/loggingService';
 import type { Route } from './+types/lobby';
 
 export function meta({ params }: Route.MetaArgs) {
@@ -28,7 +27,6 @@ export function meta({ params }: Route.MetaArgs) {
 
 export default function Lobby({ params }: Route.ComponentProps) {
   const navigate = useNavigate();
-  const logger = useLogger('Lobby', { gameCode: params.gameCode });
   const {
     gameState,
     isHost,
@@ -49,32 +47,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
 
   const myPlayer = getMyPlayer();
 
-  logger.trace('Lobby component rendered', {
-    gamePhase: gameState.phase,
-    playerCount: gameState.players.length,
-    isHost,
-    myPlayerId: myPlayer?.id,
-    connectionStatus,
-  });
   const connectedPlayers = gameState.players.filter(p => p.isConnected);
-
-  // Log lobby state changes
-  useEffect(() => {
-    logger.info('Lobby state updated', {
-      totalPlayers: gameState.players.length,
-      connectedPlayers: connectedPlayers.length,
-      connectionStatus,
-      isHost,
-      teamSelection: gameState.options.teamSelection,
-    });
-  }, [
-    logger,
-    gameState.players.length,
-    connectedPlayers.length,
-    connectionStatus,
-    isHost,
-    gameState.options.teamSelection,
-  ]);
 
   // Check if all requirements are met to start the game
   const canStartGame = useMemo(() => {
@@ -97,83 +70,27 @@ export default function Lobby({ params }: Route.ComponentProps) {
 
   useEffect(() => {
     if (connectionStatus === 'disconnected') {
-      logger.warn('Connection lost, navigating to home', {
-        previousConnectionStatus: connectionStatus,
-      });
       navigate(`/`);
     }
-  }, [connectionStatus, navigate, logger]);
+  }, [connectionStatus, navigate]);
 
   useEffect(() => {
     // Redirect to game if it has started
     if (gameState.phase !== 'lobby') {
-      logger.info('Game started, navigating to game screen', {
-        gamePhase: gameState.phase,
-        playerCount: gameState.players.length,
-      });
       navigate(`/game/${gameCode}`);
     }
-  }, [gameState.phase, gameCode, navigate, logger, gameState.players.length]);
+  }, [gameState.phase, gameCode, navigate, gameState.players.length]);
 
-  const handleStartGame = () => {
-    logger.info('Host starting game', {
-      playerCount: connectedPlayers.length,
-      gameOptions: gameState.options,
-      canStartGame,
-    });
-    startGame();
-  };
-
-  const handleLeaveGame = () => {
-    logger.info('Player leaving game', {
-      playerId: myPlayer?.id,
-      playerName: myPlayer?.name,
-      isHost,
-    });
-    leaveGame();
-  };
-
-  const handleRenamePlayer = (playerId: string, newName: string) => {
-    logger.info('Renaming player', {
-      playerId,
-      newName,
-      isHost,
-    });
+  const handleStartGame = () => startGame();
+  const handleLeaveGame = () => leaveGame();
+  const handleKickPlayer = (playerId: string) => kickPlayer(playerId);
+  const handleDragStart = (playerId: string) => setDraggedPlayer(playerId);
+  const handleDragOver = (e: React.DragEvent) => e.preventDefault();
+  const handleRenamePlayer = (playerId: string, newName: string) =>
     renamePlayer(playerId, newName);
-  };
 
-  const handleKickPlayer = (playerId: string) => {
-    const targetPlayer = gameState.players.find(p => p.id === playerId);
-    logger.warn('Kicking player', {
-      targetPlayerId: playerId,
-      targetPlayerName: targetPlayer?.name,
-      isHost,
-    });
-    kickPlayer(playerId);
-  };
-
-  const handleMovePlayer = (playerId: string, newPosition: 0 | 1 | 2 | 3) => {
-    const targetPlayer = gameState.players.find(p => p.id === playerId);
-    logger.info('Moving player', {
-      targetPlayerId: playerId,
-      targetPlayerName: targetPlayer?.name,
-      newPosition,
-      isHost,
-    });
+  const handleMovePlayer = (playerId: string, newPosition: 0 | 1 | 2 | 3) =>
     movePlayer(playerId, newPosition);
-  };
-
-  const handleDragStart = (playerId: string) => {
-    logger.debug('Starting player drag operation', {
-      playerId,
-      isHost,
-    });
-    setDraggedPlayer(playerId);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
 
   const handleDrop = (e: React.DragEvent, position: 0 | 1 | 2 | 3) => {
     e.preventDefault();

@@ -10,7 +10,6 @@ import LinkButton from '~/components/ui/LinkButton';
 import { Stack } from '~/components/ui/Stack';
 import { useGame } from '~/contexts/game/GameContext';
 import { useReconnectionNavigation } from '~/hooks/useReconnectionNavigation';
-import { useLogger } from '~/services/loggingService';
 import { SessionStorageService } from '~/services/sessionService';
 import { isValidGameCode, normalizeGameCode } from '~/utils/gameCode';
 import { shouldAttemptAutoReconnection } from '~/utils/reconnection';
@@ -31,19 +30,9 @@ export default function Home() {
   const location = useLocation();
   const [kickMessage, setKickMessage] = useState<string | null>(null);
   const { reconnectionStatus } = useGame();
-  const logger = useLogger('Home');
 
   // Handle automatic reconnection and navigation
   useReconnectionNavigation();
-
-  // Initialize component logging
-  useEffect(() => {
-    logger.info('Home component mounted', {
-      hasLocationState: !!location.state,
-      hasKickMessage: !!(location.state as { kickMessage?: string })
-        ?.kickMessage,
-    });
-  }, [logger, location.state]);
 
   // Helper function to determine if we should show reconnection screen
   const shouldShowReconnectionScreen = useMemo(() => {

@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 
-import { createScopedLogger } from '~/services/loggingService';
 import { GameNetworkService } from '~/services/networkService';
 import type { Bid, Card, GameOptions, GameState } from '~/types/game';
 import type { GameAction } from '~/utils/gameState';
@@ -14,63 +13,33 @@ export function useGameActions(
   dispatch: React.Dispatch<GameAction>,
   networkService: GameNetworkService
 ) {
-  const logger = createScopedLogger('useGameActions', {
-    myPlayerId,
-    isHost,
-    gamePhase: gameState.phase,
-  });
   const startGame = useCallback(() => {
-    logger.trace('Attempting to start game');
-
     if (!isHost) {
-      logger.warn('Non-host attempted to start game');
       return;
     }
-
-    logger.info('Starting game', {
-      playerCount: gameState.players.length,
-      gameOptions: gameState.options,
-    });
 
     dispatch({ type: 'START_GAME' });
-    logger.debug('Game start action dispatched');
-  }, [isHost, dispatch, logger, gameState.players.length, gameState.options]);
+  }, [isHost, dispatch]);
 
   const selectDealer = useCallback(() => {
-    logger.trace('Attempting to select dealer');
-
     if (!isHost) {
-      logger.warn('Non-host attempted to select dealer');
       return;
     }
 
-    logger.debug('Selecting dealer', {
-      dealerSelection: gameState.options.dealerSelection,
-    });
-
     dispatch({ type: 'SELECT_DEALER' });
-    logger.debug('Dealer selection action dispatched');
-  }, [isHost, dispatch, logger, gameState.options.dealerSelection]);
+  }, [isHost, dispatch]);
 
   const dealFirstBlackJackCard = useCallback(() => {
-    logger.trace('Attempting to deal first black jack card');
-
     if (!isHost) {
-      logger.warn('Non-host attempted to deal first black jack card');
       return;
     }
     if (gameState.options.dealerSelection !== 'first_black_jack') {
-      logger.trace(
-        'Skipping black jack dealing - not in first_black_jack mode'
-      );
       return;
     }
     if (!gameState.firstBlackJackDealing) {
-      logger.trace('Skipping black jack dealing - no dealing state');
       return;
     }
     if (!gameState.deck) {
-      logger.warn('No deck available for dealing');
       return;
     }
 
@@ -78,10 +47,6 @@ export function useGameActions(
       gameState.firstBlackJackDealing;
 
     if (currentCardIndex >= gameState.deck.length) {
-      logger.error('Attempted to deal beyond deck length', {
-        currentCardIndex,
-        deckLength: gameState.deck.length,
-      });
       return;
     }
 
@@ -89,14 +54,6 @@ export function useGameActions(
     const card = gameState.deck[currentCardIndex];
     const isBlackJack =
       card.value === 'J' && (card.suit === 'spades' || card.suit === 'clubs');
-
-    logger.trace('Dealing card to player', {
-      currentPlayerIndex,
-      currentCardIndex,
-      playerName: currentPlayer.name,
-      card: `${card.value} of ${card.suit}`,
-      isBlackJack,
-    });
 
     // Broadcast the dealt card to all clients
     networkService.sendMessage({
@@ -121,29 +78,12 @@ export function useGameActions(
         isBlackJack,
       },
     });
-
-    if (isBlackJack) {
-      logger.info('Black jack dealt - dealer selected', {
-        dealerName: currentPlayer.name,
-        card: `${card.value} of ${card.suit}`,
-      });
-    } else {
-      logger.debug('Card dealt, continuing to next player', {
-        card: `${card.value} of ${card.suit}`,
-        nextPlayerIndex: (currentPlayerIndex + 1) % gameState.players.length,
-      });
-    }
-  }, [isHost, gameState, networkService, dispatch, logger]);
+  }, [isHost, gameState, networkService, dispatch]);
 
   const completeBlackJackDealerSelection = useCallback(() => {
-    logger.trace('Attempting to complete black jack dealer selection');
-
     if (!isHost) {
-      logger.warn('Non-host attempted to complete black jack dealer selection');
       return;
     }
-
-    logger.info('Completing black jack dealer selection');
 
     // Broadcast the completion to all clients
     networkService.sendMessage({
@@ -157,22 +97,16 @@ export function useGameActions(
     dispatch({
       type: 'COMPLETE_BLACKJACK_DEALER_SELECTION',
     });
-
-    logger.debug('Black jack dealer selection completed');
-  }, [isHost, networkService, dispatch, logger]);
+  }, [isHost, networkService, dispatch]);
 
   const drawDealerCard = useCallback(
     (cardIndex?: number) => {
-      logger.trace('Attempting to draw dealer card', { cardIndex });
-
       if (gameState.dealerSelectionCards?.[myPlayerId]) {
-        logger.debug('Player already has dealer card, skipping');
         return;
       }
 
       if (isHost) {
         if (!gameState.deck) {
-          logger.warn('No deck available for dealer card selection');
           return;
         }
 
@@ -184,7 +118,6 @@ export function useGameActions(
         );
 
         if (availableCards.length === 0) {
-          logger.warn('No available cards for dealer selection');
           return;
         }
 
@@ -195,17 +128,10 @@ export function useGameActions(
           cardIndex < availableCards.length
         ) {
           drawnCard = availableCards[cardIndex];
-          logger.debug('Drawing specific card by index', { cardIndex });
         } else {
           const randomIndex = Math.floor(Math.random() * availableCards.length);
           drawnCard = availableCards[randomIndex];
-          logger.debug('Drawing random card', { randomIndex });
         }
-
-        logger.info('Player drew dealer card', {
-          playerName: gameState.players.find(p => p.id === myPlayerId)?.name,
-          card: `${drawnCard.value} of ${drawnCard.suit}`,
-        });
 
         dispatch({
           type: 'DRAW_DEALER_CARD',
@@ -213,11 +139,9 @@ export function useGameActions(
         });
       } else {
         if (cardIndex === undefined) {
-          logger.warn('Client attempted to draw random card - not allowed');
           return;
         }
 
-        logger.debug('Sending dealer card draw request to host', { cardIndex });
         networkService.sendMessage({
           type: 'DRAW_DEALER_CARD',
           timestamp: Date.now(),
@@ -226,7 +150,7 @@ export function useGameActions(
         });
       }
     },
-    [gameState, myPlayerId, isHost, dispatch, networkService, logger]
+    [gameState, myPlayerId, isHost, dispatch, networkService]
   );
 
   const proceedToDealing = useCallback(() => {
@@ -246,15 +170,8 @@ export function useGameActions(
 
   const placeBid = useCallback(
     (suit: Card['suit'] | 'pass', alone?: boolean) => {
-      logger.trace('Attempting to place bid', { suit, alone });
-
       const myPlayer = gameState.players.find(p => p.id === myPlayerId);
       if (!myPlayer || gameState.currentPlayerId !== myPlayerId) {
-        logger.warn('Invalid bid attempt', {
-          playerExists: !!myPlayer,
-          isMyTurn: gameState.currentPlayerId === myPlayerId,
-          currentPlayerId: gameState.currentPlayerId,
-        });
         return;
       }
 
@@ -264,16 +181,8 @@ export function useGameActions(
         alone,
       };
 
-      logger.info('Placing bid', {
-        playerName: myPlayer.name,
-        suit,
-        alone: !!alone,
-        isHost,
-      });
-
       if (isHost) {
         dispatch({ type: 'PLACE_BID', payload: { bid } });
-        logger.debug('Bid action dispatched locally');
       } else {
         networkService.sendMessage({
           type: 'BID',
@@ -281,7 +190,6 @@ export function useGameActions(
           messageId: createMessageId(),
           payload: { bid },
         });
-        logger.debug('Bid message sent to host');
       }
     },
     [
@@ -291,36 +199,19 @@ export function useGameActions(
       isHost,
       dispatch,
       networkService,
-      logger,
     ]
   );
 
   const playCard = useCallback(
     (card: Card) => {
-      logger.trace('Attempting to play card', {
-        card: `${card.value} of ${card.suit}`,
-      });
-
       if (gameState.currentPlayerId !== myPlayerId) {
-        logger.warn('Attempted to play card out of turn', {
-          currentPlayerId: gameState.currentPlayerId,
-          cardPlayed: `${card.value} of ${card.suit}`,
-        });
         return;
       }
-
-      logger.info('Playing card', {
-        card: `${card.value} of ${card.suit}`,
-        trickNumber: gameState.completedTricks.length + 1,
-      });
 
       if (isHost) {
         dispatch({
           type: 'PLAY_CARD',
           payload: { card, playerId: myPlayerId },
-        });
-        logger.debug('Card play action dispatched locally', {
-          currentTrickCards: gameState.currentTrick?.cards.length || 0,
         });
       } else {
         networkService.sendMessage({
@@ -329,39 +220,18 @@ export function useGameActions(
           messageId: createMessageId(),
           payload: { card },
         });
-        logger.debug('Card play message sent to host');
       }
     },
-    [
-      gameState.currentPlayerId,
-      gameState.completedTricks.length,
-      gameState.currentTrick?.cards.length,
-      myPlayerId,
-      isHost,
-      dispatch,
-      networkService,
-      logger,
-    ]
+    [gameState.currentPlayerId, myPlayerId, isHost, dispatch, networkService]
   );
 
   const renamePlayer = useCallback(
     (playerId: string, newName: string): void => {
-      logger.trace('Attempting to rename player', { playerId, newName });
-
       if (!isHost && playerId !== myPlayerId) {
-        logger.warn('Non-host attempted to rename other player', { playerId });
         return;
       }
 
       const uniqueName = makeNameUnique(newName, gameState.players, playerId);
-      const targetPlayer = gameState.players.find(p => p.id === playerId);
-
-      logger.info('Player renamed', {
-        playerName: targetPlayer?.name || 'Unknown',
-        oldName: targetPlayer?.name,
-        newName: uniqueName,
-        wasModified: uniqueName !== newName,
-      });
 
       dispatch({
         type: 'RENAME_PLAYER',
@@ -375,45 +245,24 @@ export function useGameActions(
           messageId: createMessageId(),
           payload: { newName: uniqueName },
         });
-        logger.debug('Rename message sent to other players');
       }
     },
-    [isHost, myPlayerId, dispatch, networkService, gameState.players, logger]
+    [isHost, myPlayerId, dispatch, networkService, gameState.players]
   );
 
   const renameTeam = useCallback(
     (teamId: 0 | 1, newName: string): void => {
-      logger.trace('Attempting to rename team', { teamId, newName });
-
       // Only allow team renaming during specific phases
       const allowedPhases = ['lobby', 'team_summary'];
       if (!allowedPhases.includes(gameState.phase)) {
-        logger.warn('Team rename attempted in invalid phase', {
-          currentPhase: gameState.phase,
-          allowedPhases,
-        });
         return;
       }
 
       // Validate team name
       const sanitizedName = newName.trim();
       if (!sanitizedName || sanitizedName.length > 50) {
-        logger.warn('Invalid team name provided', {
-          newName,
-          sanitizedName,
-          length: sanitizedName.length,
-        });
         return;
       }
-
-      logger.info('Team renamed', {
-        teamId,
-        oldName:
-          gameState.teamNames[
-            `team${teamId}` as keyof typeof gameState.teamNames
-          ],
-        newName: sanitizedName,
-      });
 
       dispatch({
         type: 'RENAME_TEAM',
@@ -426,27 +275,15 @@ export function useGameActions(
         messageId: createMessageId(),
         payload: { teamId, newName: sanitizedName },
       });
-
-      logger.debug('Team rename message sent to other players');
     },
-    [dispatch, networkService, gameState, logger]
+    [dispatch, networkService, gameState]
   );
 
   const kickPlayer = useCallback(
     (playerId: string): void => {
       if (!isHost) {
-        logger.warn('Non-host attempted to kick player', {
-          targetPlayerId: playerId,
-        });
         return;
       }
-
-      const targetPlayer = gameState.players.find(p => p.id === playerId);
-      logger.warn('Kicking player from game', {
-        targetPlayerId: playerId,
-        targetPlayerName: targetPlayer?.name || 'Unknown',
-        remainingPlayers: gameState.players.length - 1,
-      });
 
       dispatch({
         type: 'KICK_PLAYER',
@@ -460,7 +297,7 @@ export function useGameActions(
         payload: { targetPlayerId: playerId },
       });
     },
-    [isHost, gameState.players, dispatch, networkService, logger]
+    [isHost, dispatch, networkService]
   );
 
   const movePlayer = useCallback(

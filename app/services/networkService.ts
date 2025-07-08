@@ -1,4 +1,3 @@
-import { createScopedLogger } from '~/services/loggingService';
 import type { GameMessage } from '~/types/messages';
 import { gameCodeToHostId, generateGameCode } from '~/utils/gameCode';
 import {
@@ -16,29 +15,15 @@ import {
 
 export class GameNetworkService {
   private networkManager: NetworkManager = new NetworkManager();
-  private messageHandlers: Map<string, PeerMessageHandler> = new Map();
-  private readonly logger = createScopedLogger('GameNetworkService');
-
-  constructor() {
-    this.logger.debug('GameNetworkService instance created');
-  }
 
   setStatusChangeHandler(handler: PeerStatusHandler) {
-    this.logger.debug('Registering status change handler');
     this.networkManager.onStatusChange(status => {
-      this.logger.debug('Network status changed', { status });
       handler(status);
     });
   }
 
   setConnectionChangeHandler(handler: PeerConnectionHandler) {
-    this.logger.debug('Registering connection change handler');
     this.networkManager.onConnectionChange((peerId, connected) => {
-      if (connected) {
-        this.logger.info('Peer connected', { peerId });
-      } else {
-        this.logger.info('Peer disconnected', { peerId });
-      }
       handler(peerId, connected);
     });
   }
@@ -48,138 +33,53 @@ export class GameNetworkService {
     hostId: string;
     gameUuid: string;
   }> {
-    this.logger.trace('Starting game host process');
-
     const gameCode = generateGameCode();
     const hostId = gameCodeToHostId(gameCode);
     const gameUuid = crypto.randomUUID(); // Keep internal UUID for game state management
 
-    try {
-      await this.networkManager.initialize(true, hostId);
+    await this.networkManager.initialize(true, hostId);
 
-      this.logger.info('Game hosted successfully', {
-        gameCode,
-        hostId,
-        gameUuid,
-      });
-
-      return {
-        gameCode,
-        hostId,
-        gameUuid,
-      };
-    } catch (error) {
-      this.logger.error('Failed to host game', {
-        gameCode,
-        hostId,
-        error: error instanceof Error ? error.message : String(error),
-      });
-      throw error;
-    }
+    return {
+      gameCode,
+      hostId,
+      gameUuid,
+    };
   }
 
   async joinGame(gameCode: string, playerName: string): Promise<string> {
-    this.logger.trace('Starting game join process', { gameCode, playerName });
-
     const hostId = gameCodeToHostId(gameCode);
+    const playerId = await this.networkManager.initialize(false);
 
-    try {
-      const playerId = await this.networkManager.initialize(false);
-      this.logger.debug('Network initialized for client', { playerId });
+    await this.networkManager.connectToPeer(hostId);
 
-      await this.networkManager.connectToPeer(hostId);
-      this.logger.debug('Connected to host peer', { hostId });
+    this.networkManager.sendMessage(
+      {
+        type: 'JOIN_REQUEST',
+        timestamp: Date.now(),
+        messageId: createMessageId(),
+        payload: { playerName },
+      },
+      hostId
+    );
 
-      this.networkManager.sendMessage(
-        {
-          type: 'JOIN_REQUEST',
-          timestamp: Date.now(),
-          messageId: createMessageId(),
-          payload: { playerName },
-        },
-        hostId
-      );
-
-      this.logger.info('Join request sent to host', {
-        gameCode,
-        playerName,
-        playerId,
-      });
-
-      return playerId;
-    } catch (error) {
-      this.logger.error('Failed to join game', {
-        gameCode,
-        hostId,
-        playerName,
-        error: error instanceof Error ? error.message : String(error),
-      });
-      throw error;
-    }
+    return playerId;
   }
 
   sendMessage(message: GameMessage, targetId?: string) {
-    this.logger.trace('Sending message', {
-      messageType: message.type,
-      targetId: targetId || 'broadcast',
-    });
-
-    try {
-      this.networkManager.sendMessage(message, targetId);
-      this.logger.debug('Message sent successfully', {
-        messageType: message.type,
-        messageId: message.messageId,
-      });
-    } catch (error) {
-      this.logger.error('Failed to send message', {
-        messageType: message.type,
-        messageId: message.messageId,
-        targetId,
-        error: error instanceof Error ? error.message : String(error),
-      });
-      throw error;
-    }
+    this.networkManager.sendMessage(message, targetId);
   }
 
   registerMessageHandler(messageType: string, handler: PeerMessageHandler) {
-    this.logger.debug('Registering message handler', { messageType });
-
-    const wrappedHandler: PeerMessageHandler = (message, senderId) => {
-      this.logger.trace('Processing received message', {
-        messageType: message.type,
-        senderId,
-      });
-
-      try {
-        handler(message, senderId);
-        this.logger.debug('Message processed successfully', {
-          messageType: message.type,
-          messageId: message.messageId,
-        });
-      } catch (error) {
-        this.logger.error('Message handler failed', {
-          messageType: message.type,
-          messageId: message.messageId,
-          senderId,
-          error: error instanceof Error ? error.message : String(error),
-        });
-      }
-    };
-
-    this.networkManager.onMessage(messageType, wrappedHandler);
+    this.networkManager.onMessage(messageType, handler);
   }
 
   disconnect() {
-    this.logger.info('Disconnecting from network');
     this.networkManager.disconnect();
-    this.logger.debug('Network disconnection completed');
   }
 
   async leaveGame(
     reason: 'manual' | 'error' | 'network' | 'kicked' = 'manual'
   ): Promise<void> {
-    this.logger.info('Leaving game', { reason });
-
     try {
       if (reason !== 'kicked') {
         // Send leave message to host before disconnecting
@@ -196,13 +96,7 @@ export class GameNetworkService {
 
       // Now disconnect
       this.disconnect();
-
-      this.logger.debug('Game leave process completed');
-    } catch (error) {
-      this.logger.warn('Error during game leave process', {
-        reason,
-        error: error instanceof Error ? error.message : String(error),
-      });
+    } catch {
       // Still disconnect even if there was an error
       this.disconnect();
     }
@@ -217,11 +111,6 @@ export class GameNetworkService {
       reason?: string
     ) => void
   ): Promise<{ hostId: string; gameCode: string }> {
-    this.logger.info('Starting host reconnection process', {
-      hostId,
-      gameCode,
-    });
-
     let lastError: Error | null = null;
     let currentHostId = hostId;
     let currentGameCode = gameCode;
@@ -231,23 +120,12 @@ export class GameNetworkService {
       attempt < RECONNECTION_CONFIG.MAX_RETRIES;
       attempt++
     ) {
-      this.logger.trace('Host reconnection attempt', {
-        attempt: attempt + 1,
-        maxRetries: RECONNECTION_CONFIG.MAX_RETRIES,
-        currentHostId,
-        currentGameCode,
-      });
-
       try {
         // Notify about retry attempt if this isn't the first attempt
         if (attempt > 0 && onRetryAttempt) {
           const reason = isPeerJSIdConflictError(lastError!)
             ? 'Game ID conflict detected'
             : 'Connection failed';
-          this.logger.debug('Notifying UI of retry attempt', {
-            attempt: attempt + 1,
-            reason,
-          });
           onRetryAttempt(attempt + 1, RECONNECTION_CONFIG.MAX_RETRIES, reason);
         }
 
@@ -255,11 +133,6 @@ export class GameNetworkService {
 
         // If we had to generate a new game code, update the session
         if (currentGameCode !== gameCode) {
-          this.logger.info('Game code changed during reconnection', {
-            originalGameCode: gameCode,
-            newGameCode: currentGameCode,
-          });
-
           const { SessionStorageService } = await import(
             '~/services/sessionService'
           );
@@ -273,21 +146,9 @@ export class GameNetworkService {
           }
         }
 
-        this.logger.info('Host reconnection successful', {
-          hostId: currentHostId,
-          gameCode: currentGameCode,
-          attempts: attempt + 1,
-        });
-
         return { hostId: currentHostId, gameCode: currentGameCode }; // Success!
       } catch (error) {
         lastError = error as Error;
-
-        this.logger.warn('Host reconnection attempt failed', {
-          attempt: attempt + 1,
-          error: lastError.message,
-          isIdConflict: isPeerJSIdConflictError(lastError),
-        });
 
         // Check if this looks like an ID conflict error using the helper function
         const isIdConflict = isPeerJSIdConflictError(lastError);
@@ -296,7 +157,6 @@ export class GameNetworkService {
         if (attempt < RECONNECTION_CONFIG.MAX_RETRIES - 1) {
           // For ID conflicts, generate a new game code after the first few attempts
           if (isIdConflict && attempt >= 1) {
-            this.logger.debug('Generating new game code due to ID conflict');
             const { generateGameCode, gameCodeToHostId } = await import(
               '~/utils/gameCode'
             );
@@ -311,9 +171,6 @@ export class GameNetworkService {
             RECONNECTION_CONFIG.INITIAL_RETRY_DELAY_MS *
             Math.pow(RECONNECTION_CONFIG.RETRY_BACKOFF_MULTIPLIER, attempt);
 
-          this.logger.debug('Waiting before next reconnection attempt', {
-            delayMs: delay,
-          });
           await sleep(delay);
         }
       }
@@ -321,10 +178,6 @@ export class GameNetworkService {
 
     // If we get here, all attempts failed
     const errorMessage = `Host reconnection failed after ${RECONNECTION_CONFIG.MAX_RETRIES} attempts. Last error: ${lastError?.message || 'Unknown error'}`;
-    this.logger.error('Host reconnection failed completely', {
-      maxRetries: RECONNECTION_CONFIG.MAX_RETRIES,
-      lastError: lastError?.message,
-    });
 
     throw new Error(errorMessage);
   }

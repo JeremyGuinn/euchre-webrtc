@@ -1,4 +1,3 @@
-import { createScopedLogger } from '~/services/loggingService';
 import type {
   Bid,
   Card,
@@ -197,27 +196,9 @@ function calculateHandScore(
 }
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
-  const logger = createScopedLogger('GameReducer', {
-    actionType: action.type,
-    currentPhase: state.phase,
-    playerCount: state.players.length,
-  });
-
-  logger.trace('Processing game action', {
-    actionType: action.type,
-    previousPhase: state.phase,
-  });
-
-  const startTime = performance.now();
-
   try {
     switch (action.type) {
       case 'INIT_GAME':
-        logger.info('Initializing new game', {
-          gameId: action.payload.gameId,
-          gameCode: action.payload.gameCode,
-          hostId: action.payload.hostId,
-        });
         return {
           ...initialGameState,
           id: action.payload.gameId,
@@ -238,12 +219,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       case 'ADD_PLAYER': {
         const { player } = action.payload;
 
-        logger.info('Adding player to game', {
-          playerId: player.id,
-          playerName: player.name,
-          currentPlayerCount: state.players.length,
-        });
-
         // Find the first available position (0-3)
         const occupiedPositions = new Set(state.players.map(p => p.position));
         const availablePosition = ([0, 1, 2, 3] as const).find(
@@ -251,11 +226,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         );
 
         if (availablePosition === undefined) {
-          logger.warn('Cannot add player - game is full', {
-            playerId: player.id,
-            playerName: player.name,
-            currentPlayerCount: state.players.length,
-          });
           return state; // Game is full
         }
 
@@ -264,12 +234,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           position: availablePosition,
           teamId: getTeamId(availablePosition),
         };
-
-        logger.debug('Player assigned position and team', {
-          playerId: newPlayer.id,
-          position: availablePosition,
-          teamId: newPlayer.teamId,
-        });
 
         return {
           ...state,
@@ -403,18 +367,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       case 'START_GAME':
         if (state.players.length !== 4) {
-          logger.warn('Cannot start game - invalid player count', {
-            currentPlayerCount: state.players.length,
-            requiredPlayerCount: 4,
-          });
           return state; // Need exactly 4 players
         }
-
-        logger.info('Starting game', {
-          playerCount: state.players.length,
-          dealerSelection: state.options.dealerSelection,
-          teamSelection: state.options.teamSelection,
-        });
 
         // For predetermined dealer, skip dealer selection and go directly to team summary
         if (state.options.dealerSelection === 'predetermined_first_dealer') {
@@ -1170,27 +1124,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       default: {
-        const unknownAction = action as { type: string };
-        logger.warn('Unknown action type received', {
-          actionType: unknownAction.type,
-        });
         return state;
       }
     }
-  } catch (error) {
-    logger.error('Error processing game action', {
-      actionType: action.type,
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-    });
-    // Return the previous state to prevent crashes
+  } catch {
     return state;
-  } finally {
-    const duration = performance.now() - startTime;
-    logger.debug('Game action processed', {
-      actionType: action.type,
-      duration: `${duration.toFixed(2)}ms`,
-    });
   }
 }
 

@@ -1,14 +1,9 @@
 import type { Config } from '@react-router/dev/config';
-import { useEffect } from 'react';
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from 'react-router';
 import type { Route } from './+types/root';
 import './app.css';
 import { ErrorBoundary } from './components/error/ErrorBoundary';
 import { GameProvider } from './contexts/game/GameContext';
-import {
-  createScopedLogger,
-  initializeLogger,
-} from './services/loggingService';
 
 declare global {
   interface Window {
@@ -67,20 +62,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const logger = createScopedLogger('App');
-
-  // Initialize logging on app startup
-  useEffect(() => {
-    logger.withOperation('app-initialization', () => {
-      initializeLogger();
-      logger.info('Application initialized', {
-        userAgent: navigator.userAgent,
-        timestamp: new Date().toISOString(),
-        environment: import.meta.env.MODE,
-      });
-    });
-  }, [logger]);
-
   return (
     <ErrorBoundary>
       <GameProvider>

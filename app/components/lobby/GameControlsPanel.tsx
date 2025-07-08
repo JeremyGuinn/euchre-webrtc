@@ -1,6 +1,5 @@
 import Button from '~/components/ui/Button';
 import Panel from '~/components/ui/Panel';
-import { useLogger } from '~/services/loggingService';
 import type { GameOptions } from '~/types/game';
 
 interface GameControlsPanelProps {
@@ -18,26 +17,9 @@ export default function GameControlsPanel({
   gameOptions,
   onStartGame,
 }: GameControlsPanelProps) {
-  const logger = useLogger('GameControlsPanel', {
-    connectedPlayersCount,
-    isHost,
-    canStartGame,
-    dealerSelection: gameOptions.dealerSelection,
-    hasPredeterminedDealer: !!gameOptions.predeterminedFirstDealerId,
-  });
-
   const playersNeeded = 4 - connectedPlayersCount;
 
-  logger.trace('GameControlsPanel rendered', {
-    playersNeeded,
-    readyToStart: connectedPlayersCount === 4,
-  });
-
   const handleStartGame = () => {
-    logger.info('Starting game', {
-      playerCount: connectedPlayersCount,
-      gameOptions,
-    });
     onStartGame();
   };
 
