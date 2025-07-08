@@ -1,12 +1,11 @@
+import { createMessageHandlers } from '~/network/handlers';
 import { createScopedLogger } from '~/services/loggingService';
+import type { GameState } from '~/types/game';
+import type { HandlerContext } from '~/types/handlers';
 import type { GameMessage } from '~/types/messages';
 import { gameCodeToHostId, generateGameCode } from '~/utils/gameCode';
-import {
-  NetworkManager,
-  type PeerConnectionHandler,
-  type PeerMessageHandler,
-  type PeerStatusHandler,
-} from '~/utils/networking';
+import type { GameAction } from '~/utils/gameState';
+import { NetworkManager, type ConnectionStatus } from '~/utils/networking';
 import { createMessageId } from '~/utils/protocol';
 import {
   RECONNECTION_CONFIG,
@@ -14,94 +13,32 @@ import {
   sleep,
 } from '~/utils/reconnection';
 
+// Cooldown period to prevent rapid reconnection attempts (5 seconds)
+const RECONNECTION_COOLDOWN_MS = 5000;
+
+export interface GameNetworkServiceConfig {
+  gameState: GameState;
+  myPlayerId: string;
+  isHost: boolean;
+  dispatch: React.Dispatch<GameAction>;
+  broadcastGameState: () => void;
+  handleKicked: (message: string) => void;
+  setConnectionStatus: (status: ConnectionStatus) => void;
+  setMyPlayerId: (id: string) => void;
+  setIsHost: (isHost: boolean) => void;
+  pollForHostReconnection?: () => Promise<boolean>;
+}
+
 export class GameNetworkService {
   private networkManager: NetworkManager = new NetworkManager();
   private logger = createScopedLogger('GameNetworkService');
+  private config: GameNetworkServiceConfig | null = null;
+  private messageHandlersRegistered = false;
 
-  setStatusChangeHandler(handler: PeerStatusHandler) {
-    this.logger.debug('Setting status change handler');
-    this.networkManager.onStatusChange(status => {
-      this.logger.debug('Network status changed', { status });
-      handler(status);
-    });
-  }
-
-  setConnectionChangeHandler(handler: PeerConnectionHandler) {
-    this.logger.debug('Setting connection change handler');
-    this.networkManager.onConnectionChange((peerId, connected) => {
-      this.logger.debug('Peer connection changed', { peerId, connected });
-      handler(peerId, connected);
-    });
-  }
-
-  async hostGame(): Promise<{
-    gameCode: string;
-    hostId: string;
-    gameUuid: string;
-  }> {
-    return this.logger.withPerformance('hostGame', async () => {
-      this.logger.info('Starting to host game');
-
-      const gameCode = generateGameCode();
-      const hostId = gameCodeToHostId(gameCode);
-      const gameUuid = crypto.randomUUID(); // Keep internal UUID for game state management
-
-      this.logger.debug('Generated game identifiers', {
-        gameCode,
-        hostId,
-        gameUuid,
-      });
-
-      await this.networkManager.initialize(true, hostId);
-
-      this.logger.info('Game hosted successfully', {
-        gameCode,
-        hostId,
-        gameUuid,
-      });
-
-      return {
-        gameCode,
-        hostId,
-        gameUuid,
-      };
-    });
-  }
-
-  async joinGame(gameCode: string, playerName: string): Promise<string> {
-    return this.logger.withPerformance('joinGame', async () => {
-      this.logger.info('Attempting to join game', { gameCode, playerName });
-
-      const hostId = gameCodeToHostId(gameCode);
-      this.logger.debug('Resolved host ID from game code', {
-        gameCode,
-        hostId,
-      });
-
-      const playerId = await this.networkManager.initialize(false);
-      this.logger.debug('Network manager initialized', { playerId });
-
-      await this.networkManager.connectToPeer(hostId);
-      this.logger.debug('Connected to host peer', { hostId });
-
-      const joinMessage = {
-        type: 'JOIN_REQUEST',
-        timestamp: Date.now(),
-        messageId: createMessageId(),
-        payload: { playerName },
-      } as GameMessage;
-
-      this.logger.debug('Sending join request', { message: joinMessage });
-      this.networkManager.sendMessage(joinMessage, hostId);
-
-      this.logger.info('Join game request sent successfully', {
-        gameCode,
-        playerName,
-        playerId,
-      });
-      return playerId;
-    });
-  }
+  // Track last reconnection attempt to prevent rapid-fire attempts
+  private lastReconnectionAttempt = 0;
+  // Track if a reconnection is currently in progress
+  private isReconnecting = false;
 
   sendMessage(message: GameMessage, targetId?: string) {
     this.logger.debug('Sending message', {
@@ -111,19 +48,6 @@ export class GameNetworkService {
       timestamp: message.timestamp,
     });
     this.networkManager.sendMessage(message, targetId);
-  }
-
-  registerMessageHandler(messageType: string, handler: PeerMessageHandler) {
-    this.logger.debug('Registering message handler', { messageType });
-    this.networkManager.onMessage(messageType, (message, senderId) => {
-      this.logger.debug('Message received', {
-        messageType,
-        messageId: message.messageId,
-        senderId,
-        timestamp: message.timestamp,
-      });
-      handler(message, senderId);
-    });
   }
 
   disconnect() {
@@ -420,9 +344,11 @@ export class GameNetworkService {
             );
           }
 
-          // Clean up any existing connection before attempting reconnection
-          this.logger.debug('Cleaning up existing connections before retry');
-          this.networkManager.disconnect();
+          // if we are connected, disconnect first
+          if (this.networkManager.isConnected()) {
+            this.logger.debug('Cleaning up existing connections before retry');
+            this.networkManager.disconnect();
+          }
 
           // Attempt to reconnect
           await this.reconnectAsClient(gameCode, playerId, playerName);
@@ -476,6 +402,329 @@ export class GameNetworkService {
 
       throw new Error(errorMessage);
     });
+  }
+
+  async hostGame(): Promise<{
+    gameCode: string;
+    hostId: string;
+    gameUuid: string;
+  }> {
+    return this.logger.withPerformance('hostGame', async () => {
+      this.logger.info('Starting to host game');
+
+      const gameCode = generateGameCode();
+      const hostId = gameCodeToHostId(gameCode);
+      const gameUuid = crypto.randomUUID(); // Keep internal UUID for game state management
+
+      this.logger.debug('Generated game identifiers', {
+        gameCode,
+        hostId,
+        gameUuid,
+      });
+
+      await this.networkManager.initialize(true, hostId);
+
+      this.logger.info('Game hosted successfully', {
+        gameCode,
+        hostId,
+        gameUuid,
+      });
+
+      return {
+        gameCode,
+        hostId,
+        gameUuid,
+      };
+    });
+  }
+
+  async joinGame(gameCode: string, playerName: string): Promise<string> {
+    return this.logger.withPerformance('joinGame', async () => {
+      this.logger.info('Attempting to join game', { gameCode, playerName });
+
+      const hostId = gameCodeToHostId(gameCode);
+      this.logger.debug('Resolved host ID from game code', {
+        gameCode,
+        hostId,
+      });
+
+      const playerId = await this.networkManager.initialize(false);
+      this.logger.debug('Network manager initialized', { playerId });
+
+      await this.networkManager.connectToPeer(hostId);
+      this.logger.debug('Connected to host peer', { hostId });
+
+      const joinMessage = {
+        type: 'JOIN_REQUEST',
+        timestamp: Date.now(),
+        messageId: createMessageId(),
+        payload: { playerName },
+      } as GameMessage;
+
+      this.logger.debug('Sending join request', { message: joinMessage });
+      this.networkManager.sendMessage(joinMessage, hostId);
+
+      this.logger.info('Join game request sent successfully', {
+        gameCode,
+        playerName,
+        playerId,
+      });
+      return playerId;
+    });
+  }
+
+  /**
+   * Configure the network service with game state and handlers
+   */
+  configure(config: GameNetworkServiceConfig) {
+    this.logger.debug('Configuring network service', {
+      myPlayerId: config.myPlayerId,
+      isHost: config.isHost,
+      gamePhase: config.gameState.phase,
+      playerCount: config.gameState.players.length,
+    });
+
+    this.config = config;
+
+    // Only set up handlers once
+    if (!this.messageHandlersRegistered) {
+      this.setupNetworkHandlers();
+      this.setupMessageHandlers();
+    }
+  }
+
+  /**
+   * Update the configuration with new values
+   */
+  updateConfig(updates: Partial<GameNetworkServiceConfig>) {
+    if (!this.config) {
+      this.logger.warn('Cannot update config before initial configuration');
+      return;
+    }
+
+    this.config = { ...this.config, ...updates };
+    this.logger.debug('Network service configuration updated', {
+      myPlayerId: this.config.myPlayerId,
+      isHost: this.config.isHost,
+      gamePhase: this.config.gameState.phase,
+    });
+  }
+
+  /**
+   * Set up network event handlers for status and connection changes
+   */
+  private setupNetworkHandlers() {
+    if (!this.config) return;
+
+    this.logger.debug('Setting up network event handlers');
+
+    this.networkManager.onStatusChange(status => {
+      this.logger.info('Network status changed', { status });
+      this.config?.setConnectionStatus(status);
+    });
+
+    this.networkManager.onConnectionChange((peerId, connected) => {
+      this.handleConnectionChange(peerId, connected);
+    });
+
+    this.logger.debug('Network event handlers setup complete');
+  }
+
+  /**
+   * Set up message handlers
+   */
+  private setupMessageHandlers() {
+    if (!this.config || this.messageHandlersRegistered) return;
+
+    this.logger.debug('Setting up message handlers');
+    const messageHandlers = createMessageHandlers();
+    const handlerCount = Object.keys(messageHandlers).length;
+
+    this.logger.info('Setting up message handlers', { handlerCount });
+
+    Object.entries(messageHandlers).forEach(([messageType, handler]) => {
+      this.logger.debug('Registering message handler', { messageType });
+      this.networkManager.onMessage(messageType, (message, senderId) => {
+        this.handleMessageWithContext(message, senderId, handler);
+      });
+    });
+
+    this.messageHandlersRegistered = true;
+    this.logger.info('Message handlers registration complete', {
+      handlerCount,
+      messageTypes: Object.keys(messageHandlers),
+    });
+  }
+
+  /**
+   * Handle incoming messages with proper context
+   */
+  private handleMessageWithContext(
+    message: GameMessage,
+    senderId: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    handler: any
+  ) {
+    if (!this.config) {
+      this.logger.error('Cannot handle message without configuration', {
+        messageType: message.type,
+        messageId: message.messageId,
+        senderId,
+      });
+      return;
+    }
+
+    this.logger.debug('Processing message with context', {
+      messageType: message.type,
+      messageId: message.messageId,
+      senderId,
+      gamePhase: this.config.gameState.phase,
+      myPlayerId: this.config.myPlayerId,
+      isHost: this.config.isHost,
+    });
+
+    const context: HandlerContext = {
+      gameState: this.config.gameState,
+      myPlayerId: this.config.myPlayerId,
+      isHost: this.config.isHost,
+      dispatch: this.config.dispatch,
+      networkManager: this.networkManager,
+      broadcastGameState: this.config.broadcastGameState,
+      handleKicked: this.config.handleKicked,
+      setConnectionStatus: this.config.setConnectionStatus,
+      setMyPlayerId: this.config.setMyPlayerId,
+      setIsHost: this.config.setIsHost,
+    };
+
+    try {
+      handler(message, senderId, context);
+      this.logger.debug('Message handled successfully', {
+        messageType: message.type,
+        messageId: message.messageId,
+        senderId,
+      });
+    } catch (error) {
+      this.logger.error('Error handling message', {
+        messageType: message.type,
+        messageId: message.messageId,
+        senderId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  /**
+   * Handle connection changes
+   */
+  private handleConnectionChange(peerId: string, connected: boolean) {
+    if (!this.config) return;
+
+    this.logger.info('Peer connection changed', {
+      peerId,
+      connected,
+      isHost: this.config.isHost,
+      gamePhase: this.config.gameState.phase,
+    });
+
+    this.config.dispatch({
+      type: 'UPDATE_PLAYER_CONNECTION',
+      payload: { playerId: peerId, isConnected: connected },
+    });
+
+    // Handle host disconnection for clients
+    if (
+      !this.config.isHost &&
+      !connected &&
+      this.config.pollForHostReconnection
+    ) {
+      this.handleHostDisconnection(peerId);
+    }
+  }
+
+  /**
+   * Handle host disconnection and attempt reconnection
+   */
+  private handleHostDisconnection(peerId: string) {
+    if (!this.config) return;
+
+    const hostPlayer = this.config.gameState.players.find(p => p.isHost);
+    if (hostPlayer && hostPlayer.id === peerId) {
+      this.logger.warn('Host disconnected, evaluating reconnection', {
+        hostPlayerId: peerId,
+        isReconnecting: this.isReconnecting,
+      });
+
+      // Check if a reconnection is already in progress
+      if (this.isReconnecting) {
+        this.logger.debug('Reconnection already in progress, skipping');
+        return;
+      }
+
+      // Check cooldown to prevent rapid fire reconnection attempts
+      const now = Date.now();
+      const timeSinceLastAttempt = now - this.lastReconnectionAttempt;
+      if (timeSinceLastAttempt < RECONNECTION_COOLDOWN_MS) {
+        this.logger.debug('Reconnection cooldown active, skipping', {
+          timeSinceLastAttempt,
+          cooldownMs: RECONNECTION_COOLDOWN_MS,
+        });
+        return;
+      }
+
+      this.lastReconnectionAttempt = now;
+      this.isReconnecting = true;
+
+      // Only attempt reconnection if we're in a valid game phase
+      const validReconnectionPhases = [
+        'lobby',
+        'dealer_selection',
+        'team_summary',
+        'dealing_animation',
+        'farmers_hand_check',
+        'farmers_hand_swap',
+        'bidding_round1',
+        'bidding_round2',
+        'dealer_discard',
+        'playing',
+        'trick_complete',
+        'hand_complete',
+      ];
+
+      if (validReconnectionPhases.includes(this.config.gameState.phase)) {
+        this.logger.info('Starting host reconnection polling', {
+          gamePhase: this.config.gameState.phase,
+          hostPlayerId: peerId,
+        });
+
+        this.config.setConnectionStatus('reconnecting');
+
+        this.config.pollForHostReconnection!()
+          .then(success => {
+            if (success) {
+              this.logger.info('Host reconnection polling successful');
+            } else {
+              this.logger.warn('Host reconnection polling failed');
+            }
+          })
+          .catch(error => {
+            this.logger.error('Host reconnection polling error', {
+              error: error instanceof Error ? error.message : String(error),
+            });
+            this.config?.setConnectionStatus('error');
+          })
+          .finally(() => {
+            this.logger.debug('Host reconnection polling completed');
+            this.isReconnecting = false;
+          });
+      } else {
+        this.logger.warn('Cannot reconnect in current game phase', {
+          gamePhase: this.config.gameState.phase,
+          validPhases: validReconnectionPhases,
+        });
+        this.config.setConnectionStatus('disconnected');
+        this.isReconnecting = false;
+      }
+    }
   }
 
   getNetworkManager(): NetworkManager | null {

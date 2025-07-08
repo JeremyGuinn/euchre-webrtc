@@ -113,6 +113,13 @@ export function useConnectionActions(
         setIsHost(false);
         logger.debug('Player state updated', { playerId, isHost: false });
 
+        // Update network service configuration immediately with the new playerId
+        // This ensures the message handlers have the correct context when JOIN_RESPONSE arrives
+        networkService.updateConfig({
+          myPlayerId: playerId,
+          isHost: false,
+        });
+
         // We'll save session data when we successfully join and get a game ID
         // This will be done in the JOIN_RESPONSE handler
         logger.debug('Session will be saved when JOIN_RESPONSE is received');

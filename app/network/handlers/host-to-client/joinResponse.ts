@@ -8,7 +8,7 @@ const handleJoinResponseImpl: MessageHandler<JoinResponseMessage> = (
   _senderId,
   context
 ) => {
-  const { dispatch, myPlayerId, setConnectionStatus } = context;
+  const { dispatch, setConnectionStatus } = context;
   const { success, gameState: newGameState, player, error } = message.payload;
 
   if (!success || !newGameState || !player) {
@@ -19,7 +19,7 @@ const handleJoinResponseImpl: MessageHandler<JoinResponseMessage> = (
   // Save session data for reconnection (for clients)
   if (newGameState.gameCode && !player.isHost) {
     SessionStorageService.saveSession({
-      playerId: myPlayerId, // Use the current player ID (which is the new peer ID)
+      playerId: player.id,
       gameId: newGameState.id,
       gameCode: newGameState.gameCode,
       isHost: false,
@@ -33,7 +33,7 @@ const handleJoinResponseImpl: MessageHandler<JoinResponseMessage> = (
     payload: {
       gameState: newGameState,
       playerHand: newGameState.playerHand,
-      receivingPlayerId: myPlayerId,
+      receivingPlayerId: player.id,
     },
   });
 

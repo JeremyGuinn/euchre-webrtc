@@ -1,4 +1,11 @@
-import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
 
 import { GameNetworkService } from '~/services/networkService';
 import { SessionStorageService } from '~/services/sessionService';
@@ -12,7 +19,6 @@ import { useGameActions } from './useGameActions';
 import { useGameStateEffects } from './useGameStateEffects';
 import { useGameStatePersistence } from './useGameStatePersistence';
 import { useGameUtils } from './useGameUtils';
-import { useNetworkHandlers } from './useNetworkHandlers';
 
 export function useGameProvider() {
   // Check for existing session to determine initial connection status
@@ -84,10 +90,26 @@ export function useGameProvider() {
   );
 
   // Handle when a player gets kicked from the game
-  const handleKicked = (message: string) =>
-    connectionActions.leaveGame('kicked', { message });
+  const handleKicked = useCallback(
+    (message: string) => connectionActions.leaveGame('kicked', { message }),
+    [connectionActions]
+  );
 
-  useNetworkHandlers(
+  // Configure and update network service with game state and handlers
+  useEffect(() => {
+    networkService.configure({
+      gameState,
+      myPlayerId,
+      isHost,
+      dispatch,
+      broadcastGameState,
+      handleKicked,
+      setConnectionStatus,
+      setMyPlayerId,
+      setIsHost,
+      pollForHostReconnection: connectionActions.pollForHostReconnection,
+    });
+  }, [
     networkService,
     gameState,
     myPlayerId,
@@ -98,8 +120,8 @@ export function useGameProvider() {
     setConnectionStatus,
     setMyPlayerId,
     setIsHost,
-    connectionActions.pollForHostReconnection
-  );
+    connectionActions.pollForHostReconnection,
+  ]);
 
   // Track if we've already attempted auto-reconnection to prevent infinite loops
   const hasAttemptedReconnection = useRef(false);

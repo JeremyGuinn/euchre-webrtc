@@ -102,7 +102,3 @@ type ExtractMessageType<T extends MessageType> = Extract<
 export type MessageHandlers = {
   [K in MessageType]: MessageHandler<ExtractMessageType<K>>;
 };
-
-export type PeerMessageHandlers = {
-  [K in MessageType]: PeerMessageHandlers;
-};

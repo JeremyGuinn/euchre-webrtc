@@ -598,6 +598,10 @@ export class NetworkManager {
     this.connectionHandlers.forEach(handler => handler(peerId, connected));
   }
 
+  isConnected(): boolean {
+    return this.getConnectedPeers().length > 0;
+  }
+
   disconnect(): void {
     this.logger.info('Disconnecting network manager', {
       connectionCount: this.connections.size,

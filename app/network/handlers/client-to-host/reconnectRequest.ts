@@ -1,9 +1,12 @@
 import type { HandlerContext } from '~/types/handlers';
 import type { ReconnectRequestMessage } from '~/types/messages';
 
+import { createScopedLogger } from '~/services/loggingService';
 import { createPublicGameState } from '~/utils/gameState';
 import { createMessageId } from '~/utils/protocol';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
+
+const logger = createScopedLogger('reconnectRequest');
 
 /**
  * Handles RECONNECT_REQUEST messages sent by players trying to reconnect to the game.
@@ -25,6 +28,20 @@ const handleReconnectRequestImpl = (
   const existingPlayer = gameState.players.find(p => p.id === originalPlayerId);
 
   if (!existingPlayer) {
+    // Log detailed information for debugging
+    logger.error('Reconnection failed - Player not found', {
+      originalPlayerId,
+      playerName,
+      senderId,
+      currentPlayers: gameState.players.map(p => ({
+        id: p.id,
+        name: p.name,
+        isConnected: p.isConnected,
+      })),
+      gameId: gameState.id,
+      gamePhase: gameState.phase,
+    });
+
     // Player not found in game, treat as error
     networkManager?.sendMessage(
       {
@@ -32,14 +49,21 @@ const handleReconnectRequestImpl = (
         timestamp: Date.now(),
         messageId: createMessageId(),
         payload: {
-          message:
-            'Player not found in this game. You may be trying to reconnect to the wrong game.',
+          message: `Player not found in this game. You may be trying to reconnect to the wrong game. Looking for player ID: ${originalPlayerId}`,
         },
       },
       senderId
     );
     return;
   }
+
+  logger.info('Processing player reconnection', {
+    originalPlayerId,
+    newPlayerId: senderId,
+    playerName,
+    existingPlayerName: existingPlayer.name,
+    gamePhase: gameState.phase,
+  });
 
   // Update the player's ID mapping and connection status
   dispatch({
@@ -108,6 +132,13 @@ const handleReconnectRequestImpl = (
       player.id
     );
   }
+
+  logger.info('Player reconnection completed successfully', {
+    originalPlayerId,
+    newPlayerId: senderId,
+    playerName,
+    gamePhase: gameState.phase,
+  });
 };
 
 export const handleReconnectRequest = createClientToHostHandler(
