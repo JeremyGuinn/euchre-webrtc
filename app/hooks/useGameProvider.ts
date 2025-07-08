@@ -71,31 +71,6 @@ export function useGameProvider() {
 
   useGameStatePersistence(gameState, isHost, connectionStatus);
 
-  // Handle page unload to send leave message
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      // If we're a connected client, try to send a leave message
-      if (!isHost && connectionStatus === 'connected') {
-        // Use sendBeacon for reliability during page unload
-        try {
-          networkService.sendMessage({
-            type: 'LEAVE_GAME',
-            timestamp: Date.now(),
-            messageId: `leave-${Date.now()}`,
-            payload: { reason: 'manual' },
-          });
-        } catch {
-          // If sendMessage fails, there's not much we can do during unload
-        }
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [networkService, isHost, connectionStatus]);
-
   const connectionActions = useConnectionActions(
     networkService,
     connectionStatus,
