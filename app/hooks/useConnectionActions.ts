@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router';
 
 import { GameStatePersistenceService } from '~/services/gameStatePersistenceService';
+import { createScopedLogger } from '~/services/loggingService';
 import { GameNetworkService } from '~/services/networkService';
 import { SessionStorageService } from '~/services/sessionService';
 import type { ReconnectionStatus } from '~/types/gameContext';
@@ -25,85 +26,336 @@ export function useConnectionActions(
   setReconnectionStatus: (status: ReconnectionStatus) => void
 ) {
   const navigate = useNavigate();
+  const logger = createScopedLogger('useConnectionActions');
 
   const hostGame = useCallback(async (): Promise<string> => {
-    if (connectionStatus === 'connected') {
-      throw new Error('Cannot host game: already connected to a game');
-    }
+    return logger.withPerformance('hostGame', async () => {
+      logger.info('Starting to host game', {
+        connectionStatus,
+        myPlayerId: myPlayerId || 'none',
+      });
 
-    SessionStorageService.clearSession();
-
-    const { gameCode, hostId, gameUuid } = await networkService.hostGame();
-
-    setMyPlayerId(hostId);
-    setIsHost(true);
-
-    // Save session data for reconnection
-    SessionStorageService.saveSession({
-      playerId: hostId,
-      gameId: gameUuid,
-      gameCode,
-      isHost: true,
-      playerName: 'Host',
-    });
-
-    dispatch({
-      type: 'INIT_GAME',
-      payload: { hostId, gameId: gameUuid, gameCode },
-    });
-
-    return gameCode;
-  }, [connectionStatus, networkService, setMyPlayerId, setIsHost, dispatch]);
-
-  const joinGame = useCallback(
-    async (gameCode: string, playerName: string): Promise<void> => {
-      if (
-        connectionStatus === 'connected' ||
-        connectionStatus === 'connecting'
-      ) {
-        const error = 'Cannot join game: already connected to a game';
+      if (connectionStatus === 'connected') {
+        const error = 'Cannot host game: already connected to a game';
+        logger.error(error, { connectionStatus });
         throw new Error(error);
       }
 
       SessionStorageService.clearSession();
+      logger.debug('Cleared previous session');
 
-      const playerId = await networkService.joinGame(gameCode, playerName);
-      setMyPlayerId(playerId);
-      setIsHost(false);
+      const { gameCode, hostId, gameUuid } = await networkService.hostGame();
+      logger.info('Game hosted successfully', { gameCode, hostId, gameUuid });
 
-      // We'll save session data when we successfully join and get a game ID
-      // This will be done in the JOIN_RESPONSE handler
+      setMyPlayerId(hostId);
+      setIsHost(true);
+
+      // Save session data for reconnection
+      const sessionData = {
+        playerId: hostId,
+        gameId: gameUuid,
+        gameCode,
+        isHost: true,
+        playerName: 'Host',
+      };
+
+      SessionStorageService.saveSession(sessionData);
+      logger.debug('Session saved for reconnection', { sessionData });
+
+      dispatch({
+        type: 'INIT_GAME',
+        payload: { hostId, gameId: gameUuid, gameCode },
+      });
+      logger.debug('Game initialization dispatched');
+
+      return gameCode;
+    });
+  }, [
+    connectionStatus,
+    networkService,
+    setMyPlayerId,
+    setIsHost,
+    dispatch,
+    logger,
+    myPlayerId,
+  ]);
+
+  const joinGame = useCallback(
+    async (gameCode: string, playerName: string): Promise<void> => {
+      return logger.withPerformance('joinGame', async () => {
+        logger.info('Attempting to join game', {
+          gameCode,
+          playerName,
+          connectionStatus,
+          myPlayerId: myPlayerId || 'none',
+        });
+
+        if (
+          connectionStatus === 'connected' ||
+          connectionStatus === 'connecting'
+        ) {
+          const error = 'Cannot join game: already connected to a game';
+          logger.error(error, { connectionStatus });
+          throw new Error(error);
+        }
+
+        SessionStorageService.clearSession();
+        logger.debug('Cleared previous session');
+
+        const playerId = await networkService.joinGame(gameCode, playerName);
+        logger.info('Join game request sent', {
+          gameCode,
+          playerName,
+          playerId,
+        });
+
+        setMyPlayerId(playerId);
+        setIsHost(false);
+        logger.debug('Player state updated', { playerId, isHost: false });
+
+        // We'll save session data when we successfully join and get a game ID
+        // This will be done in the JOIN_RESPONSE handler
+        logger.debug('Session will be saved when JOIN_RESPONSE is received');
+      });
     },
-    [connectionStatus, networkService, setMyPlayerId, setIsHost]
+    [
+      connectionStatus,
+      networkService,
+      setMyPlayerId,
+      setIsHost,
+      logger,
+      myPlayerId,
+    ]
   );
 
   const attemptReconnection = useCallback(async (): Promise<boolean> => {
-    const session = SessionStorageService.getSession();
-    if (!session || !session.gameCode) {
-      return false;
-    }
+    return logger.withPerformance('attemptReconnection', async () => {
+      logger.info('Starting reconnection attempt');
 
-    // Check if we should attempt auto-reconnection based on time
-    if (!shouldAttemptAutoReconnection(session)) {
-      SessionStorageService.clearSession();
-      return false;
-    }
+      const session = SessionStorageService.getSession();
+      if (!session || !session.gameCode) {
+        logger.warn('No session found for reconnection');
+        return false;
+      }
 
-    try {
-      // Reset reconnection status
-      setReconnectionStatus({
-        isReconnecting: true,
-        attempt: 0,
-        maxRetries: 0,
+      logger.debug('Session found for reconnection', {
+        gameCode: session.gameCode,
+        playerId: session.playerId,
+        isHost: session.isHost,
+        playerName: session.playerName,
       });
 
-      if (session.isHost) {
-        // Reconnect as host with timeout and retry callback
+      // Check if we should attempt auto-reconnection based on time
+      if (!shouldAttemptAutoReconnection(session)) {
+        logger.warn('Auto-reconnection window expired, clearing session');
+        SessionStorageService.clearSession();
+        return false;
+      }
+
+      try {
+        // Reset reconnection status
+        setReconnectionStatus({
+          isReconnecting: true,
+          attempt: 0,
+          maxRetries: 0,
+        });
+        logger.debug('Reconnection status reset');
+
+        if (session.isHost) {
+          logger.info('Attempting host reconnection', {
+            hostId: session.playerId,
+            gameCode: session.gameCode,
+          });
+
+          // Reconnect as host with timeout and retry callback
+          const onRetryAttempt = (
+            attempt: number,
+            maxRetries: number,
+            reason?: string
+          ) => {
+            logger.debug('Host reconnection retry', {
+              attempt,
+              maxRetries,
+              reason,
+            });
+            setReconnectionStatus({
+              isReconnecting: true,
+              attempt,
+              maxRetries,
+              reason,
+            });
+          };
+
+          const reconnectionResult = await withTimeout(
+            networkService.reconnectAsHost(
+              session.playerId,
+              session.gameCode,
+              onRetryAttempt
+            ),
+            RECONNECTION_CONFIG.TIMEOUT_MS,
+            'Host reconnection timed out'
+          );
+
+          logger.info('Host reconnection successful', {
+            hostId: reconnectionResult.hostId,
+            gameCode: reconnectionResult.gameCode,
+            gameCodeChanged: reconnectionResult.gameCode !== session.gameCode,
+          });
+
+          setMyPlayerId(reconnectionResult.hostId);
+          setIsHost(true);
+
+          // Try to restore the full game state from localStorage
+          const savedGameState = GameStatePersistenceService.loadGameState(
+            session.gameId
+          );
+
+          if (savedGameState) {
+            logger.debug('Restoring saved game state', {
+              gameId: session.gameId,
+              hasGameState: !!savedGameState,
+            });
+
+            // If game code changed, update the game state with the new code
+            const gameStateToRestore =
+              reconnectionResult.gameCode !== session.gameCode
+                ? { ...savedGameState, gameCode: reconnectionResult.gameCode }
+                : savedGameState;
+
+            // Restore the complete game state
+            dispatch({
+              type: 'RESTORE_GAME_STATE',
+              payload: { gameState: gameStateToRestore },
+            });
+            logger.debug('Game state restored successfully');
+          } else {
+            logger.warn('No saved game state found, returning to home');
+            // If no saved state, we'll return to home
+            navigate('/');
+          }
+
+          SessionStorageService.updateLastConnectionTime();
+          setConnectionStatus('connected');
+
+          // Reset reconnection status on success
+          setReconnectionStatus({
+            isReconnecting: false,
+            attempt: 0,
+            maxRetries: 0,
+          });
+
+          return true;
+        } else {
+          logger.info('Attempting client reconnection', {
+            gameCode: session.gameCode,
+            playerId: session.playerId,
+            playerName: session.playerName,
+          });
+
+          // Reconnect as client with timeout
+          const playerName = session.playerName || 'Reconnecting Player';
+          await withTimeout(
+            networkService.reconnectAsClient(
+              session.gameCode,
+              session.playerId,
+              playerName
+            ),
+            RECONNECTION_CONFIG.TIMEOUT_MS,
+            'Client reconnection timed out'
+          );
+
+          // Update to the new peer ID that was generated during reconnection
+          const newPeerId = networkService.getNetworkManager()?.myId;
+          if (newPeerId) {
+            logger.debug('Updated to new peer ID', {
+              oldPeerId: session.playerId,
+              newPeerId,
+            });
+            setMyPlayerId(newPeerId);
+          }
+          setIsHost(false);
+
+          SessionStorageService.updateLastConnectionTime();
+          logger.info('Client reconnection successful');
+          // Connection status will be updated when we receive JOIN_RESPONSE
+          return true;
+        }
+      } catch (error) {
+        logger.error('Reconnection failed', {
+          error: error instanceof Error ? error.message : String(error),
+          sessionGameCode: session.gameCode,
+          sessionIsHost: session.isHost,
+        });
+
+        setConnectionStatus('error');
+
+        // Reset reconnection status on failure
+        setReconnectionStatus({
+          isReconnecting: false,
+          attempt: 0,
+          maxRetries: 0,
+        });
+
+        // Clear session if reconnection failed
+        setTimeout(() => {
+          logger.debug('Clearing session after reconnection failure');
+          SessionStorageService.clearSession();
+          setConnectionStatus('disconnected');
+        }, 3000); // Show error for 3 seconds before clearing
+
+        return false;
+      }
+    });
+  }, [
+    networkService,
+    setConnectionStatus,
+    setMyPlayerId,
+    setIsHost,
+    dispatch,
+    navigate,
+    setReconnectionStatus,
+    logger,
+  ]);
+
+  const pollForHostReconnection = useCallback(async (): Promise<boolean> => {
+    return logger.withPerformance('pollForHostReconnection', async () => {
+      logger.info('Starting host reconnection polling');
+
+      const session = SessionStorageService.getSession();
+      if (!session || !session.gameCode || session.isHost) {
+        logger.warn('Cannot poll for host reconnection', {
+          hasSession: !!session,
+          hasGameCode: !!session?.gameCode,
+          isHost: session?.isHost,
+        });
+        return false;
+      }
+
+      logger.debug('Session found for host reconnection polling', {
+        gameCode: session.gameCode,
+        playerId: session.playerId,
+        playerName: session.playerName,
+      });
+
+      try {
+        // Reset reconnection status
+        setReconnectionStatus({
+          isReconnecting: true,
+          attempt: 0,
+          maxRetries: RECONNECTION_CONFIG.CLIENT_POLL_MAX_ATTEMPTS,
+        });
+        logger.debug('Reconnection status reset for polling');
+
         const onRetryAttempt = (
           attempt: number,
           maxRetries: number,
           reason?: string
         ) => {
+          logger.debug('Host reconnection poll retry', {
+            attempt,
+            maxRetries,
+            reason,
+          });
           setReconnectionStatus({
             isReconnecting: true,
             attempt,
@@ -112,40 +364,25 @@ export function useConnectionActions(
           });
         };
 
-        const reconnectionResult = await withTimeout(
-          networkService.reconnectAsHost(
-            session.playerId,
-            session.gameCode,
-            onRetryAttempt
-          ),
-          RECONNECTION_CONFIG.TIMEOUT_MS,
-          'Host reconnection timed out'
+        await networkService.pollReconnectAsClient(
+          session.gameCode,
+          session.playerId,
+          session.playerName || 'Reconnecting Player',
+          onRetryAttempt
         );
 
-        setMyPlayerId(reconnectionResult.hostId);
-        setIsHost(true);
+        logger.info('Host reconnection polling successful');
 
-        // Try to restore the full game state from localStorage
-        const savedGameState = GameStatePersistenceService.loadGameState(
-          session.gameId
-        );
-
-        if (savedGameState) {
-          // If game code changed, update the game state with the new code
-          const gameStateToRestore =
-            reconnectionResult.gameCode !== session.gameCode
-              ? { ...savedGameState, gameCode: reconnectionResult.gameCode }
-              : savedGameState;
-
-          // Restore the complete game state
-          dispatch({
-            type: 'RESTORE_GAME_STATE',
-            payload: { gameState: gameStateToRestore },
+        // Update to the new peer ID that was generated during reconnection
+        const newPeerId = networkService.getNetworkManager()?.myId;
+        if (newPeerId) {
+          logger.debug('Updated to new peer ID after polling', {
+            oldPeerId: session.playerId,
+            newPeerId,
           });
-        } else {
-          // If no saved state, we'll return to home
-          navigate('/');
+          setMyPlayerId(newPeerId);
         }
+        setIsHost(false);
 
         SessionStorageService.updateLastConnectionTime();
         setConnectionStatus('connected');
@@ -158,129 +395,35 @@ export function useConnectionActions(
         });
 
         return true;
-      } else {
-        // Reconnect as client with timeout
-        const playerName = session.playerName || 'Reconnecting Player';
-        await withTimeout(
-          networkService.reconnectAsClient(
-            session.gameCode,
-            session.playerId,
-            playerName
-          ),
-          RECONNECTION_CONFIG.TIMEOUT_MS,
-          'Client reconnection timed out'
-        );
-
-        // Update to the new peer ID that was generated during reconnection
-        const newPeerId = networkService.getNetworkManager()?.myId;
-        if (newPeerId) {
-          setMyPlayerId(newPeerId);
-        }
-        setIsHost(false);
-
-        SessionStorageService.updateLastConnectionTime();
-        // Connection status will be updated when we receive JOIN_RESPONSE
-        return true;
-      }
-    } catch {
-      setConnectionStatus('error');
-
-      // Reset reconnection status on failure
-      setReconnectionStatus({
-        isReconnecting: false,
-        attempt: 0,
-        maxRetries: 0,
-      });
-
-      // Clear session if reconnection failed
-      setTimeout(() => {
-        SessionStorageService.clearSession();
-        setConnectionStatus('disconnected');
-      }, 3000); // Show error for 3 seconds before clearing
-
-      return false;
-    }
-  }, [
-    networkService,
-    setConnectionStatus,
-    setMyPlayerId,
-    setIsHost,
-    dispatch,
-    navigate,
-    setReconnectionStatus,
-  ]);
-
-  const pollForHostReconnection = useCallback(async (): Promise<boolean> => {
-    const session = SessionStorageService.getSession();
-    if (!session || !session.gameCode || session.isHost) {
-      return false;
-    }
-
-    try {
-      // Reset reconnection status
-      setReconnectionStatus({
-        isReconnecting: true,
-        attempt: 0,
-        maxRetries: RECONNECTION_CONFIG.CLIENT_POLL_MAX_ATTEMPTS,
-      });
-
-      const onRetryAttempt = (
-        attempt: number,
-        maxRetries: number,
-        reason?: string
-      ) => {
-        setReconnectionStatus({
-          isReconnecting: true,
-          attempt,
-          maxRetries,
-          reason,
+      } catch (error) {
+        logger.error('Host reconnection polling failed', {
+          error: error instanceof Error ? error.message : String(error),
+          sessionGameCode: session.gameCode,
+          sessionPlayerId: session.playerId,
         });
-      };
 
-      await networkService.pollReconnectAsClient(
-        session.gameCode,
-        session.playerId,
-        session.playerName || 'Reconnecting Player',
-        onRetryAttempt
-      );
+        setConnectionStatus('error');
 
-      // Update to the new peer ID that was generated during reconnection
-      const newPeerId = networkService.getNetworkManager()?.myId;
-      if (newPeerId) {
-        setMyPlayerId(newPeerId);
+        // Reset reconnection status on failure
+        setReconnectionStatus({
+          isReconnecting: false,
+          attempt: 0,
+          maxRetries: 0,
+        });
+
+        // Clear session if reconnection failed
+        setTimeout(() => {
+          logger.debug(
+            'Clearing session and navigating home after polling failure'
+          );
+          SessionStorageService.clearSession();
+          setConnectionStatus('disconnected');
+          navigate('/');
+        }, 3000); // Show error for 3 seconds before clearing
+
+        return false;
       }
-      setIsHost(false);
-
-      SessionStorageService.updateLastConnectionTime();
-      setConnectionStatus('connected');
-
-      // Reset reconnection status on success
-      setReconnectionStatus({
-        isReconnecting: false,
-        attempt: 0,
-        maxRetries: 0,
-      });
-
-      return true;
-    } catch {
-      setConnectionStatus('error');
-
-      // Reset reconnection status on failure
-      setReconnectionStatus({
-        isReconnecting: false,
-        attempt: 0,
-        maxRetries: 0,
-      });
-
-      // Clear session if reconnection failed
-      setTimeout(() => {
-        SessionStorageService.clearSession();
-        setConnectionStatus('disconnected');
-        navigate('/');
-      }, 3000); // Show error for 3 seconds before clearing
-
-      return false;
-    }
+    });
   }, [
     networkService,
     setConnectionStatus,
@@ -288,6 +431,7 @@ export function useConnectionActions(
     setIsHost,
     setReconnectionStatus,
     navigate,
+    logger,
   ]);
 
   const leaveGame = useCallback(
@@ -295,37 +439,63 @@ export function useConnectionActions(
       reason: 'manual' | 'error' | 'network' | 'kicked' = 'manual',
       additionalContext: Record<string, unknown> = {}
     ) => {
-      setConnectionStatus('disconnected');
-      setMyPlayerId('');
-      setIsHost(false);
-      SessionStorageService.clearSession();
+      return logger.withOperation('leaveGame', async () => {
+        logger.info('Leaving game', {
+          reason,
+          isHost,
+          connectionStatus,
+          myPlayerId: myPlayerId || 'none',
+          additionalContext,
+        });
 
-      // If we're a client (not host), send leave message first
-      if (!isHost && connectionStatus === 'connected') {
-        try {
-          await networkService.leaveGame(reason);
-        } catch {
-          // If sending leave message fails, just disconnect normally
-        }
-      }
+        setConnectionStatus('disconnected');
+        setMyPlayerId('');
+        setIsHost(false);
+        SessionStorageService.clearSession();
+        logger.debug('Player state and session cleared');
 
-      switch (reason) {
-        case 'manual':
-        case 'error':
-        case 'network':
-          navigate('/');
-          break;
-        case 'kicked':
-          navigate('/', {
-            state: {
-              kickMessage:
-                'message' in additionalContext
-                  ? additionalContext.message
-                  : undefined,
-            },
+        // If we're a client (not host), send leave message first
+        if (!isHost && connectionStatus === 'connected') {
+          try {
+            logger.debug('Sending leave message as client');
+            await networkService.leaveGame(reason);
+            logger.debug('Leave message sent successfully');
+          } catch (error) {
+            logger.warn('Failed to send leave message', {
+              error: error instanceof Error ? error.message : String(error),
+            });
+            // If sending leave message fails, just disconnect normally
+          }
+        } else {
+          logger.debug('Skipping leave message', {
+            isHost,
+            connectionStatus,
           });
-          break;
-      }
+        }
+
+        switch (reason) {
+          case 'manual':
+          case 'error':
+          case 'network':
+            logger.info('Navigating to home', { reason });
+            navigate('/');
+            break;
+          case 'kicked': {
+            const kickMessage =
+              'message' in additionalContext
+                ? additionalContext.message
+                : undefined;
+            logger.info('Navigating to home with kick message', {
+              reason,
+              kickMessage,
+            });
+            navigate('/', {
+              state: { kickMessage },
+            });
+            break;
+          }
+        }
+      });
     },
     [
       networkService,
@@ -335,6 +505,8 @@ export function useConnectionActions(
       setMyPlayerId,
       setIsHost,
       navigate,
+      logger,
+      myPlayerId,
     ]
   );
 

@@ -1,3 +1,4 @@
+import { createScopedLogger } from '~/services/loggingService';
 import type { GameMessage } from '~/types/messages';
 import { gameCodeToHostId, generateGameCode } from '~/utils/gameCode';
 import {
@@ -12,7 +13,6 @@ import {
   isPeerJSIdConflictError,
   sleep,
 } from '~/utils/reconnection';
-import { createScopedLogger } from '~/services/loggingService';
 
 export class GameNetworkService {
   private networkManager: NetworkManager = new NetworkManager();
@@ -27,7 +27,9 @@ export class GameNetworkService {
   }
 
   setConnectionChangeHandler(handler: PeerConnectionHandler) {
+    this.logger.debug('Setting connection change handler');
     this.networkManager.onConnectionChange((peerId, connected) => {
+      this.logger.debug('Peer connection changed', { peerId, connected });
       handler(peerId, connected);
     });
   }
@@ -67,55 +69,103 @@ export class GameNetworkService {
   }
 
   async joinGame(gameCode: string, playerName: string): Promise<string> {
-    const hostId = gameCodeToHostId(gameCode);
-    const playerId = await this.networkManager.initialize(false);
+    return this.logger.withPerformance('joinGame', async () => {
+      this.logger.info('Attempting to join game', { gameCode, playerName });
 
-    await this.networkManager.connectToPeer(hostId);
+      const hostId = gameCodeToHostId(gameCode);
+      this.logger.debug('Resolved host ID from game code', {
+        gameCode,
+        hostId,
+      });
 
-    this.networkManager.sendMessage(
-      {
+      const playerId = await this.networkManager.initialize(false);
+      this.logger.debug('Network manager initialized', { playerId });
+
+      await this.networkManager.connectToPeer(hostId);
+      this.logger.debug('Connected to host peer', { hostId });
+
+      const joinMessage = {
         type: 'JOIN_REQUEST',
         timestamp: Date.now(),
         messageId: createMessageId(),
         payload: { playerName },
-      },
-      hostId
-    );
+      } as GameMessage;
 
-    return playerId;
+      this.logger.debug('Sending join request', { message: joinMessage });
+      this.networkManager.sendMessage(joinMessage, hostId);
+
+      this.logger.info('Join game request sent successfully', {
+        gameCode,
+        playerName,
+        playerId,
+      });
+      return playerId;
+    });
   }
 
   sendMessage(message: GameMessage, targetId?: string) {
+    this.logger.debug('Sending message', {
+      messageType: message.type,
+      messageId: message.messageId,
+      targetId,
+      timestamp: message.timestamp,
+    });
     this.networkManager.sendMessage(message, targetId);
   }
 
   registerMessageHandler(messageType: string, handler: PeerMessageHandler) {
-    this.networkManager.onMessage(messageType, handler);
+    this.logger.debug('Registering message handler', { messageType });
+    this.networkManager.onMessage(messageType, (message, senderId) => {
+      this.logger.debug('Message received', {
+        messageType,
+        messageId: message.messageId,
+        senderId,
+        timestamp: message.timestamp,
+      });
+      handler(message, senderId);
+    });
   }
 
   disconnect() {
+    this.logger.info('Disconnecting from network');
     this.networkManager.disconnect();
+    this.logger.debug('Network disconnection completed');
   }
 
   async leaveGame(
     reason: 'manual' | 'error' | 'network' | 'kicked' = 'manual'
   ): Promise<void> {
-    try {
-      if (reason !== 'kicked') {
-        // Send leave message to host before disconnecting
-        this.networkManager.sendMessage({
-          type: 'LEAVE_GAME',
-          timestamp: Date.now(),
-          messageId: createMessageId(),
-          payload: { reason },
-        });
+    return this.logger.withOperation('leaveGame', async () => {
+      this.logger.info('Leaving game', { reason });
 
-        // Give a brief moment for the message to be sent before disconnecting
-        await sleep(100);
+      try {
+        if (reason !== 'kicked') {
+          this.logger.debug('Sending leave game message to host', { reason });
+
+          // Send leave message to host before disconnecting
+          this.networkManager.sendMessage({
+            type: 'LEAVE_GAME',
+            timestamp: Date.now(),
+            messageId: createMessageId(),
+            payload: { reason },
+          } as GameMessage);
+
+          // Give a brief moment for the message to be sent before disconnecting
+          await sleep(100);
+          this.logger.debug('Leave message sent, waiting before disconnect');
+        } else {
+          this.logger.debug('Skipping leave message (kicked from game)');
+        }
+      } catch (error) {
+        this.logger.error('Error sending leave game message', {
+          error: error instanceof Error ? error.message : String(error),
+          reason,
+        });
+      } finally {
+        this.disconnect();
+        this.logger.info('Game left successfully', { reason });
       }
-    } finally {
-      this.disconnect();
-    }
+    });
   }
 
   async reconnectAsHost(
@@ -127,75 +177,143 @@ export class GameNetworkService {
       reason?: string
     ) => void
   ): Promise<{ hostId: string; gameCode: string }> {
-    let lastError: Error | null = null;
-    let currentHostId = hostId;
-    let currentGameCode = gameCode;
+    return this.logger.withPerformance('reconnectAsHost', async () => {
+      this.logger.info('Starting host reconnection', { hostId, gameCode });
 
-    for (
-      let attempt = 0;
-      attempt < RECONNECTION_CONFIG.MAX_RETRIES;
-      attempt++
-    ) {
-      try {
-        // Notify about retry attempt if this isn't the first attempt
-        if (attempt > 0 && onRetryAttempt) {
-          const reason = isPeerJSIdConflictError(lastError!)
-            ? 'Game ID conflict detected'
-            : 'Connection failed';
-          onRetryAttempt(attempt + 1, RECONNECTION_CONFIG.MAX_RETRIES, reason);
-        }
+      let lastError: Error | null = null;
+      let currentHostId = hostId;
+      let currentGameCode = gameCode;
 
-        await this.networkManager.initialize(true, currentHostId);
+      for (
+        let attempt = 0;
+        attempt < RECONNECTION_CONFIG.MAX_RETRIES;
+        attempt++
+      ) {
+        try {
+          this.logger.debug('Host reconnection attempt', {
+            attempt: attempt + 1,
+            maxRetries: RECONNECTION_CONFIG.MAX_RETRIES,
+            currentHostId,
+            currentGameCode,
+          });
 
-        // If we had to generate a new game code, update the session
-        if (currentGameCode !== gameCode) {
-          const { SessionStorageService } = await import(
-            '~/services/sessionService'
-          );
-          const session = SessionStorageService.getSession();
-          if (session) {
-            SessionStorageService.saveSession({
-              ...session,
-              gameCode: currentGameCode,
-              playerId: currentHostId,
+          // Notify about retry attempt if this isn't the first attempt
+          if (attempt > 0 && onRetryAttempt) {
+            const reason = isPeerJSIdConflictError(lastError!)
+              ? 'Game ID conflict detected'
+              : 'Connection failed';
+
+            this.logger.warn('Host reconnection retry', {
+              attempt: attempt + 1,
+              reason,
+              lastError: lastError?.message,
             });
-          }
-        }
 
-        return { hostId: currentHostId, gameCode: currentGameCode }; // Success!
-      } catch (error) {
-        lastError = error as Error;
-
-        // Check if this looks like an ID conflict error using the helper function
-        const isIdConflict = isPeerJSIdConflictError(lastError);
-
-        // If this isn't the last attempt, prepare for retry
-        if (attempt < RECONNECTION_CONFIG.MAX_RETRIES - 1) {
-          // For ID conflicts, generate a new game code after the first few attempts
-          if (isIdConflict && attempt >= 1) {
-            const { generateGameCode, gameCodeToHostId } = await import(
-              '~/utils/gameCode'
+            onRetryAttempt(
+              attempt + 1,
+              RECONNECTION_CONFIG.MAX_RETRIES,
+              reason
             );
-            currentGameCode = generateGameCode();
-            currentHostId = gameCodeToHostId(currentGameCode);
-
-            // Clean up the old network manager before trying with the new ID
-            this.networkManager.disconnect();
           }
 
-          const delay =
-            RECONNECTION_CONFIG.INITIAL_RETRY_DELAY_MS *
-            Math.pow(RECONNECTION_CONFIG.RETRY_BACKOFF_MULTIPLIER, attempt);
+          await this.networkManager.initialize(true, currentHostId);
+          this.logger.debug(
+            'Network manager initialized for host reconnection',
+            { currentHostId }
+          );
 
-          await sleep(delay);
+          // If we had to generate a new game code, update the session
+          if (currentGameCode !== gameCode) {
+            this.logger.info('Updating session with new game code', {
+              oldGameCode: gameCode,
+              newGameCode: currentGameCode,
+              newHostId: currentHostId,
+            });
+
+            const { SessionStorageService } = await import(
+              '~/services/sessionService'
+            );
+            const session = SessionStorageService.getSession();
+            if (session) {
+              SessionStorageService.saveSession({
+                ...session,
+                gameCode: currentGameCode,
+                playerId: currentHostId,
+              });
+            }
+          }
+
+          this.logger.info('Host reconnection successful', {
+            hostId: currentHostId,
+            gameCode: currentGameCode,
+            attemptsUsed: attempt + 1,
+          });
+
+          return { hostId: currentHostId, gameCode: currentGameCode }; // Success!
+        } catch (error) {
+          lastError = error as Error;
+          this.logger.error('Host reconnection attempt failed', {
+            attempt: attempt + 1,
+            error: lastError.message,
+            currentHostId,
+            currentGameCode,
+          });
+
+          // Check if this looks like an ID conflict error using the helper function
+          const isIdConflict = isPeerJSIdConflictError(lastError);
+
+          // If this isn't the last attempt, prepare for retry
+          if (attempt < RECONNECTION_CONFIG.MAX_RETRIES - 1) {
+            // For ID conflicts, generate a new game code after the first few attempts
+            if (isIdConflict && attempt >= 1) {
+              this.logger.warn(
+                'ID conflict detected, generating new game code',
+                {
+                  attempt: attempt + 1,
+                  oldGameCode: currentGameCode,
+                  oldHostId: currentHostId,
+                }
+              );
+
+              const { generateGameCode, gameCodeToHostId } = await import(
+                '~/utils/gameCode'
+              );
+              currentGameCode = generateGameCode();
+              currentHostId = gameCodeToHostId(currentGameCode);
+
+              this.logger.debug('Generated new game identifiers', {
+                newGameCode: currentGameCode,
+                newHostId: currentHostId,
+              });
+
+              // Clean up the old network manager before trying with the new ID
+              this.networkManager.disconnect();
+            }
+
+            const delay =
+              RECONNECTION_CONFIG.INITIAL_RETRY_DELAY_MS *
+              Math.pow(RECONNECTION_CONFIG.RETRY_BACKOFF_MULTIPLIER, attempt);
+
+            this.logger.debug('Waiting before retry', {
+              delay,
+              attempt: attempt + 1,
+            });
+            await sleep(delay);
+          }
         }
       }
-    }
 
-    // If we get here, all attempts failed
-    const errorMessage = `Host reconnection failed after ${RECONNECTION_CONFIG.MAX_RETRIES} attempts. Last error: ${lastError?.message || 'Unknown error'}`;
+      // If we get here, all attempts failed
+      const errorMessage = `Host reconnection failed after ${RECONNECTION_CONFIG.MAX_RETRIES} attempts. Last error: ${lastError?.message || 'Unknown error'}`;
+      this.logger.error('Host reconnection failed permanently', {
+        maxRetries: RECONNECTION_CONFIG.MAX_RETRIES,
+        lastError: lastError?.message,
+        originalHostId: hostId,
+        originalGameCode: gameCode,
+      });
 
-    throw new Error(errorMessage);
+      throw new Error(errorMessage);
+    });
   }
 
   async reconnectAsClient(
@@ -203,19 +321,32 @@ export class GameNetworkService {
     playerId: string,
     playerName: string
   ): Promise<void> {
-    const hostId = gameCodeToHostId(gameCode);
+    return this.logger.withPerformance('reconnectAsClient', async () => {
+      this.logger.info('Starting client reconnection', {
+        gameCode,
+        playerId,
+        playerName,
+      });
 
-    // For client reconnection, we don't use the old player ID as the peer ID
-    // because PeerJS generates new IDs. Instead, we use the stored player ID
-    // in the message payload to identify ourselves to the host.
-    await this.networkManager.initialize(false);
+      const hostId = gameCodeToHostId(gameCode);
+      this.logger.debug('Resolved host ID for client reconnection', { hostId });
 
-    // Connect to the host
-    await this.networkManager.connectToPeer(hostId);
+      // For client reconnection, we don't use the old player ID as the peer ID
+      // because PeerJS generates new IDs. Instead, we use the stored player ID
+      // in the message payload to identify ourselves to the host.
+      const newPeerId = await this.networkManager.initialize(false);
+      this.logger.debug('Network manager initialized for client reconnection', {
+        newPeerId,
+      });
 
-    // Send a reconnection request with our original player ID
-    this.networkManager.sendMessage(
-      {
+      // Connect to the host
+      await this.networkManager.connectToPeer(hostId);
+      this.logger.debug('Connected to host for client reconnection', {
+        hostId,
+      });
+
+      // Send a reconnection request with our original player ID
+      const reconnectMessage = {
         type: 'RECONNECT_REQUEST',
         timestamp: Date.now(),
         messageId: createMessageId(),
@@ -223,9 +354,20 @@ export class GameNetworkService {
           playerName,
           playerId, // This is our original game player ID, not the new peer ID
         },
-      },
-      hostId
-    );
+      } as GameMessage;
+
+      this.logger.debug('Sending reconnection request', {
+        message: reconnectMessage,
+      });
+      this.networkManager.sendMessage(reconnectMessage, hostId);
+
+      this.logger.info('Client reconnection request sent successfully', {
+        gameCode,
+        playerId,
+        playerName,
+        newPeerId,
+      });
+    });
   }
 
   async pollReconnectAsClient(
@@ -238,51 +380,102 @@ export class GameNetworkService {
       reason?: string
     ) => void
   ): Promise<void> {
-    let lastError: Error | null = null;
+    return this.logger.withPerformance('pollReconnectAsClient', async () => {
+      this.logger.info('Starting polling client reconnection', {
+        gameCode,
+        playerId,
+        playerName,
+        maxAttempts: RECONNECTION_CONFIG.CLIENT_POLL_MAX_ATTEMPTS,
+      });
 
-    for (
-      let attempt = 0;
-      attempt < RECONNECTION_CONFIG.CLIENT_POLL_MAX_ATTEMPTS;
-      attempt++
-    ) {
-      try {
-        // Notify about retry attempt if this isn't the first attempt
-        if (attempt > 0 && onRetryAttempt) {
-          const reason = 'Host disconnected, attempting to reconnect';
-          onRetryAttempt(
-            attempt + 1,
-            RECONNECTION_CONFIG.CLIENT_POLL_MAX_ATTEMPTS,
-            reason
-          );
-        }
+      let lastError: Error | null = null;
 
-        // Clean up any existing connection before attempting reconnection
-        this.networkManager.disconnect();
+      for (
+        let attempt = 0;
+        attempt < RECONNECTION_CONFIG.CLIENT_POLL_MAX_ATTEMPTS;
+        attempt++
+      ) {
+        try {
+          this.logger.debug('Client reconnection poll attempt', {
+            attempt: attempt + 1,
+            maxAttempts: RECONNECTION_CONFIG.CLIENT_POLL_MAX_ATTEMPTS,
+            gameCode,
+            playerId,
+          });
 
-        // Attempt to reconnect
-        await this.reconnectAsClient(gameCode, playerId, playerName);
+          // Notify about retry attempt if this isn't the first attempt
+          if (attempt > 0 && onRetryAttempt) {
+            const reason = 'Host disconnected, attempting to reconnect';
 
-        return; // Success!
-      } catch (error) {
-        lastError = error as Error;
+            this.logger.warn('Client reconnection poll retry', {
+              attempt: attempt + 1,
+              reason,
+              lastError: lastError?.message,
+            });
 
-        // If this isn't the last attempt, wait before retrying
-        if (attempt < RECONNECTION_CONFIG.CLIENT_POLL_MAX_ATTEMPTS - 1) {
-          const delay =
-            RECONNECTION_CONFIG.CLIENT_POLL_INTERVAL_MS *
-            Math.pow(
-              RECONNECTION_CONFIG.CLIENT_POLL_BACKOFF_MULTIPLIER,
-              attempt
+            onRetryAttempt(
+              attempt + 1,
+              RECONNECTION_CONFIG.CLIENT_POLL_MAX_ATTEMPTS,
+              reason
             );
-          await sleep(delay);
+          }
+
+          // Clean up any existing connection before attempting reconnection
+          this.logger.debug('Cleaning up existing connections before retry');
+          this.networkManager.disconnect();
+
+          // Attempt to reconnect
+          await this.reconnectAsClient(gameCode, playerId, playerName);
+
+          this.logger.info('Client reconnection poll successful', {
+            gameCode,
+            playerId,
+            playerName,
+            attemptsUsed: attempt + 1,
+          });
+
+          return; // Success!
+        } catch (error) {
+          lastError = error as Error;
+          this.logger.error('Client reconnection poll attempt failed', {
+            attempt: attempt + 1,
+            error: lastError.message,
+            gameCode,
+            playerId,
+          });
+
+          // If this isn't the last attempt, wait before retrying
+          if (attempt < RECONNECTION_CONFIG.CLIENT_POLL_MAX_ATTEMPTS - 1) {
+            const delay =
+              RECONNECTION_CONFIG.CLIENT_POLL_INTERVAL_MS *
+              Math.pow(
+                RECONNECTION_CONFIG.CLIENT_POLL_BACKOFF_MULTIPLIER,
+                attempt
+              );
+
+            this.logger.debug('Waiting before client reconnection retry', {
+              delay,
+              attempt: attempt + 1,
+            });
+
+            await sleep(delay);
+          }
         }
       }
-    }
 
-    // If we get here, all attempts failed
-    throw new Error(
-      `Client reconnection failed after ${RECONNECTION_CONFIG.CLIENT_POLL_MAX_ATTEMPTS} attempts. Last error: ${lastError?.message || 'Unknown error'}`
-    );
+      // If we get here, all attempts failed
+      const errorMessage = `Client reconnection failed after ${RECONNECTION_CONFIG.CLIENT_POLL_MAX_ATTEMPTS} attempts. Last error: ${lastError?.message || 'Unknown error'}`;
+
+      this.logger.error('Client reconnection poll failed permanently', {
+        maxAttempts: RECONNECTION_CONFIG.CLIENT_POLL_MAX_ATTEMPTS,
+        lastError: lastError?.message,
+        gameCode,
+        playerId,
+        playerName,
+      });
+
+      throw new Error(errorMessage);
+    });
   }
 
   getNetworkManager(): NetworkManager | null {
