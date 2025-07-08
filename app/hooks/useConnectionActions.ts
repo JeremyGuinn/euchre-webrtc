@@ -309,9 +309,6 @@ export function useConnectionActions(
         }
       }
 
-      // Navigate to home page after leaving
-      networkService.disconnect();
-
       switch (reason) {
         case 'manual':
         case 'error':

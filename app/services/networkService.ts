@@ -12,12 +12,16 @@ import {
   isPeerJSIdConflictError,
   sleep,
 } from '~/utils/reconnection';
+import { createScopedLogger } from '~/services/loggingService';
 
 export class GameNetworkService {
   private networkManager: NetworkManager = new NetworkManager();
+  private logger = createScopedLogger('GameNetworkService');
 
   setStatusChangeHandler(handler: PeerStatusHandler) {
+    this.logger.debug('Setting status change handler');
     this.networkManager.onStatusChange(status => {
+      this.logger.debug('Network status changed', { status });
       handler(status);
     });
   }
@@ -33,17 +37,33 @@ export class GameNetworkService {
     hostId: string;
     gameUuid: string;
   }> {
-    const gameCode = generateGameCode();
-    const hostId = gameCodeToHostId(gameCode);
-    const gameUuid = crypto.randomUUID(); // Keep internal UUID for game state management
+    return this.logger.withPerformance('hostGame', async () => {
+      this.logger.info('Starting to host game');
 
-    await this.networkManager.initialize(true, hostId);
+      const gameCode = generateGameCode();
+      const hostId = gameCodeToHostId(gameCode);
+      const gameUuid = crypto.randomUUID(); // Keep internal UUID for game state management
 
-    return {
-      gameCode,
-      hostId,
-      gameUuid,
-    };
+      this.logger.debug('Generated game identifiers', {
+        gameCode,
+        hostId,
+        gameUuid,
+      });
+
+      await this.networkManager.initialize(true, hostId);
+
+      this.logger.info('Game hosted successfully', {
+        gameCode,
+        hostId,
+        gameUuid,
+      });
+
+      return {
+        gameCode,
+        hostId,
+        gameUuid,
+      };
+    });
   }
 
   async joinGame(gameCode: string, playerName: string): Promise<string> {
@@ -93,11 +113,7 @@ export class GameNetworkService {
         // Give a brief moment for the message to be sent before disconnecting
         await sleep(100);
       }
-
-      // Now disconnect
-      this.disconnect();
-    } catch {
-      // Still disconnect even if there was an error
+    } finally {
       this.disconnect();
     }
   }

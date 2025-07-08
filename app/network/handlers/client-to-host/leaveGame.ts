@@ -26,10 +26,6 @@ const handleLeaveGameImpl = (
     return;
   }
 
-  console.log(
-    `Player ${leavingPlayer.name} (${senderId}) is leaving the game. Reason: ${message.payload.reason || 'manual'}`
-  );
-
   // Remove the player from the game state
   dispatch({
     type: 'REMOVE_PLAYER',
