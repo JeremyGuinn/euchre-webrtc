@@ -25,9 +25,7 @@ export function HandCompleteOverlay({
   }
 
   const maker = gameState.maker;
-  const makerPlayer = maker
-    ? gameState.players.find(p => p.id === maker.playerId)
-    : null;
+  const makerPlayer = maker ? gameState.players.find(p => p.id === maker.playerId) : null;
   const makerTeam = maker?.teamId;
   const handScores = gameState.handScores;
 
@@ -50,9 +48,7 @@ export function HandCompleteOverlay({
       <div className='flex flex-col items-center justify-center h-full p-8'>
         <div className='bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8 max-w-lg w-full mx-4 overflow-y-auto'>
           <div className='text-center'>
-            <h2 className='text-3xl font-bold text-gray-800 mb-6'>
-              Hand Complete!
-            </h2>
+            <h2 className='text-3xl font-bold text-gray-800 mb-6'>Hand Complete!</h2>
 
             <div className='mb-6'>
               {/* Trump and Maker Info */}
@@ -78,32 +74,18 @@ export function HandCompleteOverlay({
               <div className='grid grid-cols-2 gap-4 mb-6'>
                 <div
                   className={`p-4 rounded-lg ${
-                    makerTeam === 0
-                      ? 'bg-blue-100 border-2 border-blue-300'
-                      : 'bg-gray-100'
+                    makerTeam === 0 ? 'bg-blue-100 border-2 border-blue-300' : 'bg-gray-100'
                   }`}
                 >
-                  <h3 className='font-semibold text-gray-800 mb-1'>
-                    {gameState.teamNames.team0}
-                  </h3>
-                  <div className='text-2xl font-bold text-blue-600'>
-                    {team0Tricks}
-                  </div>
+                  <h3 className='font-semibold text-gray-800 mb-1'>{gameState.teamNames.team0}</h3>
+                  <div className='text-2xl font-bold text-blue-600'>{team0Tricks}</div>
                   <div className='text-xs text-gray-600'>tricks won</div>
                 </div>
                 <div
-                  className={`p-4 rounded-lg ${
-                    makerTeam === 1
-                      ? 'bg-red-100 border-2 border-red-300'
-                      : 'bg-gray-100'
-                  }`}
+                  className={`p-4 rounded-lg ${makerTeam === 1 ? 'bg-red-100 border-2 border-red-300' : 'bg-gray-100'}`}
                 >
-                  <h3 className='font-semibold text-gray-800 mb-1'>
-                    {gameState.teamNames.team1}
-                  </h3>
-                  <div className='text-2xl font-bold text-red-600'>
-                    {team1Tricks}
-                  </div>
+                  <h3 className='font-semibold text-gray-800 mb-1'>{gameState.teamNames.team1}</h3>
+                  <div className='text-2xl font-bold text-red-600'>{team1Tricks}</div>
                   <div className='text-xs text-gray-600'>tricks won</div>
                 </div>
               </div>
@@ -116,28 +98,21 @@ export function HandCompleteOverlay({
                       {makerTeamTricks === 5 ? 'Sweep!' : 'Bid Made!'}
                     </p>
                     <p className='text-sm text-gray-700'>
-                      {gameState.teamNames[
-                        `team${makerTeam!}` as 'team0' | 'team1'
-                      ] || `Team ${makerTeam! + 1}`}{' '}
+                      {gameState.teamNames[`team${makerTeam!}` as 'team0' | 'team1'] ||
+                        `Team ${makerTeam! + 1}`}{' '}
                       made their bid with {makerTeamTricks} trick
                       {makerTeamTricks !== 1 ? 's' : ''}
-                      {makerTeamTricks === 5 &&
-                        maker?.alone &&
-                        ' (going alone)'}
+                      {makerTeamTricks === 5 && maker?.alone && ' (going alone)'}
                     </p>
                   </div>
                 ) : (
                   <div>
-                    <p className='text-lg font-semibold text-red-700 mb-2'>
-                      Euchred!
-                    </p>
+                    <p className='text-lg font-semibold text-red-700 mb-2'>Euchred!</p>
                     <p className='text-sm text-gray-700'>
-                      {gameState.teamNames[
-                        `team${makerTeam!}` as 'team0' | 'team1'
-                      ] || `Team ${makerTeam! + 1}`}{' '}
+                      {gameState.teamNames[`team${makerTeam!}` as 'team0' | 'team1'] ||
+                        `Team ${makerTeam! + 1}`}{' '}
                       only won {makerTeamTricks} trick
-                      {makerTeamTricks !== 1 ? 's' : ''} - other team gets 2
-                      points
+                      {makerTeamTricks !== 1 ? 's' : ''} - other team gets 2 points
                     </p>
                   </div>
                 )}
@@ -147,47 +122,31 @@ export function HandCompleteOverlay({
               <div className='grid grid-cols-2 gap-4 mb-6'>
                 <div className='text-center'>
                   <div
-                    className={`text-3xl font-bold ${
-                      handScores.team0 > 0 ? 'text-green-600' : 'text-gray-400'
-                    }`}
+                    className={`text-3xl font-bold ${handScores.team0 > 0 ? 'text-green-600' : 'text-gray-400'}`}
                   >
                     +{handScores.team0}
                   </div>
-                  <div className='text-sm text-gray-600'>
-                    {gameState.teamNames.team0} Points
-                  </div>
+                  <div className='text-sm text-gray-600'>{gameState.teamNames.team0} Points</div>
                 </div>
                 <div className='text-center'>
                   <div
-                    className={`text-3xl font-bold ${
-                      handScores.team1 > 0 ? 'text-green-600' : 'text-gray-400'
-                    }`}
+                    className={`text-3xl font-bold ${handScores.team1 > 0 ? 'text-green-600' : 'text-gray-400'}`}
                   >
                     +{handScores.team1}
                   </div>
-                  <div className='text-sm text-gray-600'>
-                    {gameState.teamNames.team1} Points
-                  </div>
+                  <div className='text-sm text-gray-600'>{gameState.teamNames.team1} Points</div>
                 </div>
               </div>
 
               {/* Total Scores */}
               <div className='grid grid-cols-2 gap-4 mb-6'>
                 <div className='text-center p-3 bg-blue-50 rounded-lg'>
-                  <div className='text-2xl font-bold text-blue-600'>
-                    {gameState.scores.team0}
-                  </div>
-                  <div className='text-sm text-gray-600'>
-                    {gameState.teamNames.team0} Total
-                  </div>
+                  <div className='text-2xl font-bold text-blue-600'>{gameState.scores.team0}</div>
+                  <div className='text-sm text-gray-600'>{gameState.teamNames.team0} Total</div>
                 </div>
                 <div className='text-center p-3 bg-red-50 rounded-lg'>
-                  <div className='text-2xl font-bold text-red-600'>
-                    {gameState.scores.team1}
-                  </div>
-                  <div className='text-sm text-gray-600'>
-                    {gameState.teamNames.team1} Total
-                  </div>
+                  <div className='text-2xl font-bold text-red-600'>{gameState.scores.team1}</div>
+                  <div className='text-sm text-gray-600'>{gameState.teamNames.team1} Total</div>
                 </div>
               </div>
             </div>

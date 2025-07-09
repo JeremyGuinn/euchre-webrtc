@@ -25,9 +25,7 @@ export function FirstBlackJackDealingAnimation({
   targetPlayerId,
   onAnimationComplete,
 }: FirstBlackJackDealingAnimationProps) {
-  const [animatingCard, setAnimatingCard] = useState<AnimatingCard | null>(
-    null
-  );
+  const [animatingCard, setAnimatingCard] = useState<AnimatingCard | null>(null);
 
   // Start animation when a new card is being dealt
   useEffect(() => {
@@ -47,9 +45,7 @@ export function FirstBlackJackDealingAnimation({
 
       // Start animation after brief delay to ensure element is rendered
       setTimeout(() => {
-        setAnimatingCard(prev =>
-          prev ? { ...prev, isAnimating: true } : null
-        );
+        setAnimatingCard(prev => (prev ? { ...prev, isAnimating: true } : null));
       }, 25);
 
       // Complete animation and notify parent
@@ -76,18 +72,14 @@ export function FirstBlackJackDealingAnimation({
     }
   };
 
-  const getCardTargetPosition = (
-    playerId: string
-  ): { x: number; y: number; rotation: number } => {
+  const getCardTargetPosition = (playerId: string): { x: number; y: number; rotation: number } => {
     const player = players.find(p => p.id === playerId);
     if (!player) return { x: 0, y: 0, rotation: 0 };
 
     const position = getPlayerPosition(player, myPlayer.position);
 
     // Try to get the actual DOM position of the player's card container
-    const cardContainer = document.getElementById(
-      `blackjack-player-cards-${player.id}`
-    );
+    const cardContainer = document.getElementById(`blackjack-player-cards-${player.id}`);
     const centerElement = document.getElementById('blackjack-dealing-center');
 
     const containerRect = cardContainer?.getBoundingClientRect();
@@ -110,14 +102,8 @@ export function FirstBlackJackDealingAnimation({
     }
 
     // Calculate relative position from center
-    let x =
-      containerRect.left +
-      containerRect.width / 2 -
-      (centerRect.left + centerRect.width / 2);
-    let y =
-      containerRect.top +
-      containerRect.height / 2 -
-      (centerRect.top + centerRect.height / 2);
+    let x = containerRect.left + containerRect.width / 2 - (centerRect.left + centerRect.width / 2);
+    let y = containerRect.top + containerRect.height / 2 - (centerRect.top + centerRect.height / 2);
 
     // Add slight random offset for natural feel
     x += (Math.random() - 0.5) * 15;

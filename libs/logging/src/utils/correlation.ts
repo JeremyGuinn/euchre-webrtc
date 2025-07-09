@@ -63,10 +63,7 @@ export class CorrelationManager {
   /**
    * Execute an async function with a specific correlation ID
    */
-  static async withCorrelationIdAsync<T>(
-    id: string,
-    fn: () => Promise<T>
-  ): Promise<T> {
+  static async withCorrelationIdAsync<T>(id: string, fn: () => Promise<T>): Promise<T> {
     const previousId = this.currentCorrelationId;
     this.currentCorrelationId = id;
 

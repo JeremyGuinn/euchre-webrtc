@@ -8,11 +8,7 @@ import type { GameMessage } from '~/types/messages';
 import { gameCodeToHostId, generateGameCode } from '~/utils/gameCode';
 import { NetworkManager, type ConnectionStatus } from '~/utils/networking';
 import { createMessageId } from '~/utils/protocol';
-import {
-  RECONNECTION_CONFIG,
-  isPeerJSIdConflictError,
-  sleep,
-} from '~/utils/reconnection';
+import { RECONNECTION_CONFIG, isPeerJSIdConflictError, sleep } from '~/utils/reconnection';
 
 // Cooldown period to prevent rapid reconnection attempts (5 seconds)
 const RECONNECTION_COOLDOWN_MS = 5000;
@@ -30,9 +26,7 @@ export interface GameNetworkServiceConfig {
   pollForHostReconnection?: () => Promise<boolean>;
   sessionManager?: {
     saveSession: (data: Omit<SessionData, 'lastConnectionTime'>) => void;
-    updateSession: (
-      updates: Partial<Omit<SessionData, 'lastConnectionTime'>>
-    ) => void;
+    updateSession: (updates: Partial<Omit<SessionData, 'lastConnectionTime'>>) => void;
     clearSession: () => void;
     sessionData: SessionData | null;
   };
@@ -65,9 +59,7 @@ export class GameNetworkService {
     this.logger.debug('Network disconnection completed');
   }
 
-  async leaveGame(
-    reason: 'manual' | 'error' | 'network' | 'kicked' = 'manual'
-  ): Promise<void> {
+  async leaveGame(reason: 'manual' | 'error' | 'network' | 'kicked' = 'manual'): Promise<void> {
     return this.logger.withOperation('leaveGame', async () => {
       this.logger.info('Leaving game', { reason });
 
@@ -104,11 +96,7 @@ export class GameNetworkService {
   async reconnectAsHost(
     hostId: string,
     gameCode: string,
-    onRetryAttempt?: (
-      attempt: number,
-      maxRetries: number,
-      reason?: string
-    ) => void
+    onRetryAttempt?: (attempt: number, maxRetries: number, reason?: string) => void
   ): Promise<{ hostId: string; gameCode: string }> {
     return this.logger.withPerformance('reconnectAsHost', async () => {
       this.logger.info('Starting host reconnection', { hostId, gameCode });
@@ -117,11 +105,7 @@ export class GameNetworkService {
       let currentHostId = hostId;
       let currentGameCode = gameCode;
 
-      for (
-        let attempt = 0;
-        attempt < RECONNECTION_CONFIG.MAX_RETRIES;
-        attempt++
-      ) {
+      for (let attempt = 0; attempt < RECONNECTION_CONFIG.MAX_RETRIES; attempt++) {
         try {
           this.logger.debug('Host reconnection attempt', {
             attempt: attempt + 1,
@@ -142,18 +126,11 @@ export class GameNetworkService {
               lastError: lastError?.message,
             });
 
-            onRetryAttempt(
-              attempt + 1,
-              RECONNECTION_CONFIG.MAX_RETRIES,
-              reason
-            );
+            onRetryAttempt(attempt + 1, RECONNECTION_CONFIG.MAX_RETRIES, reason);
           }
 
           await this.networkManager.initialize(true, currentHostId);
-          this.logger.debug(
-            'Network manager initialized for host reconnection',
-            { currentHostId }
-          );
+          this.logger.debug('Network manager initialized for host reconnection', { currentHostId });
 
           // If we had to generate a new game code, update the session
           if (currentGameCode !== gameCode) {
@@ -196,18 +173,13 @@ export class GameNetworkService {
           if (attempt < RECONNECTION_CONFIG.MAX_RETRIES - 1) {
             // For ID conflicts, generate a new game code after the first few attempts
             if (isIdConflict && attempt >= 1) {
-              this.logger.warn(
-                'ID conflict detected, generating new game code',
-                {
-                  attempt: attempt + 1,
-                  oldGameCode: currentGameCode,
-                  oldHostId: currentHostId,
-                }
-              );
+              this.logger.warn('ID conflict detected, generating new game code', {
+                attempt: attempt + 1,
+                oldGameCode: currentGameCode,
+                oldHostId: currentHostId,
+              });
 
-              const { generateGameCode, gameCodeToHostId } = await import(
-                '~/utils/gameCode'
-              );
+              const { generateGameCode, gameCodeToHostId } = await import('~/utils/gameCode');
               currentGameCode = generateGameCode();
               currentHostId = gameCodeToHostId(currentGameCode);
 
@@ -246,11 +218,7 @@ export class GameNetworkService {
     });
   }
 
-  async reconnectAsClient(
-    gameCode: string,
-    playerId: string,
-    playerName: string
-  ): Promise<void> {
+  async reconnectAsClient(gameCode: string, playerId: string, playerName: string): Promise<void> {
     return this.logger.withPerformance('reconnectAsClient', async () => {
       this.logger.info('Starting client reconnection', {
         gameCode,
@@ -304,11 +272,7 @@ export class GameNetworkService {
     gameCode: string,
     playerId: string,
     playerName: string,
-    onRetryAttempt?: (
-      attempt: number,
-      maxRetries: number,
-      reason?: string
-    ) => void
+    onRetryAttempt?: (attempt: number, maxRetries: number, reason?: string) => void
   ): Promise<void> {
     return this.logger.withPerformance('pollReconnectAsClient', async () => {
       this.logger.info('Starting polling client reconnection', {
@@ -320,11 +284,7 @@ export class GameNetworkService {
 
       let lastError: Error | null = null;
 
-      for (
-        let attempt = 0;
-        attempt < RECONNECTION_CONFIG.CLIENT_POLL_MAX_ATTEMPTS;
-        attempt++
-      ) {
+      for (let attempt = 0; attempt < RECONNECTION_CONFIG.CLIENT_POLL_MAX_ATTEMPTS; attempt++) {
         try {
           this.logger.debug('Client reconnection poll attempt', {
             attempt: attempt + 1,
@@ -343,11 +303,7 @@ export class GameNetworkService {
               lastError: lastError?.message,
             });
 
-            onRetryAttempt(
-              attempt + 1,
-              RECONNECTION_CONFIG.CLIENT_POLL_MAX_ATTEMPTS,
-              reason
-            );
+            onRetryAttempt(attempt + 1, RECONNECTION_CONFIG.CLIENT_POLL_MAX_ATTEMPTS, reason);
           }
 
           // if we are connected, disconnect first
@@ -380,10 +336,7 @@ export class GameNetworkService {
           if (attempt < RECONNECTION_CONFIG.CLIENT_POLL_MAX_ATTEMPTS - 1) {
             const delay =
               RECONNECTION_CONFIG.CLIENT_POLL_INTERVAL_MS *
-              Math.pow(
-                RECONNECTION_CONFIG.CLIENT_POLL_BACKOFF_MULTIPLIER,
-                attempt
-              );
+              Math.pow(RECONNECTION_CONFIG.CLIENT_POLL_BACKOFF_MULTIPLIER, attempt);
 
             this.logger.debug('Waiting before client reconnection retry', {
               delay,
@@ -600,12 +553,9 @@ export class GameNetworkService {
       setMyPlayerId: this.config.setMyPlayerId,
       setIsHost: this.config.setIsHost,
       sessionManager: this.config.sessionManager || {
-        saveSession: () =>
-          console.warn('SessionManager not available in handler context'),
-        updateSession: () =>
-          console.warn('SessionManager not available in handler context'),
-        clearSession: () =>
-          console.warn('SessionManager not available in handler context'),
+        saveSession: () => console.warn('SessionManager not available in handler context'),
+        updateSession: () => console.warn('SessionManager not available in handler context'),
+        clearSession: () => console.warn('SessionManager not available in handler context'),
         sessionData: null,
       },
     };
@@ -643,11 +593,7 @@ export class GameNetworkService {
     this.config.gameStore.updatePlayerConnection(peerId, connected);
 
     // Handle host disconnection for clients
-    if (
-      !this.config.isHost &&
-      !connected &&
-      this.config.pollForHostReconnection
-    ) {
+    if (!this.config.isHost && !connected && this.config.pollForHostReconnection) {
       this.handleHostDisconnection(peerId);
     }
   }

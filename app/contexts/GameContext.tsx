@@ -8,9 +8,7 @@ const GameContext = createContext<GameContextType | null>(null);
 export function GameProvider({ children }: GameProviderProps) {
   const contextValue = useGameProvider();
 
-  return (
-    <GameContext.Provider value={contextValue}>{children}</GameContext.Provider>
-  );
+  return <GameContext.Provider value={contextValue}>{children}</GameContext.Provider>;
 }
 
 export function useGame() {

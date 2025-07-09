@@ -19,12 +19,7 @@ export function FirstBlackJackSelection({
   isVisible,
   deck: _deck,
 }: FirstBlackJackSelectionProps) {
-  const {
-    gameState,
-    isHost,
-    dealFirstBlackJackCard,
-    completeBlackJackDealerSelection,
-  } = useGame();
+  const { gameState, isHost, dealFirstBlackJackCard, completeBlackJackDealerSelection } = useGame();
 
   // Animation state
   const [pendingDeal, setPendingDeal] = useState<{
@@ -33,9 +28,7 @@ export function FirstBlackJackSelection({
   } | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   // Track cards that have completed their animations and should be visible
-  const [completedAnimations, setCompletedAnimations] = useState<Set<string>>(
-    new Set()
-  );
+  const [completedAnimations, setCompletedAnimations] = useState<Set<string>>(new Set());
 
   // Get dealing state from game context - all derived state should be in useMemo
   const dealingState = useMemo(
@@ -78,8 +71,7 @@ export function FirstBlackJackSelection({
       // Check if this was a black jack card and trigger completion if host
       const isBlackJack =
         pendingDeal.card.value === 'J' &&
-        (pendingDeal.card.suit === 'spades' ||
-          pendingDeal.card.suit === 'clubs');
+        (pendingDeal.card.suit === 'spades' || pendingDeal.card.suit === 'clubs');
 
       if (isBlackJack && isHost) {
         // Add a small delay to let the animation fully settle before transitioning
@@ -91,10 +83,7 @@ export function FirstBlackJackSelection({
     setPendingDeal(null);
   };
 
-  const dealingComplete = useMemo(
-    () => gameState.phase === 'team_summary',
-    [gameState.phase]
-  );
+  const dealingComplete = useMemo(() => gameState.phase === 'team_summary', [gameState.phase]);
   const currentPlayerIndex = useMemo(
     () => dealingState?.currentPlayerIndex ?? 0,
     [dealingState?.currentPlayerIndex]
@@ -115,8 +104,7 @@ export function FirstBlackJackSelection({
         .filter(
           card =>
             // Show all cards if dealing is complete, otherwise only show completed animations
-            dealingComplete ||
-            completedAnimations.has(`${player.id}-${card.id}`)
+            dealingComplete || completedAnimations.has(`${player.id}-${card.id}`)
         ),
     }));
   }, [players, dealingState?.dealtCards, completedAnimations, dealingComplete]);
@@ -193,14 +181,7 @@ export function FirstBlackJackSelection({
     }, initialDelay + 400); // Faster dealing - twice as fast as before
 
     return () => clearTimeout(timer);
-  }, [
-    isVisible,
-    dealingComplete,
-    isHost,
-    dealingState,
-    currentCardIndex,
-    dealFirstBlackJackCard,
-  ]);
+  }, [isVisible, dealingComplete, isHost, dealingState, currentCardIndex, dealFirstBlackJackCard]);
 
   if (!isVisible) return null;
 
@@ -226,12 +207,9 @@ export function FirstBlackJackSelection({
       {/* Show cards for each player in their positions */}
       {players.map(player => {
         const position = getPlayerPosition(player, myPlayer.position);
-        const playerHistory = playerCardHistories.find(
-          h => h.playerId === player.id
-        );
+        const playerHistory = playerCardHistories.find(h => h.playerId === player.id);
         const playerCards = playerHistory?.cards || [];
-        const isCurrentPlayer =
-          currentPlayerDealing?.id === player.id && !dealingComplete;
+        const isCurrentPlayer = currentPlayerDealing?.id === player.id && !dealingComplete;
         const isWinner = blackJackWinner?.id === player.id;
 
         return (
@@ -260,9 +238,7 @@ export function FirstBlackJackSelection({
           totalSteps={gameState.deck?.length ?? 52}
           currentPlayerName={
             dealingState?.blackJackFound
-              ? players.find(
-                  p => p.id === dealingState.blackJackFound?.playerId
-                )?.name
+              ? players.find(p => p.id === dealingState.blackJackFound?.playerId)?.name
               : players[currentPlayerIndex]?.name
           }
         />

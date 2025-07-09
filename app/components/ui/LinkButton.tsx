@@ -31,9 +31,7 @@ export function LinkButton({
     success: cn('bg-green-600 hover:bg-green-700 text-white'),
     danger: cn('bg-red-600 hover:bg-red-700 text-white'),
     ghost: cn('bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'),
-    text: cn(
-      'text-blue-600 hover:text-blue-700 bg-transparent hover:bg-blue-50'
-    ),
+    text: cn('text-blue-600 hover:text-blue-700 bg-transparent hover:bg-blue-50'),
   };
 
   const sizeClasses = {
@@ -48,13 +46,7 @@ export function LinkButton({
       )
     : variantClasses[variant];
 
-  const classes = cn(
-    baseClasses,
-    disabledClasses,
-    sizeClasses[size],
-    'w-full',
-    className
-  );
+  const classes = cn(baseClasses, disabledClasses, sizeClasses[size], 'w-full', className);
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (disabled) {

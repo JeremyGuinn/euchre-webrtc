@@ -29,9 +29,7 @@ export function BiddingInterface({
   isDealerScrewed,
   onBid,
 }: BiddingInterfaceProps) {
-  const [selectedSuit, setSelectedSuit] = useState<CardType['suit'] | null>(
-    null
-  );
+  const [selectedSuit, setSelectedSuit] = useState<CardType['suit'] | null>(null);
 
   const handleBid = (suit: CardType['suit'] | 'pass', alone = false) => {
     onBid(suit, alone);
@@ -88,17 +86,13 @@ export function BiddingInterface({
                   <div className='text-center mb-3'>
                     <p className='text-xs text-gray-600'>
                       {isDealerTeammate ? 'Assisting with:' : 'Ordering up:'}
-                      <span
-                        className={`font-medium pl-1 ${suitColors[selectedSuit]}`}
-                      >
+                      <span className={`font-medium pl-1 ${suitColors[selectedSuit]}`}>
                         {suitSymbols[selectedSuit]} {selectedSuit}
                       </span>
                     </p>
                   </div>
 
-                  <p className='text-xs text-gray-600 text-center mb-3'>
-                    Do you want to go alone?
-                  </p>
+                  <p className='text-xs text-gray-600 text-center mb-3'>Do you want to go alone?</p>
 
                   <div className='flex space-x-2'>
                     <Button
@@ -136,11 +130,7 @@ export function BiddingInterface({
                     onClick={() => handleSuitSelection(kitty!.suit)}
                     className='w-full px-3 py-1 text-xs'
                   >
-                    {isDealer
-                      ? 'Take it up'
-                      : isDealerTeammate
-                        ? 'Assist'
-                        : 'Order it up'}
+                    {isDealer ? 'Take it up' : isDealerTeammate ? 'Assist' : 'Order it up'}
                   </Button>
                   <Button
                     variant='secondary'
@@ -159,16 +149,12 @@ export function BiddingInterface({
             <div className='space-y-2'>
               <div className='text-center mb-3'>
                 <p className='text-xs text-gray-600 mb-1'>You selected:</p>
-                <div
-                  className={`text-lg font-bold ${suitColors[selectedSuit]}`}
-                >
+                <div className={`text-lg font-bold ${suitColors[selectedSuit]}`}>
                   {suitSymbols[selectedSuit]} {selectedSuit}
                 </div>
               </div>
 
-              <p className='text-xs text-gray-600 text-center mb-3'>
-                Do you want to go alone?
-              </p>
+              <p className='text-xs text-gray-600 text-center mb-3'>Do you want to go alone?</p>
 
               <div className='flex space-x-2'>
                 <Button
@@ -205,9 +191,7 @@ export function BiddingInterface({
                 <div className='mb-2'>
                   <p className='text-xs text-gray-600'>
                     Turned down:{' '}
-                    <span
-                      className={`font-medium ${suitColors[turnedDownSuit]}`}
-                    >
+                    <span className={`font-medium ${suitColors[turnedDownSuit]}`}>
                       {suitSymbols[turnedDownSuit]} {turnedDownSuit}
                     </span>
                   </p>
@@ -215,9 +199,7 @@ export function BiddingInterface({
               )}
 
               <div className='grid grid-cols-3 gap-1'>
-                {SUITS.filter(
-                  suit => suit !== (turnedDownSuit || kitty?.suit)
-                ).map(suit => (
+                {SUITS.filter(suit => suit !== (turnedDownSuit || kitty?.suit)).map(suit => (
                   <Button
                     key={suit}
                     variant='primary'
@@ -225,9 +207,7 @@ export function BiddingInterface({
                     onClick={() => handleSuitSelection(suit)}
                     className='flex flex-col items-center justify-center px-2 py-1 text-xs h-12'
                   >
-                    <span className={`text-sm ${suitColors[suit]}`}>
-                      {suitSymbols[suit]}
-                    </span>
+                    <span className={`text-sm ${suitColors[suit]}`}>{suitSymbols[suit]}</span>
                     <span className='text-xs capitalize'>{suit}</span>
                   </Button>
                 ))}

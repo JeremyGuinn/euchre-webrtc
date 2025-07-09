@@ -15,10 +15,7 @@ export function GameOptionsPanel({
   isHost,
   disabled = false,
 }: GameOptionsProps) {
-  const handleOptionChange = <K extends keyof GameOptions>(
-    key: K,
-    value: GameOptions[K]
-  ) => {
+  const handleOptionChange = <K extends keyof GameOptions>(key: K, value: GameOptions[K]) => {
     if (isHost && !disabled) {
       const updatedOptions = {
         ...options,
@@ -75,11 +72,7 @@ export function GameOptionsPanel({
     <Panel variant='compact' shadow='lg'>
       <h2 className='text-xl font-semibold text-gray-800 mb-4'>
         Game Rules{' '}
-        {!isHost && (
-          <span className='text-sm font-normal text-gray-500'>
-            (Set by Host)
-          </span>
-        )}
+        {!isHost && <span className='text-sm font-normal text-gray-500'>(Set by Host)</span>}
       </h2>
 
       {isHost ? (
@@ -87,9 +80,7 @@ export function GameOptionsPanel({
         <div className='grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3'>
           {/* Team Selection */}
           <div className='bg-gray-50 rounded-lg p-4'>
-            <h3 className='text-sm font-medium text-gray-700 mb-2'>
-              Team Selection
-            </h3>
+            <h3 className='text-sm font-medium text-gray-700 mb-2'>Team Selection</h3>
             <Stack spacing='2'>
               <label className='flex items-start' id='randomCardsLabel'>
                 <input
@@ -98,9 +89,7 @@ export function GameOptionsPanel({
                   name='teamSelection'
                   value='random_cards'
                   checked={options.teamSelection === 'random_cards'}
-                  onChange={() =>
-                    handleOptionChange('teamSelection', 'random_cards')
-                  }
+                  onChange={() => handleOptionChange('teamSelection', 'random_cards')}
                   disabled={disabled}
                   className='w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 mt-0.5'
                 />
@@ -119,9 +108,7 @@ export function GameOptionsPanel({
                   name='teamSelection'
                   value='predetermined'
                   checked={options.teamSelection === 'predetermined'}
-                  onChange={() =>
-                    handleOptionChange('teamSelection', 'predetermined')
-                  }
+                  onChange={() => handleOptionChange('teamSelection', 'predetermined')}
                   disabled={disabled}
                   className='w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 mt-0.5'
                 />
@@ -129,8 +116,7 @@ export function GameOptionsPanel({
                   <strong>Predetermined Teams</strong>
                   <br />
                   <span className='text-xs'>
-                    Teams are set by seating position (current lobby
-                    arrangement)
+                    Teams are set by seating position (current lobby arrangement)
                   </span>
                 </span>
               </label>
@@ -139,9 +125,7 @@ export function GameOptionsPanel({
 
           {/* Dealer Selection */}
           <div className='bg-gray-50 rounded-lg p-4'>
-            <h3 className='text-sm font-medium text-gray-700 mb-2'>
-              Dealer Selection
-            </h3>
+            <h3 className='text-sm font-medium text-gray-700 mb-2'>Dealer Selection</h3>
             <Stack spacing='2'>
               <label
                 className={`flex items-start ${options.teamSelection === 'random_cards' ? 'opacity-60' : ''}`}
@@ -153,20 +137,14 @@ export function GameOptionsPanel({
                   name='dealerSelection'
                   value='random_cards'
                   checked={options.dealerSelection === 'random_cards'}
-                  onChange={() =>
-                    handleOptionChange('dealerSelection', 'random_cards')
-                  }
-                  disabled={
-                    disabled || options.teamSelection === 'random_cards'
-                  }
+                  onChange={() => handleOptionChange('dealerSelection', 'random_cards')}
+                  disabled={disabled || options.teamSelection === 'random_cards'}
                   className='w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 mt-0.5'
                 />
                 <span className='ml-2 text-sm text-gray-600'>
                   <strong>Random Card Selection</strong>
                   <br />
-                  <span className='text-xs'>
-                    Players draw cards, lowest card deals
-                  </span>
+                  <span className='text-xs'>Players draw cards, lowest card deals</span>
                 </span>
               </label>
               <label
@@ -179,20 +157,14 @@ export function GameOptionsPanel({
                   name='dealerSelection'
                   value='first_black_jack'
                   checked={options.dealerSelection === 'first_black_jack'}
-                  onChange={() =>
-                    handleOptionChange('dealerSelection', 'first_black_jack')
-                  }
-                  disabled={
-                    disabled || options.teamSelection === 'random_cards'
-                  }
+                  onChange={() => handleOptionChange('dealerSelection', 'first_black_jack')}
+                  disabled={disabled || options.teamSelection === 'random_cards'}
                   className='w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 mt-0.5'
                 />
                 <span className='ml-2 text-sm text-gray-600'>
                   <strong>First Black Jack</strong>
                   <br />
-                  <span className='text-xs'>
-                    Deal cards around until someone gets a black Jack
-                  </span>
+                  <span className='text-xs'>Deal cards around until someone gets a black Jack</span>
                 </span>
               </label>
               <label
@@ -204,26 +176,17 @@ export function GameOptionsPanel({
                   aria-labelledby='predeterminedDealerLabel'
                   name='dealerSelection'
                   value='predetermined_first_dealer'
-                  checked={
-                    options.dealerSelection === 'predetermined_first_dealer'
-                  }
+                  checked={options.dealerSelection === 'predetermined_first_dealer'}
                   onChange={() =>
-                    handleOptionChange(
-                      'dealerSelection',
-                      'predetermined_first_dealer'
-                    )
+                    handleOptionChange('dealerSelection', 'predetermined_first_dealer')
                   }
-                  disabled={
-                    disabled || options.teamSelection === 'random_cards'
-                  }
+                  disabled={disabled || options.teamSelection === 'random_cards'}
                   className='w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 mt-0.5'
                 />
                 <span className='ml-2 text-sm text-gray-600'>
                   <strong>Predetermined First Dealer</strong>
                   <br />
-                  <span className='text-xs'>
-                    Host selects the first dealer from the lobby
-                  </span>
+                  <span className='text-xs'>Host selects the first dealer from the lobby</span>
                 </span>
               </label>
             </Stack>
@@ -231,17 +194,13 @@ export function GameOptionsPanel({
 
           {/* Reneging */}
           <div className='bg-gray-50 rounded-lg p-4'>
-            <h3 className='text-sm font-medium text-gray-700 mb-2'>
-              Card Play Rules
-            </h3>
+            <h3 className='text-sm font-medium text-gray-700 mb-2'>Card Play Rules</h3>
             <label className='flex items-start' id='renegingLabel'>
               <input
                 type='checkbox'
                 aria-labelledby='renegingLabel'
                 checked={options.allowReneging}
-                onChange={e =>
-                  handleOptionChange('allowReneging', e.target.checked)
-                }
+                onChange={e => handleOptionChange('allowReneging', e.target.checked)}
                 disabled={disabled}
                 className='w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-0.5'
               />
@@ -262,17 +221,13 @@ export function GameOptionsPanel({
 
           {/* Screw the Dealer */}
           <div className='bg-gray-50 rounded-lg p-4'>
-            <h3 className='text-sm font-medium text-gray-700 mb-2'>
-              Trump Selection Rules
-            </h3>
+            <h3 className='text-sm font-medium text-gray-700 mb-2'>Trump Selection Rules</h3>
             <label className='flex items-start' id='screwTheDealerLabel'>
               <input
                 type='checkbox'
                 aria-labelledby='screwTheDealerLabel'
                 checked={options.screwTheDealer}
-                onChange={e =>
-                  handleOptionChange('screwTheDealer', e.target.checked)
-                }
+                onChange={e => handleOptionChange('screwTheDealer', e.target.checked)}
                 disabled={disabled}
                 className='w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-0.5'
               />
@@ -293,17 +248,13 @@ export function GameOptionsPanel({
 
           {/* Farmer's Hand */}
           <div className='bg-gray-50 rounded-lg p-4'>
-            <h3 className='text-sm font-medium text-gray-700 mb-2'>
-              Deal Rules
-            </h3>
+            <h3 className='text-sm font-medium text-gray-700 mb-2'>Deal Rules</h3>
             <label className='flex items-start' id='farmersHandLabel'>
               <input
                 type='checkbox'
                 aria-labelledby='farmersHandLabel'
                 checked={options.farmersHand}
-                onChange={e =>
-                  handleOptionChange('farmersHand', e.target.checked)
-                }
+                onChange={e => handleOptionChange('farmersHand', e.target.checked)}
                 disabled={disabled}
                 className='w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-0.5'
               />
@@ -311,8 +262,7 @@ export function GameOptionsPanel({
                 <strong>Farmer&apos;s Hand</strong>
                 <br />
                 <span className='text-xs'>
-                  Player may swap 3 cards with the kitty if all 5 cards are 9s
-                  or 10s
+                  Player may swap 3 cards with the kitty if all 5 cards are 9s or 10s
                 </span>
               </span>
             </label>
@@ -328,9 +278,7 @@ export function GameOptionsPanel({
         <div className='grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3'>
           {/* Team Selection */}
           <div className='bg-gray-50 rounded-lg p-4'>
-            <h3 className='text-sm font-medium text-gray-700 mb-2'>
-              Team Selection
-            </h3>
+            <h3 className='text-sm font-medium text-gray-700 mb-2'>Team Selection</h3>
             <div className='flex items-center mb-1'>
               <div className='w-2 h-2 bg-blue-500 rounded-full mr-2'></div>
               <span className='text-sm font-medium text-gray-900'>
@@ -339,16 +287,12 @@ export function GameOptionsPanel({
                   : 'Predetermined Teams'}
               </span>
             </div>
-            <p className='text-xs text-gray-600 ml-4'>
-              {getTeamSelectionDescription()}
-            </p>
+            <p className='text-xs text-gray-600 ml-4'>{getTeamSelectionDescription()}</p>
           </div>
 
           {/* Dealer Selection */}
           <div className='bg-gray-50 rounded-lg p-4'>
-            <h3 className='text-sm font-medium text-gray-700 mb-2'>
-              Dealer Selection
-            </h3>
+            <h3 className='text-sm font-medium text-gray-700 mb-2'>Dealer Selection</h3>
             <div className='flex items-center mb-1'>
               <div className='w-2 h-2 bg-blue-500 rounded-full mr-2'></div>
               <span className='text-sm font-medium text-gray-900'>
@@ -357,16 +301,12 @@ export function GameOptionsPanel({
                   : 'First Black Jack'}
               </span>
             </div>
-            <p className='text-xs text-gray-600 ml-4'>
-              {getDealerSelectionDescription()}
-            </p>
+            <p className='text-xs text-gray-600 ml-4'>{getDealerSelectionDescription()}</p>
           </div>
 
           {/* Reneging */}
           <div className='bg-gray-50 rounded-lg p-4'>
-            <h3 className='text-sm font-medium text-gray-700 mb-2'>
-              Card Play Rules
-            </h3>
+            <h3 className='text-sm font-medium text-gray-700 mb-2'>Card Play Rules</h3>
             <div className='flex items-center mb-1'>
               <div
                 className={`w-2 h-2 rounded-full mr-2 ${options.allowReneging ? 'bg-orange-500' : 'bg-blue-500'}`}
@@ -375,16 +315,12 @@ export function GameOptionsPanel({
                 {options.allowReneging ? 'Reneging Allowed' : 'Standard Rules'}
               </span>
             </div>
-            <p className='text-xs text-gray-600 ml-4'>
-              {getRenegingDescription()}
-            </p>
+            <p className='text-xs text-gray-600 ml-4'>{getRenegingDescription()}</p>
           </div>
 
           {/* Screw the Dealer */}
           <div className='bg-gray-50 rounded-lg p-4'>
-            <h3 className='text-sm font-medium text-gray-700 mb-2'>
-              Trump Selection Rules
-            </h3>
+            <h3 className='text-sm font-medium text-gray-700 mb-2'>Trump Selection Rules</h3>
             <div className='flex items-center mb-1'>
               <div
                 className={`w-2 h-2 rounded-full mr-2 ${options.screwTheDealer ? 'bg-red-500' : 'bg-blue-500'}`}
@@ -393,29 +329,21 @@ export function GameOptionsPanel({
                 {options.screwTheDealer ? 'Screw the Dealer' : 'Standard Rules'}
               </span>
             </div>
-            <p className='text-xs text-gray-600 ml-4'>
-              {getScrewTheDealerDescription()}
-            </p>
+            <p className='text-xs text-gray-600 ml-4'>{getScrewTheDealerDescription()}</p>
           </div>
 
           {/* Farmer's Hand */}
           <div className='bg-gray-50 rounded-lg p-4'>
-            <h3 className='text-sm font-medium text-gray-700 mb-2'>
-              Deal Rules
-            </h3>
+            <h3 className='text-sm font-medium text-gray-700 mb-2'>Deal Rules</h3>
             <div className='flex items-center mb-1'>
               <div
                 className={`w-2 h-2 rounded-full mr-2 ${options.farmersHand ? 'bg-purple-500' : 'bg-blue-500'}`}
               ></div>
               <span className='text-sm font-medium text-gray-900'>
-                {options.farmersHand
-                  ? "Farmer's Hand Allowed"
-                  : 'Standard Deal'}
+                {options.farmersHand ? "Farmer's Hand Allowed" : 'Standard Deal'}
               </span>
             </div>
-            <p className='text-xs text-gray-600 ml-4'>
-              {getFarmersHandDescription()}
-            </p>
+            <p className='text-xs text-gray-600 ml-4'>{getFarmersHandDescription()}</p>
           </div>
         </div>
       )}

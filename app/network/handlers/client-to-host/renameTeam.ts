@@ -1,11 +1,7 @@
 import type { ClientToHostHandler } from '~/types/handlers';
 import type { RenameTeamMessage } from '~/types/messages';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
-import {
-  validatePlayerCanRenameTeam,
-  validatePlayerExists,
-  validateTeamName,
-} from '../validators';
+import { validatePlayerCanRenameTeam, validatePlayerExists, validateTeamName } from '../validators';
 
 /**
  * Handles RENAME_TEAM messages sent when a player wants to change a team's display name.
@@ -28,7 +24,8 @@ const handleRenameTeamImpl: ClientToHostHandler<RenameTeamMessage> = (
   gameStore.renameTeam(teamId, sanitizedName);
 };
 
-export const handleRenameTeam = createClientToHostHandler(
-  handleRenameTeamImpl,
-  [validatePlayerExists, validateTeamName, validatePlayerCanRenameTeam]
-);
+export const handleRenameTeam = createClientToHostHandler(handleRenameTeamImpl, [
+  validatePlayerExists,
+  validateTeamName,
+  validatePlayerCanRenameTeam,
+]);

@@ -23,7 +23,7 @@ const handleBidMessageImpl: ClientToHostHandler<BidMessage> = (
  * @param senderId - The ID of the player who placed the bid
  * @param context - Handler context with game state and gameStore actions
  */
-export const handleBidMessage = createClientToHostHandler(
-  handleBidMessageImpl,
-  [validatePlayerExists, validatePlayerTurn]
-);
+export const handleBidMessage = createClientToHostHandler(handleBidMessageImpl, [
+  validatePlayerExists,
+  validatePlayerTurn,
+]);

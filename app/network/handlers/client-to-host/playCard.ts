@@ -27,12 +27,9 @@ const handlePlayCardMessageImpl: ClientToHostHandler<PlayCardMessage> = (
   gameStore.playCard(card, senderId);
 };
 
-export const handlePlayCardMessage = createClientToHostHandler(
-  handlePlayCardMessageImpl,
-  [
-    validatePlayerExists,
-    validatePlayerTurn,
-    validatePlayerHasCard,
-    validateCardCanBePlayed,
-  ]
-);
+export const handlePlayCardMessage = createClientToHostHandler(handlePlayCardMessageImpl, [
+  validatePlayerExists,
+  validatePlayerTurn,
+  validatePlayerHasCard,
+  validateCardCanBePlayed,
+]);

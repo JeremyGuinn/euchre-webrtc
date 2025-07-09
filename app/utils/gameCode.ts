@@ -23,10 +23,7 @@ export function generateGameCode(length = GAME_CODE_LENGTH): string {
 
 function generateShortUUID(length: number): string {
   const uuid = crypto.randomUUID().replace(/-/g, '');
-  return parseInt(uuid.slice(0, 12), 16)
-    .toString(32)
-    .toUpperCase()
-    .slice(0, length);
+  return parseInt(uuid.slice(0, 12), 16).toString(32).toUpperCase().slice(0, length);
 }
 
 /**

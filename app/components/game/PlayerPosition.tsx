@@ -50,28 +50,25 @@ export function PlayerPosition({
   return (
     <div className={getPositionClasses(position)}>
       <div
-        className={`text-center flex gap-2 items-center ${
-          position === 'top' ? 'flex-col-reverse ' : 'flex-col'
-        }`}
+        className={`text-center flex gap-2 items-center ${position === 'top' ? 'flex-col-reverse ' : 'flex-col'}`}
       >
-        {gameState.phase !== 'dealing_animation' &&
-          gameState.phase !== 'dealer_selection' && (
-            <div
-              className={`inline-block px-3 py-1 rounded-lg text-sm font-medium w-fit ${
-                isPlayerSittingOut
-                  ? 'bg-gray-500 text-gray-300'
-                  : isCurrentPlayer
-                    ? 'bg-yellow-400 text-black'
-                    : 'bg-white/20 text-white'
-              }${!player.isConnected ? 'opacity-50' : ''}
+        {gameState.phase !== 'dealing_animation' && gameState.phase !== 'dealer_selection' && (
+          <div
+            className={`inline-block px-3 py-1 rounded-lg text-sm font-medium w-fit ${
+              isPlayerSittingOut
+                ? 'bg-gray-500 text-gray-300'
+                : isCurrentPlayer
+                  ? 'bg-yellow-400 text-black'
+                  : 'bg-white/20 text-white'
+            }${!player.isConnected ? 'opacity-50' : ''}
           `}
-            >
-              {player.name} {player.id === myPlayer.id && '(You)'}
-              {!player.isConnected && ' (Disconnected)'}
-              {gameState.currentDealerId === player.id && ' (Dealer)'}
-              {isPlayerSittingOut && ' (Sitting Out)'}
-            </div>
-          )}
+          >
+            {player.name} {player.id === myPlayer.id && '(You)'}
+            {!player.isConnected && ' (Disconnected)'}
+            {gameState.currentDealerId === player.id && ' (Dealer)'}
+            {isPlayerSittingOut && ' (Sitting Out)'}
+          </div>
+        )}
 
         {/* Player's cards */}
         <PlayerHand

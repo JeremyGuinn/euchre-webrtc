@@ -89,10 +89,7 @@ export function useConnectionActions(
           myPlayerId: myPlayerId || 'none',
         });
 
-        if (
-          connectionStatus === 'connected' ||
-          connectionStatus === 'connecting'
-        ) {
+        if (connectionStatus === 'connected' || connectionStatus === 'connecting') {
           const error = 'Cannot join game: already connected to a game';
           logger.error(error, { connectionStatus });
           throw new Error(error);
@@ -124,15 +121,7 @@ export function useConnectionActions(
         logger.debug('Session will be saved when JOIN_RESPONSE is received');
       });
     },
-    [
-      connectionStatus,
-      networkService,
-      setMyPlayerId,
-      setIsHost,
-      logger,
-      myPlayerId,
-      sessionManager,
-    ]
+    [connectionStatus, networkService, setMyPlayerId, setIsHost, logger, myPlayerId, sessionManager]
   );
 
   const attemptReconnection = useCallback(async (): Promise<boolean> => {
@@ -175,11 +164,7 @@ export function useConnectionActions(
           });
 
           // Reconnect as host with timeout and retry callback
-          const onRetryAttempt = (
-            attempt: number,
-            maxRetries: number,
-            reason?: string
-          ) => {
+          const onRetryAttempt = (attempt: number, maxRetries: number, reason?: string) => {
             logger.debug('Host reconnection retry', {
               attempt,
               maxRetries,
@@ -194,11 +179,7 @@ export function useConnectionActions(
           };
 
           const reconnectionResult = await withTimeout(
-            networkService.reconnectAsHost(
-              session.playerId,
-              session.gameCode,
-              onRetryAttempt
-            ),
+            networkService.reconnectAsHost(session.playerId, session.gameCode, onRetryAttempt),
             RECONNECTION_CONFIG.TIMEOUT_MS,
             'Host reconnection timed out'
           );
@@ -213,9 +194,7 @@ export function useConnectionActions(
           setIsHost(true);
 
           // Try to restore the full game state from localStorage
-          const savedGameState = GameStatePersistenceService.loadGameState(
-            session.gameId
-          );
+          const savedGameState = GameStatePersistenceService.loadGameState(session.gameId);
 
           if (savedGameState) {
             logger.debug('Restoring saved game state', {
@@ -259,11 +238,7 @@ export function useConnectionActions(
           // Reconnect as client with timeout
           const playerName = session.playerName || 'Reconnecting Player';
           await withTimeout(
-            networkService.reconnectAsClient(
-              session.gameCode,
-              session.playerId,
-              playerName
-            ),
+            networkService.reconnectAsClient(session.gameCode, session.playerId, playerName),
             RECONNECTION_CONFIG.TIMEOUT_MS,
             'Client reconnection timed out'
           );
@@ -351,11 +326,7 @@ export function useConnectionActions(
         });
         logger.debug('Reconnection status reset for polling');
 
-        const onRetryAttempt = (
-          attempt: number,
-          maxRetries: number,
-          reason?: string
-        ) => {
+        const onRetryAttempt = (attempt: number, maxRetries: number, reason?: string) => {
           logger.debug('Host reconnection poll retry', {
             attempt,
             maxRetries,
@@ -418,9 +389,7 @@ export function useConnectionActions(
 
         // Clear session if reconnection failed
         setTimeout(() => {
-          logger.debug(
-            'Clearing session and navigating home after polling failure'
-          );
+          logger.debug('Clearing session and navigating home after polling failure');
           sessionManager.clearSession();
           setConnectionStatus('disconnected');
           navigate('/');
@@ -488,9 +457,7 @@ export function useConnectionActions(
             break;
           case 'kicked': {
             const kickMessage =
-              'message' in additionalContext
-                ? additionalContext.message
-                : undefined;
+              'message' in additionalContext ? additionalContext.message : undefined;
             logger.info('Navigating to home with kick message', {
               reason,
               kickMessage,

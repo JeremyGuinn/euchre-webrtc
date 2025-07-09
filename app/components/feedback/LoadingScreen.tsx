@@ -7,11 +7,7 @@ interface LoadingScreenProps {
   className?: string;
 }
 
-export default function LoadingScreen({
-  title,
-  message,
-  className = '',
-}: LoadingScreenProps) {
+export default function LoadingScreen({ title, message, className = '' }: LoadingScreenProps) {
   return (
     <Center className={`text-center ${className}`}>
       <Stack spacing='2'>

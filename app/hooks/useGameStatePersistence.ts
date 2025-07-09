@@ -14,9 +14,7 @@ export function useGameStatePersistence(
   const lastSavedRef = useRef<string>('');
 
   const isConnected = useMemo(() => {
-    return (
-      connectionStatus === 'connected' || connectionStatus === 'reconnecting'
-    );
+    return connectionStatus === 'connected' || connectionStatus === 'reconnecting';
   }, [connectionStatus]);
 
   useEffect(() => {

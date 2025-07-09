@@ -19,40 +19,23 @@ export default function NotFound() {
       {/* Card symbols decoration */}
       <div className='text-6xl mb-6 space-x-2'>
         <span className='text-black animate-bounce'>♠️</span>
-        <span
-          className='text-red-600 animate-bounce'
-          style={{ animationDelay: '0.1s' }}
-        >
+        <span className='text-red-600 animate-bounce' style={{ animationDelay: '0.1s' }}>
           ♥️
         </span>
-        <span
-          className='text-red-600 animate-bounce'
-          style={{ animationDelay: '0.2s' }}
-        >
+        <span className='text-red-600 animate-bounce' style={{ animationDelay: '0.2s' }}>
           ♦️
         </span>
-        <span
-          className='text-black animate-bounce'
-          style={{ animationDelay: '0.3s' }}
-        >
+        <span className='text-black animate-bounce' style={{ animationDelay: '0.3s' }}>
           ♣️
         </span>
       </div>
 
       {/* Error message */}
       <div className='mb-8'>
-        <h1 className='text-6xl font-bold text-gray-800 mb-4 animate-pulse'>
-          404
-        </h1>
-        <h2 className='text-2xl font-semibold text-gray-700 mb-4'>
-          Page Not Found
-        </h2>
-        <p className='text-gray-600 mb-2'>
-          Looks like you&apos;ve played your hand wrong!
-        </p>
-        <p className='text-gray-600'>
-          The page you&apos;re looking for doesn&apos;t exist.
-        </p>
+        <h1 className='text-6xl font-bold text-gray-800 mb-4 animate-pulse'>404</h1>
+        <h2 className='text-2xl font-semibold text-gray-700 mb-4'>Page Not Found</h2>
+        <p className='text-gray-600 mb-2'>Looks like you&apos;ve played your hand wrong!</p>
+        <p className='text-gray-600'>The page you&apos;re looking for doesn&apos;t exist.</p>
       </div>
 
       {/* Action buttons */}
@@ -71,8 +54,8 @@ export default function NotFound() {
       {/* Fun euchre-themed message */}
       <div className='mt-8 p-4 bg-gray-50 rounded-lg border-l-4 border-green-500'>
         <p className='text-sm text-gray-600 italic'>
-          In Euchre, sometimes you have to go alone. But you don&apos;t have to
-          navigate this website alone!
+          In Euchre, sometimes you have to go alone. But you don&apos;t have to navigate this
+          website alone!
         </p>
       </div>
 

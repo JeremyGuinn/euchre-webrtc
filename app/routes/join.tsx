@@ -73,9 +73,7 @@ export default function Join({ params }: Route.ComponentProps) {
 
       // Navigation to lobby will be handled by the useEffect watching connectionStatus
     } catch {
-      setError(
-        'Failed to join game. Please check the game code and try again.'
-      );
+      setError('Failed to join game. Please check the game code and try again.');
       setIsJoining(false);
     }
   };
@@ -105,10 +103,7 @@ export default function Join({ params }: Route.ComponentProps) {
 
           {error && <ErrorDisplay error={error} />}
 
-          <ConnectionStatusDisplay
-            status={connectionStatus}
-            className='justify-between mb-4'
-          />
+          <ConnectionStatusDisplay status={connectionStatus} className='justify-between mb-4' />
 
           <Button
             type='submit'

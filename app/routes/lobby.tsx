@@ -86,8 +86,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
   const handleKickPlayer = (playerId: string) => kickPlayer(playerId);
   const handleDragStart = (playerId: string) => setDraggedPlayer(playerId);
   const handleDragOver = (e: React.DragEvent) => e.preventDefault();
-  const handleRenamePlayer = (playerId: string, newName: string) =>
-    renamePlayer(playerId, newName);
+  const handleRenamePlayer = (playerId: string, newName: string) => renamePlayer(playerId, newName);
 
   const handleMovePlayer = (playerId: string, newPosition: 0 | 1 | 2 | 3) =>
     movePlayer(playerId, newPosition);
@@ -142,8 +141,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
               disabled={gameState.phase !== 'lobby'}
             />
 
-            {gameState.options.dealerSelection ===
-              'predetermined_first_dealer' && (
+            {gameState.options.dealerSelection === 'predetermined_first_dealer' && (
               <PredeterminedDealerSelector
                 players={gameState.players.filter(p => p.isConnected)}
                 selectedDealerId={gameState.options.predeterminedFirstDealerId}

@@ -48,21 +48,15 @@ export function useGameProvider() {
   );
   const [myPlayerId, setMyPlayerId] = useState('');
   const [isHost, setIsHost] = useState(false);
-  const [reconnectionStatus, setReconnectionStatus] =
-    useState<ReconnectionStatus>({
-      isReconnecting: false,
-      attempt: 0,
-      maxRetries: 0,
-    });
+  const [reconnectionStatus, setReconnectionStatus] = useState<ReconnectionStatus>({
+    isReconnecting: false,
+    attempt: 0,
+    maxRetries: 0,
+  });
 
   const networkService = useMemo(() => new GameNetworkService(), []);
 
-  const { broadcastGameState } = useGameStateEffects(
-    gameState,
-    myPlayerId,
-    isHost,
-    networkService
-  );
+  const { broadcastGameState } = useGameStateEffects(gameState, myPlayerId, isHost, networkService);
 
   useGameStatePersistence(gameState, isHost, connectionStatus);
 

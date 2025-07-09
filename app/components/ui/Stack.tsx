@@ -25,15 +25,8 @@ const spacingMap = {
  * @param as - HTML element to render as (default: 'div')
  * @param className - Additional CSS classes
  */
-export function Stack({
-  children,
-  spacing = '4',
-  className,
-  as: Component = 'div',
-}: StackProps) {
+export function Stack({ children, spacing = '4', className, as: Component = 'div' }: StackProps) {
   const spacingClass = spacingMap[spacing];
 
-  return (
-    <Component className={cn(spacingClass, className)}>{children}</Component>
-  );
+  return <Component className={cn(spacingClass, className)}>{children}</Component>;
 }

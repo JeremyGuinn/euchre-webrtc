@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useIsClient } from '~/hooks/useClientOnly';
 import { createScopedLogger } from '~/services/loggingService';
 
@@ -28,9 +22,7 @@ export interface SessionContextType {
 
   // Session actions
   saveSession: (data: Omit<SessionData, 'lastConnectionTime'>) => void;
-  updateSession: (
-    updates: Partial<Omit<SessionData, 'lastConnectionTime'>>
-  ) => void;
+  updateSession: (updates: Partial<Omit<SessionData, 'lastConnectionTime'>>) => void;
   clearSession: () => void;
   savePlayerName: (name: string) => void;
   updateLastConnectionTime: () => void;
@@ -80,9 +72,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
 
     try {
       // Load player name
-      const storedPlayerName = storageStrategy.getItem(
-        SESSION_KEYS.PLAYER_NAME
-      );
+      const storedPlayerName = storageStrategy.getItem(SESSION_KEYS.PLAYER_NAME);
       if (storedPlayerName) {
         setPlayerName(storedPlayerName);
         logger.debug('Loaded player name from storage', {
@@ -91,17 +81,14 @@ export function SessionProvider({ children }: SessionProviderProps) {
       }
 
       // Load session data
-      const storedSessionData = storageStrategy.getItem(
-        SESSION_KEYS.SESSION_DATA
-      );
+      const storedSessionData = storageStrategy.getItem(SESSION_KEYS.SESSION_DATA);
 
       if (storedSessionData) {
         const parsedSessionData: SessionData = JSON.parse(storedSessionData);
 
         // Check if session has expired
         const now = Date.now();
-        const timeSinceLastConnection =
-          now - parsedSessionData.lastConnectionTime;
+        const timeSinceLastConnection = now - parsedSessionData.lastConnectionTime;
 
         if (timeSinceLastConnection > SESSION_TIMEOUT_MS) {
           logger.warn('Session expired, clearing stored data', {
@@ -135,10 +122,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
       };
 
       try {
-        storageStrategy.setItem(
-          SESSION_KEYS.SESSION_DATA,
-          JSON.stringify(newSessionData)
-        );
+        storageStrategy.setItem(SESSION_KEYS.SESSION_DATA, JSON.stringify(newSessionData));
         setSessionData(newSessionData);
         setIsSessionExpired(false);
 
@@ -168,10 +152,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
       };
 
       try {
-        storageStrategy.setItem(
-          SESSION_KEYS.SESSION_DATA,
-          JSON.stringify(updatedSessionData)
-        );
+        storageStrategy.setItem(SESSION_KEYS.SESSION_DATA, JSON.stringify(updatedSessionData));
         setSessionData(updatedSessionData);
 
         logger.debug('Session updated', { updates });
@@ -221,10 +202,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
     };
 
     try {
-      storageStrategy.setItem(
-        SESSION_KEYS.SESSION_DATA,
-        JSON.stringify(updatedSessionData)
-      );
+      storageStrategy.setItem(SESSION_KEYS.SESSION_DATA, JSON.stringify(updatedSessionData));
       setSessionData(updatedSessionData);
 
       logger.trace('Last connection time updated');
@@ -267,11 +245,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
     validateSession,
   };
 
-  return (
-    <SessionContext.Provider value={contextValue}>
-      {children}
-    </SessionContext.Provider>
-  );
+  return <SessionContext.Provider value={contextValue}>{children}</SessionContext.Provider>;
 }
 
 export function useSession() {

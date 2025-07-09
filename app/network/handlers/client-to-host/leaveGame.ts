@@ -19,9 +19,7 @@ const handleLeaveGameImpl: ClientToHostHandler<LeaveGameMessage> = (
   const gameState = gameStore;
 
   // Find the player who is leaving
-  const leavingPlayer = gameState.players.find(
-    (player: Player) => player.id === senderId
-  );
+  const leavingPlayer = gameState.players.find((player: Player) => player.id === senderId);
 
   if (!leavingPlayer) {
     // Player not found, they might have already been removed

@@ -9,15 +9,10 @@ import type { HeartbeatMessage } from '~/types/messages';
  * @param senderId - The ID of the player who sent the heartbeat
  * @param context - Handler context (could be used for connection status updates)
  */
-export const handleHeartbeat: PeerToPeerHandler<HeartbeatMessage> = (
-  message,
-  senderId
-) => {
+export const handleHeartbeat: PeerToPeerHandler<HeartbeatMessage> = (message, senderId) => {
   // Heartbeat messages are used to maintain connection awareness
   // Log for debugging purposes, but generally no action needed
-  console.debug(
-    `Received heartbeat from ${senderId} for game ${message.payload.gameId}`
-  );
+  console.debug(`Received heartbeat from ${senderId} for game ${message.payload.gameId}`);
 
   // Could optionally:
   // - Respond with our own heartbeat

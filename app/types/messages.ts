@@ -32,10 +32,7 @@ export type HostToClientMessageType =
 export type PeerToPeerMessageType = 'HEARTBEAT' | 'ERROR';
 
 // Combined message type for backwards compatibility
-export type MessageType =
-  | ClientToHostMessageType
-  | HostToClientMessageType
-  | PeerToPeerMessageType;
+export type MessageType = ClientToHostMessageType | HostToClientMessageType | PeerToPeerMessageType;
 
 export interface BaseMessage {
   type: MessageType;
@@ -208,8 +205,7 @@ export interface DealerCardDealtMessage extends BaseHostToClientMessage {
   };
 }
 
-export interface CompleteBlackJackDealerSelectionMessage
-  extends BaseHostToClientMessage {
+export interface CompleteBlackJackDealerSelectionMessage extends BaseHostToClientMessage {
   type: 'COMPLETE_BLACKJACK_DEALER_SELECTION';
   payload: Record<string, never>;
 }
@@ -263,7 +259,4 @@ export type HostToClientMessage =
 export type PeerToPeerMessage = HeartbeatMessage | ErrorMessage;
 
 // Combined union type for all messages
-export type GameMessage =
-  | ClientToHostMessage
-  | HostToClientMessage
-  | PeerToPeerMessage;
+export type GameMessage = ClientToHostMessage | HostToClientMessage | PeerToPeerMessage;

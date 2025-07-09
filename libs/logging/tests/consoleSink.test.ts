@@ -120,9 +120,7 @@ describe('consoleSink', () => {
 
       expect(infoSpy).toHaveBeenCalledTimes(1);
       const calledMessage = infoSpy.mock.calls[0][0] as string;
-      expect(calledMessage).toMatch(
-        /^\[[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}\]/
-      );
+      expect(calledMessage).toMatch(/^\[[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}\]/);
     });
 
     it('should include metadata when enabled', () => {
@@ -321,9 +319,7 @@ describe('consoleSink', () => {
 
       expect(infoSpy).toHaveBeenCalledTimes(1);
       const calledMessage = infoSpy.mock.calls[0][0] as string;
-      expect(calledMessage).not.toMatch(
-        /^\[[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}\]/
-      );
+      expect(calledMessage).not.toMatch(/^\[[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}\]/);
     });
 
     it('should exclude metadata when disabled', () => {

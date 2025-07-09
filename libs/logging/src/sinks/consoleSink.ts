@@ -161,9 +161,7 @@ export class ConsoleSink extends BaseSink {
     // Add timestamp if enabled
     if (this.includeTimestamp) {
       logObject.timestamp = entry.timestamp;
-      logObject.timestampFormatted = LogFormatter.formatTimestamp(
-        entry.timestamp
-      );
+      logObject.timestampFormatted = LogFormatter.formatTimestamp(entry.timestamp);
     }
 
     // Add logger name if present
@@ -202,9 +200,7 @@ export class ConsoleSink extends BaseSink {
           ...Object.getOwnPropertyNames(entry.error).reduce(
             (acc, key) => {
               if (!['name', 'message', 'stack'].includes(key)) {
-                acc[key] = (entry.error as unknown as Record<string, unknown>)[
-                  key
-                ];
+                acc[key] = (entry.error as unknown as Record<string, unknown>)[key];
               }
               return acc;
             },
@@ -235,8 +231,7 @@ export class ConsoleSink extends BaseSink {
     // Add metadata if enabled
     if (this.includeMetadata && entry.metadata) {
       // Filter out correlationId since it's already in the message
-      const { correlationId: _correlationId, ...otherMetadata } =
-        entry.metadata;
+      const { correlationId: _correlationId, ...otherMetadata } = entry.metadata;
       if (Object.keys(otherMetadata).length > 0) {
         logData.metadata = otherMetadata;
         hasData = true;

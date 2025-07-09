@@ -19,7 +19,6 @@ const handleMovePlayerImpl: HostToClientHandler<MovePlayerMessage> = (
   gameStore.movePlayer(targetPlayerId, newPosition);
 };
 
-export const handleMovePlayer = createHostToClientHandler(
-  handleMovePlayerImpl,
-  [validateTargetPlayerExists]
-);
+export const handleMovePlayer = createHostToClientHandler(handleMovePlayerImpl, [
+  validateTargetPlayerExists,
+]);

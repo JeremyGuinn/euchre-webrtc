@@ -55,10 +55,7 @@ export default function NotificationBanner({
         </div>
         {onDismiss && (
           <div className='ml-3'>
-            <button
-              onClick={onDismiss}
-              className={`${config.textColor} hover:opacity-75`}
-            >
+            <button onClick={onDismiss} className={`${config.textColor} hover:opacity-75`}>
               ✕
             </button>
           </div>

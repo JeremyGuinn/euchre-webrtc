@@ -50,10 +50,7 @@ function isValidMessage(obj: any): obj is GameMessage {
   );
 }
 
-export function isRecentMessage(
-  message: GameMessage,
-  maxAgeMs: number = 30000
-): boolean {
+export function isRecentMessage(message: GameMessage, maxAgeMs: number = 30000): boolean {
   const now = Date.now();
   return now - message.timestamp <= maxAgeMs;
 }

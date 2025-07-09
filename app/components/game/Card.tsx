@@ -89,24 +89,16 @@ export function Card({
       onKeyDown={handleKeyDown}
       tabIndex={isClickable ? 0 : -1}
       role={isClickable ? 'button' : undefined}
-      aria-label={
-        isClickable ? `Play ${card.value} of ${card.suit}` : undefined
-      }
+      aria-label={isClickable ? `Play ${card.value} of ${card.suit}` : undefined}
     >
-      <div
-        className={`font-bold ${suitColors[card.suit]} ${
-          textSizes[size].value
-        }`}
-      >
+      <div className={`font-bold ${suitColors[card.suit]} ${textSizes[size].value}`}>
         {card.value}
       </div>
       <div className={`${suitColors[card.suit]} ${textSizes[size].suit}`}>
         {suitSymbols[card.suit]}
       </div>
       <div
-        className={`font-bold ${suitColors[card.suit]} transform rotate-180 ${
-          textSizes[size].value
-        }`}
+        className={`font-bold ${suitColors[card.suit]} transform rotate-180 ${textSizes[size].value}`}
       >
         {card.value}
       </div>

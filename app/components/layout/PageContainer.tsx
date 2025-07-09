@@ -23,10 +23,7 @@ export default function PageContainer({
 }: PageContainerProps) {
   return (
     <div className='min-h-screen bg-gradient-to-br from-green-800 to-green-600 flex items-center justify-center p-4'>
-      <Panel
-        variant='default'
-        className={cn(maxWidthClasses[maxWidth], 'w-full', className)}
-      >
+      <Panel variant='default' className={cn(maxWidthClasses[maxWidth], 'w-full', className)}>
         {children}
       </Panel>
     </div>

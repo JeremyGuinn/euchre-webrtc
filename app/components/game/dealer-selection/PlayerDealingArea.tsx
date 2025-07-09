@@ -37,9 +37,7 @@ export default function PlayerDealingArea({
   };
 
   const isBlackJack = (card: Card): boolean => {
-    return (
-      card.value === 'J' && (card.suit === 'spades' || card.suit === 'clubs')
-    );
+    return card.value === 'J' && (card.suit === 'spades' || card.suit === 'clubs');
   };
 
   return (
@@ -72,9 +70,7 @@ export default function PlayerDealingArea({
                 )
               ) : (
                 <div className='text-xs text-center text-gray-400'>
-                  {mode === 'random' && !player.isConnected
-                    ? 'Disconnected'
-                    : 'Waiting...'}
+                  {mode === 'random' && !player.isConnected ? 'Disconnected' : 'Waiting...'}
                 </div>
               )}
             </div>
@@ -85,9 +81,7 @@ export default function PlayerDealingArea({
                 const isBlackJackCard = isBlackJack(card);
 
                 // Create consistent random offsets based on card ID
-                const seed = card.id
-                  .split('')
-                  .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                const seed = card.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
                 const random1 = ((seed * 9301 + 49297) % 233280) / 233280;
                 const random2 = ((seed * 9301 + 49297 + 1) % 233280) / 233280;
                 const random3 = ((seed * 9301 + 49297 + 2) % 233280) / 233280;

@@ -17,9 +17,11 @@ import {
  * @param senderId - The ID of the player who sent the message (should be the host)
  * @param context - Handler context with gameStore actions
  */
-const handleSetPredeterminedDealerImpl: ClientToHostHandler<
-  SetPredeterminedDealerMessage
-> = (message, _senderId, context) => {
+const handleSetPredeterminedDealerImpl: ClientToHostHandler<SetPredeterminedDealerMessage> = (
+  message,
+  _senderId,
+  context
+) => {
   const { gameStore } = context;
   const { dealerId } = message.payload;
 

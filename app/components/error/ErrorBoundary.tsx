@@ -1,11 +1,7 @@
 import type { ErrorInfo, ReactNode } from 'react';
 import { Component } from 'react';
 
-import {
-  debugVariants,
-  layoutVariants,
-  textVariants,
-} from '~/utils/classVariants';
+import { debugVariants, layoutVariants, textVariants } from '~/utils/classVariants';
 import { cn } from '~/utils/cn';
 import Button from '../ui/Button';
 import ButtonDivider from '../ui/ButtonDivider';
@@ -23,10 +19,7 @@ interface ErrorBoundaryProps {
   fallback?: ReactNode;
 }
 
-export class ErrorBoundary extends Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = {
@@ -67,10 +60,7 @@ export class ErrorBoundary extends Component<
 
       return (
         <div
-          className={cn(
-            layoutVariants.centerScreen,
-            'bg-gradient-to-br from-red-800 to-red-600'
-          )}
+          className={cn(layoutVariants.centerScreen, 'bg-gradient-to-br from-red-800 to-red-600')}
         >
           <Panel variant='default' className={layoutVariants.container}>
             {/* Card symbols decoration */}
@@ -83,28 +73,22 @@ export class ErrorBoundary extends Component<
 
             {/* Error message */}
             <div className={cn('text-center mb-8')}>
-              <h1 className={textVariants.heading}>
-                Oops! Something went wrong
-              </h1>
+              <h1 className={textVariants.heading}>Oops! Something went wrong</h1>
               <p className={textVariants.body}>
-                It looks like you&apos;ve been dealt a bad hand! The game
-                encountered an unexpected error.
+                It looks like you&apos;ve been dealt a bad hand! The game encountered an unexpected
+                error.
               </p>
 
               {process.env.NODE_ENV === 'development' && this.state.error && (
                 <details className={debugVariants.details}>
-                  <summary className={debugVariants.summary}>
-                    Error Details (Development)
-                  </summary>
+                  <summary className={debugVariants.summary}>Error Details (Development)</summary>
                   <div className={debugVariants.errorInfo}>
                     <div>
                       <strong>Error:</strong> {this.state.error.message}
                     </div>
                     <div>
                       <strong>Stack trace:</strong>
-                      <pre className={debugVariants.codeBlock}>
-                        {this.state.error.stack}
-                      </pre>
+                      <pre className={debugVariants.codeBlock}>{this.state.error.stack}</pre>
                     </div>
                     {this.state.errorInfo && (
                       <div>
@@ -127,11 +111,7 @@ export class ErrorBoundary extends Component<
 
               <ButtonDivider />
 
-              <LinkButton
-                to='/'
-                variant='success'
-                onClick={this.reloadHomePgae}
-              >
+              <LinkButton to='/' variant='success' onClick={this.reloadHomePgae}>
                 🏠 Go Home
               </LinkButton>
             </div>
@@ -139,8 +119,8 @@ export class ErrorBoundary extends Component<
             {/* Fun euchre-themed message */}
             <div className={cn('mt-8 p-4 bg-gray-50 rounded-lg')}>
               <p className={cn(textVariants.caption, 'italic text-center')}>
-                Even the best Euchre players sometimes get a misdeal. Let&apos;s
-                shuffle the deck and try again!
+                Even the best Euchre players sometimes get a misdeal. Let&apos;s shuffle the deck
+                and try again!
               </p>
             </div>
           </Panel>

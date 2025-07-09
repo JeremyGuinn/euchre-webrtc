@@ -10,10 +10,7 @@ export function useGameUtils(gameState: GameState, myPlayerId: string) {
 
       let effectiveLeadSuit = undefined;
       if (gameState.currentTrick?.cards[0] && gameState.trump) {
-        effectiveLeadSuit = getEffectiveSuit(
-          gameState.currentTrick.cards[0].card,
-          gameState.trump
-        );
+        effectiveLeadSuit = getEffectiveSuit(gameState.currentTrick.cards[0].card, gameState.trump);
       }
 
       return canPlayCardWithOptions(
@@ -41,16 +38,11 @@ export function useGameUtils(gameState: GameState, myPlayerId: string) {
     // Check if I'm the teammate of someone going alone
     if (gameState.maker?.alone) {
       const myPlayer = gameState.players.find(p => p.id === myPlayerId);
-      const makerPlayer = gameState.players.find(
-        p => p.id === gameState.maker!.playerId
-      );
+      const makerPlayer = gameState.players.find(p => p.id === gameState.maker!.playerId);
 
       if (myPlayer && makerPlayer) {
         // If I'm on the same team as the maker but not the maker myself, I'm sitting out
-        return (
-          myPlayer.teamId === makerPlayer.teamId &&
-          myPlayer.id !== makerPlayer.id
-        );
+        return myPlayer.teamId === makerPlayer.teamId && myPlayer.id !== makerPlayer.id;
       }
     }
     return false;

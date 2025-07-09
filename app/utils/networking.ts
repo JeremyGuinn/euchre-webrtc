@@ -2,12 +2,7 @@ import type { DataConnection } from 'peerjs';
 import Peer from 'peerjs';
 import { createScopedLogger } from '~/services/loggingService';
 import type { GameMessage } from '~/types/messages';
-import {
-  decodeMessage,
-  encodeMessage,
-  isRecentMessage,
-  ProtocolError,
-} from './protocol';
+import { decodeMessage, encodeMessage, isRecentMessage, ProtocolError } from './protocol';
 
 export type ConnectionStatus =
   | 'disconnected'
@@ -27,10 +22,7 @@ export type PeerMessageHandler<T extends GameMessage = GameMessage> = (
   message: T,
   senderId: string
 ) => void;
-export type PeerConnectionHandler = (
-  peerId: string,
-  connected: boolean
-) => void;
+export type PeerConnectionHandler = (peerId: string, connected: boolean) => void;
 export type PeerStatusHandler = (status: ConnectionStatus) => void;
 
 export class NetworkManager {
@@ -58,9 +50,7 @@ export class NetworkManager {
       this.logger.info('Initializing network manager', { isHost, gameId });
 
       this._isHost = isHost;
-      const peerId = isHost
-        ? gameId || crypto.randomUUID()
-        : crypto.randomUUID();
+      const peerId = isHost ? gameId || crypto.randomUUID() : crypto.randomUUID();
 
       this.logger.debug('Generated peer ID', { peerId, isHost });
 
@@ -140,9 +130,7 @@ export class NetworkManager {
       });
 
       if (!this.peer) {
-        this.logger.error(
-          'Cannot connect to peer: Network manager not initialized'
-        );
+        this.logger.error('Cannot connect to peer: Network manager not initialized');
         throw new Error('Network manager not initialized');
       }
 
@@ -470,8 +458,7 @@ export class NetworkManager {
     }
 
     // Check both status and actual connection state
-    const isConnected =
-      connection.status === 'connected' && connection.connection.open;
+    const isConnected = connection.status === 'connected' && connection.connection.open;
 
     this.logger.trace('Peer connection check', {
       peerId,
@@ -559,11 +546,7 @@ export class NetworkManager {
     }
   }
 
-  private sendErrorMessage(
-    targetId: string,
-    message: string,
-    code?: string
-  ): void {
+  private sendErrorMessage(targetId: string, message: string, code?: string): void {
     this.logger.warn('Sending error message to peer', {
       targetId,
       errorMessage: message,

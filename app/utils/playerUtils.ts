@@ -35,11 +35,7 @@ export function makeNameUnique(
   let counter = 2;
   let uniqueName = `${trimmedName} (${counter})`;
 
-  while (
-    playersToCheck.some(
-      player => player.name.toLowerCase() === uniqueName.toLowerCase()
-    )
-  ) {
+  while (playersToCheck.some(player => player.name.toLowerCase() === uniqueName.toLowerCase())) {
     counter++;
     uniqueName = `${trimmedName} (${counter})`;
   }

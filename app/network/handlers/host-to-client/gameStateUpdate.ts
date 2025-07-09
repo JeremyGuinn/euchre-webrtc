@@ -18,6 +18,4 @@ const handleGameStateUpdateImpl: HostToClientHandler<GameStateUpdateMessage> = (
  * @param senderId - The ID of the host who sent this update
  * @param context - Handler context with gameStore actions
  */
-export const handleGameStateUpdate = createHostToClientHandler(
-  handleGameStateUpdateImpl
-);
+export const handleGameStateUpdate = createHostToClientHandler(handleGameStateUpdateImpl);

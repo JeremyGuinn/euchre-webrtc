@@ -1,9 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  CorrelationManager,
-  PerformanceTimer,
-  SessionManager,
-} from '../src/utils/correlation.js';
+import { CorrelationManager, PerformanceTimer, SessionManager } from '../src/utils/correlation.js';
 
 describe('correlationManager', () => {
   beforeEach(() => {
@@ -27,9 +23,7 @@ describe('correlationManager', () => {
     it('should use crypto.randomUUID when available', () => {
       CorrelationManager.setIdGenerator(() => crypto.randomUUID());
       const id = CorrelationManager.generateId();
-      expect(id).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
-      );
+      expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
     });
 
     it('should fallback to timestamp + random when crypto is not available', () => {
@@ -47,9 +41,7 @@ describe('correlationManager', () => {
 
       const id = CorrelationManager.generateId();
 
-      expect(id).toBe(
-        `${dateNow.toString(36)}-${randomValue.toString(36).substring(2)}`
-      );
+      expect(id).toBe(`${dateNow.toString(36)}-${randomValue.toString(36).substring(2)}`);
     });
   });
 
@@ -111,13 +103,10 @@ describe('correlationManager', () => {
     it('should execute async function with specified correlation ID', async () => {
       let capturedId: string | null = null;
 
-      const result = await CorrelationManager.withCorrelationIdAsync(
-        'async-id',
-        async () => {
-          capturedId = CorrelationManager.getCurrentId();
-          return 'async result';
-        }
-      );
+      const result = await CorrelationManager.withCorrelationIdAsync('async-id', async () => {
+        capturedId = CorrelationManager.getCurrentId();
+        return 'async result';
+      });
 
       expect(capturedId).toBe('async-id');
       expect(result).toBe('async result');
@@ -166,12 +155,10 @@ describe('correlationManager', () => {
     it('should generate new correlation ID and execute async function', async () => {
       let capturedId: string | null = null;
 
-      const result = await CorrelationManager.withNewCorrelationIdAsync(
-        async () => {
-          capturedId = CorrelationManager.getCurrentId();
-          return 'new async id result';
-        }
-      );
+      const result = await CorrelationManager.withNewCorrelationIdAsync(async () => {
+        capturedId = CorrelationManager.getCurrentId();
+        return 'new async id result';
+      });
 
       expect(capturedId).toBe('test-id');
       expect(result).toBe('new async id result');
@@ -368,16 +355,14 @@ describe('performanceTimer', () => {
     it('should measure asynchronous function execution', async () => {
       let executed = false;
 
-      const { result, metrics } = await PerformanceTimer.measureAsync(
-        async () => {
-          await new Promise(resolve => {
-            vi.advanceTimersByTime(200);
-            resolve(undefined);
-          });
-          executed = true;
-          return 'async result';
-        }
-      );
+      const { result, metrics } = await PerformanceTimer.measureAsync(async () => {
+        await new Promise(resolve => {
+          vi.advanceTimersByTime(200);
+          resolve(undefined);
+        });
+        executed = true;
+        return 'async result';
+      });
 
       expect(result).toBe('async result');
       expect(executed).toBe(true);

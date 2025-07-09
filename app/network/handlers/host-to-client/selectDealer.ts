@@ -18,6 +18,4 @@ const handleSelectDealerImpl: HostToClientHandler<SelectDealerMessage> = (
  * @param senderId - The ID of the host who initiated dealer selection
  * @param context - Handler context with gameStore actions
  */
-export const handleSelectDealer = createHostToClientHandler(
-  handleSelectDealerImpl
-);
+export const handleSelectDealer = createHostToClientHandler(handleSelectDealerImpl);

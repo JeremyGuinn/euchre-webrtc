@@ -79,10 +79,7 @@ export function pushLogContext(context: LogContext): () => void {
  * Get the current merged logging context from the stack
  */
 export function getCurrentLogContext(): LogContext {
-  return contextStack.reduce(
-    (merged, context) => ({ ...merged, ...context }),
-    {}
-  );
+  return contextStack.reduce((merged, context) => ({ ...merged, ...context }), {});
 }
 
 /**
@@ -184,9 +181,6 @@ export function createScopedLogger(
 /**
  * React hook for component-level logging
  */
-export function useLogger(
-  componentName: string,
-  additionalContext?: LogContext
-) {
+export function useLogger(componentName: string, additionalContext?: LogContext) {
   return createScopedLogger(componentName, additionalContext);
 }

@@ -1,15 +1,6 @@
 import type { LoggerConfig, LogSink } from '../config/loggerConfig.js';
-import {
-  CorrelationManager,
-  PerformanceTimer,
-  SessionManager,
-} from '../utils/correlation.js';
-import type {
-  LogContext,
-  LogEntry,
-  LogMetadata,
-  LogPerformanceMetrics,
-} from './logEntry.js';
+import { CorrelationManager, PerformanceTimer, SessionManager } from '../utils/correlation.js';
+import type { LogContext, LogEntry, LogMetadata, LogPerformanceMetrics } from './logEntry.js';
 import { createLogEntry } from './logEntry.js';
 import { LogLevel, LogLevelUtils } from './logLevel.js';
 
@@ -106,15 +97,11 @@ function mergeConfig(
     sinks: userConfig.sinks ?? defaultConfig.sinks,
     filters: mergedFilters,
     performance: {
-      bufferSize:
-        userConfig.performance?.bufferSize ??
-        defaultConfig.performance.bufferSize,
+      bufferSize: userConfig.performance?.bufferSize ?? defaultConfig.performance.bufferSize,
       flushInterval:
-        userConfig.performance?.flushInterval ??
-        defaultConfig.performance.flushInterval,
+        userConfig.performance?.flushInterval ?? defaultConfig.performance.flushInterval,
       maxMemoryEntries:
-        userConfig.performance?.maxMemoryEntries ??
-        defaultConfig.performance.maxMemoryEntries,
+        userConfig.performance?.maxMemoryEntries ?? defaultConfig.performance.maxMemoryEntries,
       async: userConfig.performance?.async ?? defaultConfig.performance.async,
     },
     enabled: userConfig.enabled ?? defaultConfig.enabled,
@@ -141,55 +128,35 @@ export class Logger {
   /**
    * Log a trace message
    */
-  trace(
-    message: string,
-    data?: Record<string, unknown>,
-    metadata?: LogMetadata
-  ): void {
+  trace(message: string, data?: Record<string, unknown>, metadata?: LogMetadata): void {
     this.log(LogLevel.TRACE, message, data, metadata);
   }
 
   /**
    * Log a debug message
    */
-  debug(
-    message: string,
-    data?: Record<string, unknown>,
-    metadata?: LogMetadata
-  ): void {
+  debug(message: string, data?: Record<string, unknown>, metadata?: LogMetadata): void {
     this.log(LogLevel.DEBUG, message, data, metadata);
   }
 
   /**
    * Log an info message
    */
-  info(
-    message: string,
-    data?: Record<string, unknown>,
-    metadata?: LogMetadata
-  ): void {
+  info(message: string, data?: Record<string, unknown>, metadata?: LogMetadata): void {
     this.log(LogLevel.INFO, message, data, metadata);
   }
 
   /**
    * Log a warning message
    */
-  warn(
-    message: string,
-    data?: Record<string, unknown>,
-    metadata?: LogMetadata
-  ): void {
+  warn(message: string, data?: Record<string, unknown>, metadata?: LogMetadata): void {
     this.log(LogLevel.WARN, message, data, metadata);
   }
 
   /**
    * Log an error message
    */
-  error(
-    message: string,
-    error?: Error | Record<string, unknown>,
-    metadata?: LogMetadata
-  ): void {
+  error(message: string, error?: Error | Record<string, unknown>, metadata?: LogMetadata): void {
     let errorObj: Error | undefined;
     let dataObj: Record<string, unknown> | undefined;
 
@@ -205,11 +172,7 @@ export class Logger {
   /**
    * Log a fatal error message
    */
-  fatal(
-    message: string,
-    error?: Error | Record<string, unknown>,
-    metadata?: LogMetadata
-  ): void {
+  fatal(message: string, error?: Error | Record<string, unknown>, metadata?: LogMetadata): void {
     let errorObj: Error | undefined;
     let dataObj: Record<string, unknown> | undefined;
 
@@ -225,12 +188,7 @@ export class Logger {
   /**
    * Log with performance timing
    */
-  logWithTiming<T>(
-    level: LogLevel,
-    message: string,
-    fn: () => T,
-    metadata?: LogMetadata
-  ): T {
+  logWithTiming<T>(level: LogLevel, message: string, fn: () => T, metadata?: LogMetadata): T {
     const { result, metrics } = PerformanceTimer.measure(fn);
 
     this.log(level, message, undefined, metadata, undefined, metrics);
@@ -340,14 +298,7 @@ export class Logger {
       return;
     }
 
-    const entry = this.createLogEntry(
-      level,
-      message,
-      data,
-      metadata,
-      error,
-      performance
-    );
+    const entry = this.createLogEntry(level, message, data, metadata, error, performance);
 
     if (this.config.performance.async) {
       this.bufferEntry(entry);
@@ -385,8 +336,7 @@ export class Logger {
       version: this.config.version,
       ...this.config.defaultContext,
       url: typeof window !== 'undefined' ? window.location.href : undefined,
-      userAgent:
-        typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
     };
 
     return createLogEntry(level, message, {
@@ -441,10 +391,7 @@ export class Logger {
     }
 
     // Check rate limiting
-    if (
-      filter.rateLimitPerMinute &&
-      !this.checkRateLimit(message, filter.rateLimitPerMinute)
-    ) {
+    if (filter.rateLimitPerMinute && !this.checkRateLimit(message, filter.rateLimitPerMinute)) {
       return false;
     }
 
@@ -454,18 +401,14 @@ export class Logger {
     }
 
     // Check skip patterns
-    if (
-      filter.skipPatterns.some((pattern: string) => message.includes(pattern))
-    ) {
+    if (filter.skipPatterns.some((pattern: string) => message.includes(pattern))) {
       return false;
     }
 
     // Check include patterns
     if (
       filter.includePatterns.length > 0 &&
-      !filter.includePatterns.some((pattern: string) =>
-        message.includes(pattern)
-      )
+      !filter.includePatterns.some((pattern: string) => message.includes(pattern))
     ) {
       return false;
     }
@@ -518,10 +461,7 @@ export class Logger {
 
     // Prevent memory leaks
     if (this.logBuffer.length > this.config.performance.maxMemoryEntries) {
-      this.logBuffer.splice(
-        0,
-        this.logBuffer.length - this.config.performance.maxMemoryEntries
-      );
+      this.logBuffer.splice(0, this.logBuffer.length - this.config.performance.maxMemoryEntries);
     }
   }
 

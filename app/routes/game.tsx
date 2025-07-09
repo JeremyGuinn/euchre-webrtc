@@ -77,9 +77,7 @@ export default function Game({ params }: Route.ComponentProps) {
 
   const myPlayer = getMyPlayer();
   const myHand = getMyHand();
-  const currentPlayer = gameState.players.find(
-    p => p.id === gameState.currentPlayerId
-  );
+  const currentPlayer = gameState.players.find(p => p.id === gameState.currentPlayerId);
 
   useEffect(() => {
     // Redirect to lobby if game hasn't started
@@ -145,10 +143,7 @@ export default function Game({ params }: Route.ComponentProps) {
     playCard(card);
   };
 
-  const handleBid = (
-    suit: CardType['suit'] | 'pass',
-    alone: boolean = false
-  ) => {
+  const handleBid = (suit: CardType['suit'] | 'pass', alone: boolean = false) => {
     placeBid(suit, alone);
   };
 

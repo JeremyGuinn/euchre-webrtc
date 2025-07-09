@@ -20,9 +20,7 @@ export default function CardDeck({
         <div
           className='absolute top-0 left-0 opacity-60 transition-transform duration-100'
           style={{
-            transform: isAnimating
-              ? 'translateY(-1px) rotate(-0.5deg)'
-              : 'none',
+            transform: isAnimating ? 'translateY(-1px) rotate(-0.5deg)' : 'none',
           }}
         >
           <CardBack size={size} />
@@ -30,9 +28,7 @@ export default function CardDeck({
         <div
           className='absolute top-0.5 left-0.5 opacity-80 transition-transform duration-100'
           style={{
-            transform: isAnimating
-              ? 'translateY(-0.5px) rotate(0.3deg)'
-              : 'none',
+            transform: isAnimating ? 'translateY(-0.5px) rotate(0.3deg)' : 'none',
           }}
         >
           <CardBack size={size} />

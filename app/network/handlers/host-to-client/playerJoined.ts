@@ -18,6 +18,4 @@ const handlePlayerJoinedImpl: HostToClientHandler<PlayerJoinedMessage> = (
  * @param senderId - The ID of the host who broadcast this message
  * @param context - Handler context with game state and gameStore actions
  */
-export const handlePlayerJoined = createHostToClientHandler(
-  handlePlayerJoinedImpl
-);
+export const handlePlayerJoined = createHostToClientHandler(handlePlayerJoinedImpl);

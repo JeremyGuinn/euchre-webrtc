@@ -28,9 +28,7 @@ export default function DealerSelectionStatus({
     <div className='absolute bottom-32 left-1/2 transform -translate-x-1/2 text-white text-center'>
       <div className='bg-black/70 backdrop-blur-sm px-6 py-3 rounded-lg shadow-lg border border-white/20'>
         <div className='text-lg font-medium mb-1'>
-          {method === 'first_black_jack'
-            ? 'Finding Dealer'
-            : 'Selecting Dealer'}
+          {method === 'first_black_jack' ? 'Finding Dealer' : 'Selecting Dealer'}
         </div>
         <div className='text-sm text-gray-300'>{getStatusText()}</div>
       </div>

@@ -1,8 +1,5 @@
 // Permission-based validators
-export {
-  validatePermissionForClient,
-  validatePermissionForHost,
-} from './permissionValidators';
+export { validatePermissionForClient, validatePermissionForHost } from './permissionValidators';
 
 // Player-based validators
 export {

@@ -28,7 +28,6 @@ const handleRenamePlayerImpl: ClientToHostHandler<RenamePlayerMessage> = (
   gameStore.renamePlayer(senderId, uniqueName);
 };
 
-export const handleRenamePlayer = createClientToHostHandler(
-  handleRenamePlayerImpl,
-  [validatePlayerExists]
-);
+export const handleRenamePlayer = createClientToHostHandler(handleRenamePlayerImpl, [
+  validatePlayerExists,
+]);

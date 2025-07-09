@@ -5,12 +5,7 @@ import { ConsoleSink } from './sinks/consoleSink.js';
 
 // Core exports
 export { createLogEntry } from './core/logEntry.js';
-export type {
-  LogContext,
-  LogEntry,
-  LogMetadata,
-  LogPerformanceMetrics,
-} from './core/logEntry.js';
+export type { LogContext, LogEntry, LogMetadata, LogPerformanceMetrics } from './core/logEntry.js';
 export { Logger } from './core/logger.js';
 export { LogLevel, LogLevelNames, LogLevelUtils } from './core/logLevel.js';
 
@@ -28,11 +23,7 @@ export { ConsoleSink } from './sinks/consoleSink.js';
 export type { ConsoleSinkOptions } from './sinks/consoleSink.js';
 
 // Utility exports
-export {
-  CorrelationManager,
-  PerformanceTimer,
-  SessionManager,
-} from './utils/correlation.js';
+export { CorrelationManager, PerformanceTimer, SessionManager } from './utils/correlation.js';
 export { ConsoleColors, LogFormatter } from './utils/formatting.js';
 
 // Factory functions and convenience exports
@@ -48,9 +39,7 @@ export function createConsoleLogger(level: LogLevel = LogLevel.INFO): Logger {
   });
 }
 
-export function createProductionLogger(
-  config: Partial<LoggerConfig> = {}
-): Logger {
+export function createProductionLogger(config: Partial<LoggerConfig> = {}): Logger {
   return new Logger({
     level: LogLevel.WARN,
     environment: 'production',
@@ -69,9 +58,7 @@ export function createProductionLogger(
   });
 }
 
-export function createDevelopmentLogger(
-  config: Partial<LoggerConfig> = {}
-): Logger {
+export function createDevelopmentLogger(config: Partial<LoggerConfig> = {}): Logger {
   const consoleSink = new ConsoleSink({
     minLevel: LogLevel.DEBUG,
     useColors: true,

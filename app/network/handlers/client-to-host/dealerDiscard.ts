@@ -20,7 +20,7 @@ const handleDealerDiscardImpl: ClientToHostHandler<DealerDiscardMessage> = (
  * @param senderId - The ID of the dealer who discarded the card
  * @param context - Handler context with gameStore actions
  */
-export const handleDealerDiscard = createClientToHostHandler(
-  handleDealerDiscardImpl,
-  [validatePlayerExists, validateSenderIsDealer]
-);
+export const handleDealerDiscard = createClientToHostHandler(handleDealerDiscardImpl, [
+  validatePlayerExists,
+  validateSenderIsDealer,
+]);

@@ -46,9 +46,7 @@ export interface HandlerContext {
   /** Session management functions */
   sessionManager: {
     saveSession: (data: Omit<SessionData, 'lastConnectionTime'>) => void;
-    updateSession: (
-      updates: Partial<Omit<SessionData, 'lastConnectionTime'>>
-    ) => void;
+    updateSession: (updates: Partial<Omit<SessionData, 'lastConnectionTime'>>) => void;
     clearSession: () => void;
     sessionData: SessionData | null;
   };
@@ -82,15 +80,13 @@ export type ValidationFunction<T extends BaseMessage = never> = (
  * Base handler for Client-to-Host messages.
  * These messages are sent by clients and should only be processed by the host.
  */
-export type ClientToHostHandler<T extends ClientToHostMessage> =
-  MessageHandler<T>;
+export type ClientToHostHandler<T extends ClientToHostMessage> = MessageHandler<T>;
 
 /**
  * Base handler for Host-to-Client messages.
  * These messages are sent by the host and should only be processed by clients.
  */
-export type HostToClientHandler<T extends HostToClientMessage> =
-  MessageHandler<T>;
+export type HostToClientHandler<T extends HostToClientMessage> = MessageHandler<T>;
 
 /**
  * Base handler for Peer-to-Peer messages.
@@ -101,10 +97,7 @@ export type PeerToPeerHandler<T extends PeerToPeerMessage> = MessageHandler<T>;
 /**
  * Extract specific message type from GameMessage union based on the 'type' property
  */
-type ExtractMessageType<T extends MessageType> = Extract<
-  GameMessage,
-  { type: T }
->;
+type ExtractMessageType<T extends MessageType> = Extract<GameMessage, { type: T }>;
 
 /**
  * Generate handler types automatically from all message types.

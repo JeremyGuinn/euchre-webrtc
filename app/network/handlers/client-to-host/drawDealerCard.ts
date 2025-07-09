@@ -21,9 +21,7 @@ const handleDrawDealerCardImpl: ClientToHostHandler<DrawDealerCardMessage> = (
 
   const defaultIndex = Math.floor(Math.random() * availableCards.length);
   const selectedIndex =
-    cardIndex !== undefined &&
-    cardIndex >= 0 &&
-    cardIndex < availableCards.length
+    cardIndex !== undefined && cardIndex >= 0 && cardIndex < availableCards.length
       ? cardIndex
       : defaultIndex;
 
@@ -38,7 +36,8 @@ const handleDrawDealerCardImpl: ClientToHostHandler<DrawDealerCardMessage> = (
  * @param senderId - The ID of the player who wants to draw a card
  * @param context - Handler context with gameStore actions
  */
-export const handleDrawDealerCard = createClientToHostHandler(
-  handleDrawDealerCardImpl,
-  [validatePlayerExists, validatePlayerHasNotDrawn, validateCardsAvailable]
-);
+export const handleDrawDealerCard = createClientToHostHandler(handleDrawDealerCardImpl, [
+  validatePlayerExists,
+  validatePlayerHasNotDrawn,
+  validateCardsAvailable,
+]);

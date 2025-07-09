@@ -37,10 +37,7 @@ export function useGameStateEffects(
     // Send personalized state to each player
     currentGameState.players.forEach((player: Player) => {
       if (player.id !== currentMyPlayerId) {
-        const personalizedState = createPublicGameState(
-          currentGameState,
-          player.id
-        );
+        const personalizedState = createPublicGameState(currentGameState, player.id);
 
         currentNetworkService.sendMessage(
           {

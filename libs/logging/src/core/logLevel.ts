@@ -31,9 +31,7 @@ export class LogLevelUtils {
    */
   static fromString(level: string): LogLevel {
     const upperLevel = level.toUpperCase();
-    const entry = Object.entries(LogLevelNames).find(
-      ([_, name]) => name === upperLevel
-    );
+    const entry = Object.entries(LogLevelNames).find(([_, name]) => name === upperLevel);
 
     if (!entry) {
       throw new Error(`Invalid log level: ${level}`);

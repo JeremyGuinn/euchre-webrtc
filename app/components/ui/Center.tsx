@@ -27,9 +27,5 @@ export function Center({
     both: 'flex items-center justify-center',
   };
 
-  return (
-    <Component className={cn(centerClasses[direction], className)}>
-      {children}
-    </Component>
-  );
+  return <Component className={cn(centerClasses[direction], className)}>{children}</Component>;
 }

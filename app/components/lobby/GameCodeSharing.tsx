@@ -35,9 +35,7 @@ export default function GameCodeSharing({
   };
 
   const containerClass =
-    layout === 'horizontal'
-      ? 'grid grid-cols-1 md:grid-cols-2 gap-4'
-      : 'space-y-4';
+    layout === 'horizontal' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : 'space-y-4';
 
   return (
     <div className={`${containerClass} ${className}`}>

@@ -139,8 +139,7 @@ describe('logFormatter', () => {
 
     it('should include stack trace when available', () => {
       const error = new Error('Test error');
-      error.stack =
-        'Error: Test error\n    at test (file.js:1:1)\n    at other (file.js:2:2)';
+      error.stack = 'Error: Test error\n    at test (file.js:1:1)\n    at other (file.js:2:2)';
 
       const formatted = LogFormatter.formatError(error);
       expect(formatted).toContain('Error: Test error');
@@ -165,10 +164,7 @@ describe('logFormatter', () => {
       const error = new Error('Test error');
       const longStack =
         'Error: Test error\n' +
-        Array.from(
-          { length: 20 },
-          (_, i) => `    at frame${i} (file.js:${i}:1)`
-        ).join('\n');
+        Array.from({ length: 20 }, (_, i) => `    at frame${i} (file.js:${i}:1)`).join('\n');
       error.stack = longStack;
 
       const formatted = LogFormatter.formatError(error);

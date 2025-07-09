@@ -28,9 +28,7 @@ export function PlayerHand({
   onDealerDiscard,
   shouldShowCards,
 }: PlayerHandProps) {
-  const [hoveredDiscardCard, setHoveredDiscardCard] = useState<CardType | null>(
-    null
-  );
+  const [hoveredDiscardCard, setHoveredDiscardCard] = useState<CardType | null>(null);
 
   if (player.id === myPlayer.id) {
     // My hand - show actual cards
@@ -38,15 +36,11 @@ export function PlayerHand({
       <div className='flex space-x-1'>
         {myHand.map(card => {
           const isInDealerDiscardPhase =
-            gameState.phase === 'dealer_discard' &&
-            myPlayer.id === gameState.currentDealerId;
+            gameState.phase === 'dealer_discard' && myPlayer.id === gameState.currentDealerId;
           const isKittyCard =
-            isInDealerDiscardPhase &&
-            gameState.kitty &&
-            card.id === gameState.kitty.id;
+            isInDealerDiscardPhase && gameState.kitty && card.id === gameState.kitty.id;
           const canDiscard = isInDealerDiscardPhase && !isKittyCard;
-          const isHovered =
-            isInDealerDiscardPhase && hoveredDiscardCard?.id === card.id;
+          const isHovered = isInDealerDiscardPhase && hoveredDiscardCard?.id === card.id;
 
           return (
             <div
@@ -54,13 +48,9 @@ export function PlayerHand({
               className='relative'
               role='presentation'
               onMouseEnter={() =>
-                isInDealerDiscardPhase &&
-                canDiscard &&
-                setHoveredDiscardCard(card)
+                isInDealerDiscardPhase && canDiscard && setHoveredDiscardCard(card)
               }
-              onMouseLeave={() =>
-                isInDealerDiscardPhase && setHoveredDiscardCard(null)
-              }
+              onMouseLeave={() => isInDealerDiscardPhase && setHoveredDiscardCard(null)}
             >
               <Card
                 card={card}
@@ -75,25 +65,17 @@ export function PlayerHand({
                   isSittingOut() ||
                   (isInDealerDiscardPhase
                     ? !canDiscard
-                    : !isMyTurn() ||
-                      gameState.phase !== 'playing' ||
-                      !canPlay(card))
+                    : !isMyTurn() || gameState.phase !== 'playing' || !canPlay(card))
                 }
                 className={`
                   ${
                     isSittingOut()
                       ? 'opacity-30 grayscale'
-                      : !canPlay(card) &&
-                          isMyTurn() &&
-                          gameState.phase === 'playing'
+                      : !canPlay(card) && isMyTurn() && gameState.phase === 'playing'
                         ? 'opacity-50'
                         : ''
                   }
-                  ${
-                    isInDealerDiscardPhase && canDiscard
-                      ? 'cursor-pointer hover:scale-105 hover:-translate-y-1'
-                      : ''
-                  }
+                  ${isInDealerDiscardPhase && canDiscard ? 'cursor-pointer hover:scale-105 hover:-translate-y-1' : ''}
                   ${isInDealerDiscardPhase && !canDiscard ? 'opacity-60' : ''}
                   ${isHovered ? 'ring-2 ring-red-400' : ''}
                   transition-all duration-200

@@ -211,20 +211,14 @@ describe('logger', () => {
 
   describe('performance timing', () => {
     it('should measure synchronous function execution', () => {
-      const result = logger.logWithTiming(
-        LogLevel.INFO,
-        'timed operation',
-        () => {
-          return 'test result';
-        }
-      );
+      const result = logger.logWithTiming(LogLevel.INFO, 'timed operation', () => {
+        return 'test result';
+      });
 
       expect(result).toBe('test result');
       expect(mockSink.entries).toHaveLength(1);
       expect(mockSink.entries[0].performance?.duration).toBeTypeOf('number');
-      expect(mockSink.entries[0].performance!.duration).toBeGreaterThanOrEqual(
-        0
-      );
+      expect(mockSink.entries[0].performance!.duration).toBeGreaterThanOrEqual(0);
     });
 
     it('should measure asynchronous function execution', async () => {
@@ -242,9 +236,7 @@ describe('logger', () => {
       expect(result).toBe('async result');
       expect(mockSink.entries).toHaveLength(1);
       expect(mockSink.entries[0].performance?.duration).toBeTypeOf('number');
-      expect(mockSink.entries[0].performance!.duration).toBeGreaterThanOrEqual(
-        0
-      );
+      expect(mockSink.entries[0].performance!.duration).toBeGreaterThanOrEqual(0);
     });
   });
 

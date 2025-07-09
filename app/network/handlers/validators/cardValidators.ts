@@ -38,10 +38,7 @@ export const validateCardCanBePlayed: ValidationFunction<PlayCardMessage> = (
 
   let effectiveLeadSuit = undefined;
   if (gameStore.currentTrick?.cards[0] && gameStore.trump) {
-    effectiveLeadSuit = getEffectiveSuit(
-      gameStore.currentTrick.cards[0].card,
-      gameStore.trump
-    );
+    effectiveLeadSuit = getEffectiveSuit(gameStore.currentTrick.cards[0].card, gameStore.trump);
   }
 
   const canPlay = canPlayCardWithOptions(
@@ -65,9 +62,11 @@ export const validateCardCanBePlayed: ValidationFunction<PlayCardMessage> = (
 /**
  * Validates the swap involves exactly 3 cards
  */
-export const validateSwapCardCount: ValidationFunction<
-  FarmersHandSwapMessage
-> = ({ payload: { cardsToSwap } }, _senderId, _context): ValidationResult => {
+export const validateSwapCardCount: ValidationFunction<FarmersHandSwapMessage> = (
+  { payload: { cardsToSwap } },
+  _senderId,
+  _context
+): ValidationResult => {
   if (cardsToSwap.length !== 3) {
     return {
       isValid: false,
@@ -81,9 +80,11 @@ export const validateSwapCardCount: ValidationFunction<
 /**
  * Validates the player has all the cards they want to swap
  */
-export const validatePlayerHasSwapCards: ValidationFunction<
-  FarmersHandSwapMessage
-> = ({ payload: { cardsToSwap } }, senderId, context): ValidationResult => {
+export const validatePlayerHasSwapCards: ValidationFunction<FarmersHandSwapMessage> = (
+  { payload: { cardsToSwap } },
+  senderId,
+  context
+): ValidationResult => {
   const playerHand = context.gameStore.hands[senderId];
 
   if (!playerHand) {

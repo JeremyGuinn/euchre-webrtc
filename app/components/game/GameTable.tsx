@@ -70,8 +70,7 @@ export function GameTable({
         const isPlayerSittingOut =
           gameState.maker?.alone &&
           gameState.maker.playerId !== player.id &&
-          gameState.players.find(p => p.id === gameState.maker!.playerId)
-            ?.teamId === player.teamId;
+          gameState.players.find(p => p.id === gameState.maker!.playerId)?.teamId === player.teamId;
 
         return (
           <PlayerPosition

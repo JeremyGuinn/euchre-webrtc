@@ -13,11 +13,7 @@ interface SpinnerProps {
  * @param color - Color variant: 'primary' (blue), 'white', 'gray'
  * @param className - Additional CSS classes
  */
-export function Spinner({
-  size = 'md',
-  color = 'primary',
-  className,
-}: SpinnerProps) {
+export function Spinner({ size = 'md', color = 'primary', className }: SpinnerProps) {
   const sizeClasses = {
     sm: 'h-4 w-4',
     md: 'h-5 w-5',

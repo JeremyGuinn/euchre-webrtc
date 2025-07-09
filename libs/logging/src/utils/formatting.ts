@@ -145,10 +145,7 @@ export class ConsoleColors {
    * Check if colors are supported in the current environment
    */
   static isSupported(): boolean {
-    return (
-      typeof window === 'undefined' ||
-      (typeof window !== 'undefined' && 'console' in window)
-    );
+    return typeof window === 'undefined' || (typeof window !== 'undefined' && 'console' in window);
   }
 
   /**

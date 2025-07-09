@@ -22,14 +22,11 @@ const handleFarmersHandSwapImpl: ClientToHostHandler<FarmersHandSwapMessage> = (
  * Handles FARMERS_HAND_SWAP messages when a player chooses to swap cards with the kitty.
  * This is a client-to-host message that only the host should process.
  */
-export const handleFarmersHandSwap = createClientToHostHandler(
-  handleFarmersHandSwapImpl,
-  [
-    validatePlayerExists,
-    validateGameOption('farmersHand', true),
-    validateGamePhase('farmers_hand_swap'),
-    validateSenderIsFarmersHandPlayer,
-    validateSwapCardCount,
-    validatePlayerHasSwapCards,
-  ]
-);
+export const handleFarmersHandSwap = createClientToHostHandler(handleFarmersHandSwapImpl, [
+  validatePlayerExists,
+  validateGameOption('farmersHand', true),
+  validateGamePhase('farmers_hand_swap'),
+  validateSenderIsFarmersHandPlayer,
+  validateSwapCardCount,
+  validatePlayerHasSwapCards,
+]);

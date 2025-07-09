@@ -84,8 +84,7 @@ export function GamePhaseManager({
               {gameState.options.dealerSelection === 'first_black_jack' &&
                 gameState.options.teamSelection === 'random_cards' &&
                 'The player with the first Black Jack will be the dealer, and the two players with the lowest cards will form one team.'}
-              {gameState.options.dealerSelection ===
-                'predetermined_first_dealer' &&
+              {gameState.options.dealerSelection === 'predetermined_first_dealer' &&
                 'The predetermined dealer has been selected and the game will continue.'}
             </p>
             {gameState.options.teamSelection === 'random_cards' &&
@@ -182,12 +181,8 @@ export function GamePhaseManager({
         kitty={gameState.kitty}
         isDealer={gameState.currentDealerId === myPlayer.id}
         isDealerTeammate={(() => {
-          const dealer = gameState.players.find(
-            p => p.id === gameState.currentDealerId
-          );
-          return dealer
-            ? dealer.teamId === myPlayer.teamId && dealer.id !== myPlayer.id
-            : false;
+          const dealer = gameState.players.find(p => p.id === gameState.currentDealerId);
+          return dealer ? dealer.teamId === myPlayer.teamId && dealer.id !== myPlayer.id : false;
         })()}
         turnedDownSuit={gameState.turnedDownSuit}
         suitSymbols={suitSymbols}
@@ -241,9 +236,7 @@ export function GamePhaseManager({
     } else if (gameState.farmersHandPlayer) {
       return (
         <FarmersHandWaiting
-          farmersHandPlayer={
-            gameState.players.find(p => p.id === gameState.farmersHandPlayer)!
-          }
+          farmersHandPlayer={gameState.players.find(p => p.id === gameState.farmersHandPlayer)!}
         />
       );
     }

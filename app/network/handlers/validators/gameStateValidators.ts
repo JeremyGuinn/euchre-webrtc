@@ -1,8 +1,4 @@
-import type {
-  HandlerContext,
-  ValidationFunction,
-  ValidationResult,
-} from '~/types/handlers';
+import type { HandlerContext, ValidationFunction, ValidationResult } from '~/types/handlers';
 import type {
   BaseMessage,
   JoinRequestMessage,
@@ -30,10 +26,7 @@ export const validateGamePhase =
  * Creates a validator that checks a specific game option has the expected value
  */
 export const validateGameOption =
-  <
-    U extends BaseMessage,
-    T extends keyof HandlerContext['gameStore']['options'],
-  >(
+  <U extends BaseMessage, T extends keyof HandlerContext['gameStore']['options']>(
     optionName: T,
     expectedValue: HandlerContext['gameStore']['options'][T]
   ): ValidationFunction<U> =>
@@ -57,12 +50,8 @@ export const validateGameCapacity: ValidationFunction<JoinRequestMessage> = (
   _senderId,
   context
 ): ValidationResult => {
-  const occupiedPositions = new Set(
-    context.gameStore.players.map(p => p.position)
-  );
-  const availablePosition = ([0, 1, 2, 3] as const).find(
-    pos => !occupiedPositions.has(pos)
-  );
+  const occupiedPositions = new Set(context.gameStore.players.map(p => p.position));
+  const availablePosition = ([0, 1, 2, 3] as const).find(pos => !occupiedPositions.has(pos));
 
   if (availablePosition === undefined) {
     return {
@@ -100,9 +89,7 @@ export const validateTeamName: ValidationFunction<RenameTeamMessage> = (
 export const validatePredeterminedDealerEnabled: ValidationFunction<
   SetPredeterminedDealerMessage
 > = (_message, _senderId, context): ValidationResult => {
-  if (
-    context.gameStore.options.dealerSelection !== 'predetermined_first_dealer'
-  ) {
+  if (context.gameStore.options.dealerSelection !== 'predetermined_first_dealer') {
     return {
       isValid: false,
       reason: 'Predetermined dealer selection is not enabled',

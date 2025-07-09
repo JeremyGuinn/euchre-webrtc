@@ -26,11 +26,8 @@ export function TrickCompleteOverlay({
     return null;
   }
 
-  const lastTrick =
-    gameState.completedTricks[gameState.completedTricks.length - 1];
-  const winner = lastTrick
-    ? gameState.players.find(p => p.id === lastTrick.winnerId)
-    : null;
+  const lastTrick = gameState.completedTricks[gameState.completedTricks.length - 1];
+  const winner = lastTrick ? gameState.players.find(p => p.id === lastTrick.winnerId) : null;
   const winningCard = lastTrick?.cards.find(
     playedCard => playedCard.playerId === lastTrick.winnerId
   );
@@ -40,17 +37,13 @@ export function TrickCompleteOverlay({
       <div className='flex flex-col items-center justify-center h-full p-8'>
         <div className='bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8 max-w-lg w-full mx-4 overflow-y-auto'>
           <div className='text-center'>
-            <h2 className='text-2xl font-bold text-gray-800 mb-4'>
-              Trick Complete!
-            </h2>
+            <h2 className='text-2xl font-bold text-gray-800 mb-4'>Trick Complete!</h2>
 
             <div className='mb-6'>
               {winner && winningCard && (
                 <>
                   <p className='text-lg text-gray-700 mb-3'>
-                    <span className='font-semibold text-blue-600'>
-                      {winner.name}
-                    </span>
+                    <span className='font-semibold text-blue-600'>{winner.name}</span>
                     {winner.id === myPlayer.id && ' (You)'} won the trick!
                   </p>
 
@@ -60,11 +53,8 @@ export function TrickCompleteOverlay({
 
                   <p className='text-sm text-gray-600 mb-2'>
                     Winning card:{' '}
-                    <span
-                      className={`font-medium ${suitColors[winningCard.card.suit]}`}
-                    >
-                      {suitSymbols[winningCard.card.suit]}{' '}
-                      {winningCard.card.value}
+                    <span className={`font-medium ${suitColors[winningCard.card.suit]}`}>
+                      {suitSymbols[winningCard.card.suit]} {winningCard.card.value}
                     </span>
                   </p>
 

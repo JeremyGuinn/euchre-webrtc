@@ -33,9 +33,7 @@ export default function RandomPlayersPanel({
           {Array.from({ length: 4 }).map((_, index) => (
             <Placeholder key={index}>
               <Center className='text-gray-500'>
-                <span className='text-sm font-medium'>
-                  Waiting for player...
-                </span>
+                <span className='text-sm font-medium'>Waiting for player...</span>
               </Center>
             </Placeholder>
           ))}
@@ -62,9 +60,7 @@ export default function RandomPlayersPanel({
           }).map((_, index) => (
             <Placeholder key={`empty-${index}`}>
               <Center className='text-gray-500'>
-                <span className='text-sm font-medium'>
-                  Waiting for player...
-                </span>
+                <span className='text-sm font-medium'>Waiting for player...</span>
               </Center>
             </Placeholder>
           ))}

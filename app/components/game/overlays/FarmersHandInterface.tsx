@@ -49,12 +49,9 @@ export function FarmersHandInterface({
     <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
       <Panel variant='default' shadow='xl' className='max-w-4xl w-full mx-4'>
         <div className='text-center mb-6'>
-          <h2 className='text-2xl font-bold text-gray-800 mb-2'>
-            Farmer&apos;s Hand Detected!
-          </h2>
+          <h2 className='text-2xl font-bold text-gray-800 mb-2'>Farmer&apos;s Hand Detected!</h2>
           <p className='text-gray-600'>
-            You have all 9s and 10s. You may swap any 3 cards with 3 face-down
-            cards from the deck.
+            You have all 9s and 10s. You may swap any 3 cards with 3 face-down cards from the deck.
           </p>
         </div>
 
@@ -85,12 +82,7 @@ export function FarmersHandInterface({
         </div>
 
         <div className='flex justify-center space-x-4'>
-          <Button
-            variant='secondary'
-            onClick={onDecline}
-            disabled={disabled}
-            className='px-6 py-2'
-          >
+          <Button variant='secondary' onClick={onDecline} disabled={disabled} className='px-6 py-2'>
             Keep Current Hand
           </Button>
 
@@ -106,8 +98,8 @@ export function FarmersHandInterface({
 
         <div className='mt-4 text-xs text-gray-500 text-center'>
           <p>
-            If you swap, your 3 selected cards will be replaced with 3 face-down
-            cards from the deck.
+            If you swap, your 3 selected cards will be replaced with 3 face-down cards from the
+            deck.
           </p>
         </div>
       </Panel>

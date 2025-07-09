@@ -89,8 +89,7 @@ export function RandomCardsSelection({
 
                 // Create an arc from -60 degrees to +60 degrees (120 degree spread)
                 const maxAngle = 60; // degrees
-                const angleStep =
-                  totalCards > 1 ? (2 * maxAngle) / (totalCards - 1) : 0;
+                const angleStep = totalCards > 1 ? (2 * maxAngle) / (totalCards - 1) : 0;
                 const angle = -maxAngle + index * angleStep;
 
                 // Position cards along a circular arc
@@ -127,14 +126,9 @@ export function RandomCardsSelection({
       <DealerSelectionStatus
         method='random_cards'
         dealerFound={
-          !!(
-            dealerSelectionCards &&
-            Object.keys(dealerSelectionCards).length === players.length
-          )
+          !!(dealerSelectionCards && Object.keys(dealerSelectionCards).length === players.length)
         }
-        currentStep={
-          dealerSelectionCards ? Object.keys(dealerSelectionCards).length : 0
-        }
+        currentStep={dealerSelectionCards ? Object.keys(dealerSelectionCards).length : 0}
         totalSteps={players.length}
         currentPlayerName={canPickCard ? myPlayer.name : undefined}
       />

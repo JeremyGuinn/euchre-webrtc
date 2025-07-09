@@ -41,9 +41,7 @@ export const validatePermissionForClient = (
   }
 
   // Additional validation: ensure the sender is a known player (basic security)
-  const sender = context.gameStore.players.find(
-    player => player.id === senderId
-  );
+  const sender = context.gameStore.players.find(player => player.id === senderId);
 
   if (!sender) {
     return {

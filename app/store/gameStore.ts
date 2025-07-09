@@ -65,11 +65,7 @@ function getNextPlayerWithAlone(
   return players[nextIndex].id;
 }
 
-function getExpectedTrickSize(maker?: {
-  playerId: string;
-  teamId: 0 | 1;
-  alone: boolean;
-}): number {
+function getExpectedTrickSize(maker?: { playerId: string; teamId: 0 | 1; alone: boolean }): number {
   // If someone is going alone, only 3 players participate
   return maker?.alone ? 3 : 4;
 }
@@ -136,21 +132,13 @@ interface GameStore extends GameState {
   // Game initialization actions
   initGame: (hostId: string, gameId: string, gameCode?: string) => void;
   restoreGameState: (gameState: GameState) => void;
-  syncState: (
-    gameState: PublicGameState,
-    playerHand?: Card[],
-    receivingPlayerId?: string
-  ) => void;
+  syncState: (gameState: PublicGameState, playerHand?: Card[], receivingPlayerId?: string) => void;
 
   // Player management actions
   addPlayer: (player: Player) => void;
   removePlayer: (playerId: string) => void;
   updatePlayerConnection: (playerId: string, isConnected: boolean) => void;
-  reconnectPlayer: (
-    oldPlayerId: string,
-    newPlayerId: string,
-    playerName: string
-  ) => void;
+  reconnectPlayer: (oldPlayerId: string, newPlayerId: string, playerName: string) => void;
   renamePlayer: (playerId: string, newName: string) => void;
   kickPlayer: (playerId: string) => void;
   movePlayer: (playerId: string, newPosition: 0 | 1 | 2 | 3) => void;
@@ -165,12 +153,7 @@ interface GameStore extends GameState {
   startGame: () => void;
   selectDealer: () => void;
   drawDealerCard: (playerId: string, card: Card) => void;
-  dealerCardDealt: (
-    playerId: string,
-    card: Card,
-    cardIndex: number,
-    isBlackJack: boolean
-  ) => void;
+  dealerCardDealt: (playerId: string, card: Card, cardIndex: number, isBlackJack: boolean) => void;
   completeBlackjackDealerSelection: () => void;
   proceedToDealing: () => void;
   dealCards: () => void;
@@ -230,11 +213,7 @@ export const useGameStore = create<GameStore>()(
       set(gameState);
     },
 
-    syncState: (
-      gameState: PublicGameState,
-      playerHand?: Card[],
-      receivingPlayerId?: string
-    ) => {
+    syncState: (gameState: PublicGameState, playerHand?: Card[], receivingPlayerId?: string) => {
       set({
         ...get(),
         id: gameState.id,
@@ -254,10 +233,7 @@ export const useGameStore = create<GameStore>()(
         handScores: gameState.handScores,
         maker: gameState.maker,
         dealerSelectionCards: gameState.dealerSelectionCards,
-        hands:
-          playerHand && receivingPlayerId
-            ? { [receivingPlayerId]: playerHand }
-            : {},
+        hands: playerHand && receivingPlayerId ? { [receivingPlayerId]: playerHand } : {},
         deck: gameState.deck,
         farmersHandPlayer: gameState.farmersHandPlayer,
       });
@@ -269,9 +245,7 @@ export const useGameStore = create<GameStore>()(
 
       // Find the first available position (0-3)
       const occupiedPositions = new Set(players.map(p => p.position));
-      const availablePosition = ([0, 1, 2, 3] as const).find(
-        pos => !occupiedPositions.has(pos)
-      );
+      const availablePosition = ([0, 1, 2, 3] as const).find(pos => !occupiedPositions.has(pos));
 
       if (availablePosition === undefined) {
         return; // Game is full
@@ -296,17 +270,11 @@ export const useGameStore = create<GameStore>()(
 
     updatePlayerConnection: (playerId: string, isConnected: boolean) => {
       set(state => ({
-        players: state.players.map(p =>
-          p.id === playerId ? { ...p, isConnected } : p
-        ),
+        players: state.players.map(p => (p.id === playerId ? { ...p, isConnected } : p)),
       }));
     },
 
-    reconnectPlayer: (
-      oldPlayerId: string,
-      newPlayerId: string,
-      playerName: string
-    ) => {
+    reconnectPlayer: (oldPlayerId: string, newPlayerId: string, playerName: string) => {
       const state = get();
 
       // Find the player to reconnect
@@ -333,34 +301,22 @@ export const useGameStore = create<GameStore>()(
       const newDealerSelectionCards = state.dealerSelectionCards
         ? { ...state.dealerSelectionCards }
         : undefined;
-      if (
-        newDealerSelectionCards &&
-        state.dealerSelectionCards?.[oldPlayerId]
-      ) {
-        newDealerSelectionCards[newPlayerId] =
-          state.dealerSelectionCards[oldPlayerId];
+      if (newDealerSelectionCards && state.dealerSelectionCards?.[oldPlayerId]) {
+        newDealerSelectionCards[newPlayerId] = state.dealerSelectionCards[oldPlayerId];
         delete newDealerSelectionCards[oldPlayerId];
       }
 
       set({
-        players: state.players.map(p =>
-          p.id === oldPlayerId ? updatedPlayer : p
-        ),
+        players: state.players.map(p => (p.id === oldPlayerId ? updatedPlayer : p)),
         // Update current dealer if it was the reconnecting player
         currentDealerId:
-          state.currentDealerId === oldPlayerId
-            ? newPlayerId
-            : state.currentDealerId,
+          state.currentDealerId === oldPlayerId ? newPlayerId : state.currentDealerId,
         // Update current player if it was the reconnecting player
         currentPlayerId:
-          state.currentPlayerId === oldPlayerId
-            ? newPlayerId
-            : state.currentPlayerId,
+          state.currentPlayerId === oldPlayerId ? newPlayerId : state.currentPlayerId,
         // Update farmer's hand player if it was the reconnecting player
         farmersHandPlayer:
-          state.farmersHandPlayer === oldPlayerId
-            ? newPlayerId
-            : state.farmersHandPlayer,
+          state.farmersHandPlayer === oldPlayerId ? newPlayerId : state.farmersHandPlayer,
         // Update hands mapping
         hands: newHands,
         // Update bids to reference new player ID
@@ -385,23 +341,17 @@ export const useGameStore = create<GameStore>()(
                   ? newPlayerId
                   : state.currentTrick.winnerId,
               cards: state.currentTrick.cards.map(card =>
-                card.playerId === oldPlayerId
-                  ? { ...card, playerId: newPlayerId }
-                  : card
+                card.playerId === oldPlayerId ? { ...card, playerId: newPlayerId } : card
               ),
             }
           : state.currentTrick,
         // Update completed tricks
         completedTricks: state.completedTricks.map(trick => ({
           ...trick,
-          leaderId:
-            trick.leaderId === oldPlayerId ? newPlayerId : trick.leaderId,
-          winnerId:
-            trick.winnerId === oldPlayerId ? newPlayerId : trick.winnerId,
+          leaderId: trick.leaderId === oldPlayerId ? newPlayerId : trick.leaderId,
+          winnerId: trick.winnerId === oldPlayerId ? newPlayerId : trick.winnerId,
           cards: trick.cards.map(card =>
-            card.playerId === oldPlayerId
-              ? { ...card, playerId: newPlayerId }
-              : card
+            card.playerId === oldPlayerId ? { ...card, playerId: newPlayerId } : card
           ),
         })),
         // Update dealer selection cards if they exist
@@ -411,9 +361,7 @@ export const useGameStore = create<GameStore>()(
 
     renamePlayer: (playerId: string, newName: string) => {
       set(state => ({
-        players: state.players.map(p =>
-          p.id === playerId ? { ...p, name: newName } : p
-        ),
+        players: state.players.map(p => (p.id === playerId ? { ...p, name: newName } : p)),
       }));
     },
 
@@ -504,8 +452,7 @@ export const useGameStore = create<GameStore>()(
 
         // Rotate positions so dealer is at position 0
         players.forEach(player => {
-          const newPosition = ((player.position - dealerOriginalPosition + 4) %
-            4) as 0 | 1 | 2 | 3;
+          const newPosition = ((player.position - dealerOriginalPosition + 4) % 4) as 0 | 1 | 2 | 3;
           arrangedPlayers[newPosition] = {
             ...player,
             position: newPosition,
@@ -612,12 +559,7 @@ export const useGameStore = create<GameStore>()(
       }
     },
 
-    dealerCardDealt: (
-      playerId: string,
-      card: Card,
-      cardIndex: number,
-      isBlackJack: boolean
-    ) => {
+    dealerCardDealt: (playerId: string, card: Card, cardIndex: number, isBlackJack: boolean) => {
       const { firstBlackJackDealing, players } = get();
 
       // Add the dealt card to the dealing state
@@ -628,13 +570,10 @@ export const useGameStore = create<GameStore>()(
       };
 
       const updatedDealing = {
-        currentPlayerIndex:
-          (currentDealing.currentPlayerIndex + 1) % players.length,
+        currentPlayerIndex: (currentDealing.currentPlayerIndex + 1) % players.length,
         currentCardIndex: cardIndex + 1,
         dealtCards: [...currentDealing.dealtCards, { playerId, card }],
-        blackJackFound: isBlackJack
-          ? { playerId, card }
-          : currentDealing.blackJackFound,
+        blackJackFound: isBlackJack ? { playerId, card } : currentDealing.blackJackFound,
       };
 
       set({ firstBlackJackDealing: updatedDealing });
@@ -647,10 +586,7 @@ export const useGameStore = create<GameStore>()(
         return; // No black jack found yet
       }
 
-      const { dealer, arrangedPlayers } = findFirstBlackJackDealer(
-        deck,
-        players
-      );
+      const { dealer, arrangedPlayers } = findFirstBlackJackDealer(deck, players);
 
       set({
         players: arrangedPlayers,
@@ -720,14 +656,7 @@ export const useGameStore = create<GameStore>()(
     },
 
     farmersHandSwap: (playerId: string, cardsToSwap: Card[]) => {
-      const {
-        kitty,
-        farmersHandPlayer,
-        hands,
-        deck,
-        currentDealerId,
-        players,
-      } = get();
+      const { kitty, farmersHandPlayer, hands, deck, currentDealerId, players } = get();
 
       if (!kitty || !farmersHandPlayer || farmersHandPlayer !== playerId) {
         return;
@@ -800,17 +729,12 @@ export const useGameStore = create<GameStore>()(
           if (newHands[state.currentDealerId]) {
             newHands = {
               ...newHands,
-              [state.currentDealerId]: [
-                ...newHands[state.currentDealerId],
-                state.kitty!,
-              ],
+              [state.currentDealerId]: [...newHands[state.currentDealerId], state.kitty!],
             };
           }
 
           // Check if dealer is sitting out due to going alone
-          const dealerPlayer = state.players.find(
-            p => p.id === state.currentDealerId
-          );
+          const dealerPlayer = state.players.find(p => p.id === state.currentDealerId);
           const isDealerSittingOut =
             maker.alone &&
             maker.playerId !== state.currentDealerId &&
@@ -819,11 +743,7 @@ export const useGameStore = create<GameStore>()(
           if (isDealerSittingOut) {
             // Skip dealer discard phase and go straight to playing
             newPhase = 'playing';
-            currentPlayer = getNextPlayerWithAlone(
-              state.currentDealerId,
-              state.players,
-              maker
-            );
+            currentPlayer = getNextPlayerWithAlone(state.currentDealerId, state.players, maker);
           } else {
             // Go to dealer discard phase
             newPhase = 'dealer_discard';
@@ -831,29 +751,17 @@ export const useGameStore = create<GameStore>()(
           }
         } else {
           // Player passed, check if round 1 is complete
-          const currentPlayerIndex = state.players.findIndex(
-            p => p.id === bid.playerId
-          );
-          const dealerIndex = state.players.findIndex(
-            p => p.id === state.currentDealerId
-          );
+          const currentPlayerIndex = state.players.findIndex(p => p.id === bid.playerId);
+          const dealerIndex = state.players.findIndex(p => p.id === state.currentDealerId);
 
           if (currentPlayerIndex === dealerIndex) {
             // Dealer passed, start round 2
             newPhase = 'bidding_round2';
             turnedDownSuit = state.kitty!.suit;
-            currentPlayer = getNextPlayerWithAlone(
-              state.currentDealerId,
-              state.players,
-              maker
-            );
+            currentPlayer = getNextPlayerWithAlone(state.currentDealerId, state.players, maker);
           } else {
             // Continue round 1
-            currentPlayer = getNextPlayerWithAlone(
-              bid.playerId,
-              state.players,
-              maker
-            );
+            currentPlayer = getNextPlayerWithAlone(bid.playerId, state.players, maker);
           }
         }
       } else if (state.phase === 'bidding_round2') {
@@ -868,19 +776,11 @@ export const useGameStore = create<GameStore>()(
             alone: bid.alone || false,
           };
           newPhase = 'playing';
-          currentPlayer = getNextPlayerWithAlone(
-            state.currentDealerId,
-            state.players,
-            maker
-          );
+          currentPlayer = getNextPlayerWithAlone(state.currentDealerId, state.players, maker);
         } else {
           // Player passed, check if round 2 is complete
-          const currentPlayerIndex = state.players.findIndex(
-            p => p.id === bid.playerId
-          );
-          const dealerIndex = state.players.findIndex(
-            p => p.id === state.currentDealerId
-          );
+          const currentPlayerIndex = state.players.findIndex(p => p.id === bid.playerId);
+          const dealerIndex = state.players.findIndex(p => p.id === state.currentDealerId);
 
           if (currentPlayerIndex === dealerIndex) {
             // Dealer passed in round 2
@@ -891,18 +791,11 @@ export const useGameStore = create<GameStore>()(
             } else {
               // Standard rules: All players passed both rounds, deal new hand
               newPhase = 'dealing_animation';
-              currentPlayer = getNextDealer(
-                state.currentDealerId,
-                state.players
-              );
+              currentPlayer = getNextDealer(state.currentDealerId, state.players);
             }
           } else {
             // Continue round 2
-            currentPlayer = getNextPlayerWithAlone(
-              bid.playerId,
-              state.players,
-              maker
-            );
+            currentPlayer = getNextPlayerWithAlone(bid.playerId, state.players, maker);
           }
         }
       }
@@ -928,18 +821,13 @@ export const useGameStore = create<GameStore>()(
       // Remove the discarded card from dealer's hand
       const newHands = {
         ...hands,
-        [currentDealerId]:
-          hands[currentDealerId]?.filter(c => c.id !== card.id) || [],
+        [currentDealerId]: hands[currentDealerId]?.filter(c => c.id !== card.id) || [],
       };
 
       set({
         hands: newHands,
         phase: 'playing',
-        currentPlayerId: getNextPlayerWithAlone(
-          currentDealerId,
-          players,
-          maker
-        ),
+        currentPlayerId: getNextPlayerWithAlone(currentDealerId, players, maker),
       });
     },
 
@@ -974,11 +862,7 @@ export const useGameStore = create<GameStore>()(
             ...state.hands,
             [playerId]: state.hands[playerId].filter(c => c.id !== card.id),
           },
-          currentPlayerId: getNextPlayerWithAlone(
-            playerId,
-            state.players,
-            state.maker
-          ),
+          currentPlayerId: getNextPlayerWithAlone(playerId, state.players, state.maker),
         });
         return;
       }
@@ -999,11 +883,7 @@ export const useGameStore = create<GameStore>()(
         set({
           hands: newHands,
           currentTrick: updatedTrick,
-          currentPlayerId: getNextPlayerWithAlone(
-            playerId,
-            state.players,
-            state.maker
-          ),
+          currentPlayerId: getNextPlayerWithAlone(playerId, state.players, state.maker),
         });
         return;
       }
@@ -1012,11 +892,7 @@ export const useGameStore = create<GameStore>()(
         ? getEffectiveSuit(updatedTrick.cards[0].card, state.trump)
         : updatedTrick.cards[0].card.suit;
 
-      const winningPlay = getWinningCard(
-        updatedTrick.cards,
-        state.trump!,
-        leadSuit
-      );
+      const winningPlay = getWinningCard(updatedTrick.cards, state.trump!, leadSuit);
       updatedTrick.winnerId = winningPlay.playerId;
 
       const newCompletedTricks = [...state.completedTricks, updatedTrick];
@@ -1112,14 +988,11 @@ export const useGameStore = create<GameStore>()(
       const state = get();
 
       // Create placeholder cards for the deck - clients only see placeholders for security
-      const placeholderCards: Card[] = Array.from(
-        { length: state.deck.length },
-        (_, index) => ({
-          id: `placeholder-${index}`,
-          suit: 'spades' as const,
-          value: 'A' as const,
-        })
-      );
+      const placeholderCards: Card[] = Array.from({ length: state.deck.length }, (_, index) => ({
+        id: `placeholder-${index}`,
+        suit: 'spades' as const,
+        value: 'A' as const,
+      }));
 
       const publicState: PublicGameState = {
         id: state.id,

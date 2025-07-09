@@ -12,9 +12,11 @@ import { createClientToHostHandler } from '../base/clientToHostHandler';
  * @param senderId - The ID of the player requesting to reconnect
  * @param context - Handler context with game state and gameStore actions
  */
-const handleReconnectRequestImpl: ClientToHostHandler<
-  ReconnectRequestMessage
-> = (message, senderId, context) => {
+const handleReconnectRequestImpl: ClientToHostHandler<ReconnectRequestMessage> = (
+  message,
+  senderId,
+  context
+) => {
   const { gameStore, networkManager } = context;
   const { playerName, playerId: originalPlayerId } = message.payload;
 

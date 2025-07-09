@@ -9,16 +9,12 @@ import type {
 /**
  * Validates the target player exists
  */
-export const validateTargetPlayerExists: ValidationFunction<
-  MovePlayerMessage
-> = (
+export const validateTargetPlayerExists: ValidationFunction<MovePlayerMessage> = (
   { payload: { targetPlayerId } },
   _senderId,
   { gameStore }
 ): ValidationResult => {
-  const targetPlayerExists = gameStore.players.some(
-    player => player.id === targetPlayerId
-  );
+  const targetPlayerExists = gameStore.players.some(player => player.id === targetPlayerId);
 
   if (!targetPlayerExists) {
     return {
@@ -38,9 +34,7 @@ export const validatePlayerExists: ValidationFunction = (
   senderId,
   context
 ): ValidationResult => {
-  const playerExists = context.gameStore.players.some(
-    player => player.id === senderId
-  );
+  const playerExists = context.gameStore.players.some(player => player.id === senderId);
 
   if (!playerExists) {
     return {
@@ -78,9 +72,7 @@ export const validatePlayerNotAlreadyJoined: ValidationFunction = (
   senderId,
   context
 ): ValidationResult => {
-  const playerAlreadyExists = context.gameStore.players.some(
-    player => player.id === senderId
-  );
+  const playerAlreadyExists = context.gameStore.players.some(player => player.id === senderId);
 
   if (playerAlreadyExists) {
     return {
@@ -95,9 +87,11 @@ export const validatePlayerNotAlreadyJoined: ValidationFunction = (
 /**
  * Validates the player can rename the team (must be on the team)
  */
-export const validatePlayerCanRenameTeam: ValidationFunction<
-  RenameTeamMessage
-> = ({ payload: { teamId } }, senderId, { gameStore }): ValidationResult => {
+export const validatePlayerCanRenameTeam: ValidationFunction<RenameTeamMessage> = (
+  { payload: { teamId } },
+  senderId,
+  { gameStore }
+): ValidationResult => {
   const senderPlayer = gameStore.players.find(p => p.id === senderId);
 
   if (!senderPlayer || senderPlayer.teamId !== teamId) {

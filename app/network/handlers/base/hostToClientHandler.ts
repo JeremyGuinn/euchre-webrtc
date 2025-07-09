@@ -1,8 +1,4 @@
-import type {
-  HandlerContext,
-  HostToClientHandler,
-  ValidationFunction,
-} from '~/types/handlers';
+import type { HandlerContext, HostToClientHandler, ValidationFunction } from '~/types/handlers';
 import type { HostToClientMessage } from '~/types/messages';
 import { validatePermissionForClient } from '../validators';
 

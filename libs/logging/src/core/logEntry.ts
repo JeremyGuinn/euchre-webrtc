@@ -164,9 +164,7 @@ export interface LogEntry {
 export function createLogEntry(
   level: LogLevel,
   message: string,
-  options: Partial<
-    Omit<LogEntry, 'id' | 'timestamp' | 'level' | 'message'>
-  > = {}
+  options: Partial<Omit<LogEntry, 'id' | 'timestamp' | 'level' | 'message'>> = {}
 ): LogEntry {
   return {
     id: crypto.randomUUID(),

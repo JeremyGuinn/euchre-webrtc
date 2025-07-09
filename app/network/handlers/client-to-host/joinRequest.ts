@@ -5,10 +5,7 @@ import type { ClientToHostHandler } from '~/types/handlers';
 import { makeNameUnique } from '~/utils/playerUtils';
 import { createMessageId } from '~/utils/protocol';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
-import {
-  validateGameCapacity,
-  validatePlayerNotAlreadyJoined,
-} from '../validators';
+import { validateGameCapacity, validatePlayerNotAlreadyJoined } from '../validators';
 
 /**
  * Handles JOIN_REQUEST messages sent by players trying to join the game.
@@ -26,8 +23,7 @@ const handleJoinRequestImpl: ClientToHostHandler<JoinRequestMessage> = (
   const uniqueName = makeNameUnique(playerName, gameStore.players);
 
   const occupiedPositions = new Set(gameStore.players.map(p => p.position));
-  const availablePosition =
-    ([0, 1, 2, 3] as const).find(pos => !occupiedPositions.has(pos)) ?? 0;
+  const availablePosition = ([0, 1, 2, 3] as const).find(pos => !occupiedPositions.has(pos)) ?? 0;
 
   const newPlayer: Player = {
     id: senderId,
@@ -72,7 +68,7 @@ const handleJoinRequestImpl: ClientToHostHandler<JoinRequestMessage> = (
   }
 };
 
-export const handleJoinRequest = createClientToHostHandler(
-  handleJoinRequestImpl,
-  [validateGameCapacity, validatePlayerNotAlreadyJoined]
-);
+export const handleJoinRequest = createClientToHostHandler(handleJoinRequestImpl, [
+  validateGameCapacity,
+  validatePlayerNotAlreadyJoined,
+]);

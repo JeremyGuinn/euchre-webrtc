@@ -39,9 +39,7 @@ export function TeamPlayersPanel({
             teamId={0}
             teamName={teamNames.team0}
             onRename={onRenameTeam}
-            disabled={
-              !isHost && players.find(p => p.id === myPlayerId)?.teamId !== 0
-            }
+            disabled={!isHost && players.find(p => p.id === myPlayerId)?.teamId !== 0}
             className='font-medium'
           />
         </div>
@@ -51,10 +49,7 @@ export function TeamPlayersPanel({
 
             if (player) {
               return (
-                <div
-                  key={position}
-                  className={player.isConnected ? '' : 'opacity-75'}
-                >
+                <div key={position} className={player.isConnected ? '' : 'opacity-75'}>
                   <PlayerCard
                     player={player}
                     isCurrentUser={player.id === myPlayerId}
@@ -80,9 +75,7 @@ export function TeamPlayersPanel({
               >
                 <Placeholder>
                   <Center className='text-gray-500'>
-                    <span className='text-sm font-medium'>
-                      Waiting for player...
-                    </span>
+                    <span className='text-sm font-medium'>Waiting for player...</span>
                   </Center>
                 </Placeholder>
               </div>
@@ -98,9 +91,7 @@ export function TeamPlayersPanel({
             teamId={1}
             teamName={teamNames.team1}
             onRename={onRenameTeam}
-            disabled={
-              !isHost && players.find(p => p.id === myPlayerId)?.teamId !== 1
-            }
+            disabled={!isHost && players.find(p => p.id === myPlayerId)?.teamId !== 1}
             className='font-medium'
           />
         </div>
@@ -113,9 +104,7 @@ export function TeamPlayersPanel({
                 role={isHost && !player ? 'button' : undefined}
                 tabIndex={isHost && !player ? 0 : undefined}
                 aria-label={
-                  isHost && !player
-                    ? `Drop zone for position ${position + 1} in team 2`
-                    : undefined
+                  isHost && !player ? `Drop zone for position ${position + 1} in team 2` : undefined
                 }
                 className={`transition-all ${
                   player
@@ -142,9 +131,7 @@ export function TeamPlayersPanel({
                 ) : (
                   <Placeholder>
                     <Center className='text-gray-500'>
-                      <span className='text-sm font-medium'>
-                        Waiting for player...
-                      </span>
+                      <span className='text-sm font-medium'>Waiting for player...</span>
                     </Center>
                   </Placeholder>
                 )}

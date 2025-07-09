@@ -39,9 +39,7 @@ export function CurrentTurnIndicator({
               </>
             )}
             <span className='font-medium text-yellow-400'>
-              {gameState.phase === 'dealer_discard'
-                ? `Choose a card to discard.`
-                : 'Your turn!'}
+              {gameState.phase === 'dealer_discard' ? `Choose a card to discard.` : 'Your turn!'}
             </span>
           </>
         ) : (

@@ -28,15 +28,9 @@ export function HostControlsInfo({ isHost }: HostControlsInfoProps) {
             </IconContainer>
           </div>
           <div>
-            <h3 className='text-sm font-semibold text-blue-900 mb-1'>
-              Player Controls
-            </h3>
-            <p className='text-sm text-blue-700'>
-              Hover over your name to edit it
-            </p>
-            <p className='text-sm text-blue-700'>
-              Hover over your team name to edit it
-            </p>
+            <h3 className='text-sm font-semibold text-blue-900 mb-1'>Player Controls</h3>
+            <p className='text-sm text-blue-700'>Hover over your name to edit it</p>
+            <p className='text-sm text-blue-700'>Hover over your team name to edit it</p>
           </div>
         </div>
       </div>
@@ -48,11 +42,7 @@ export function HostControlsInfo({ isHost }: HostControlsInfoProps) {
       <div className='flex items-start space-x-3'>
         <div className='flex-shrink-0'>
           <IconContainer variant='amber'>
-            <svg
-              className='w-4 h-4 text-amber-600'
-              fill='currentColor'
-              viewBox='0 0 20 20'
-            >
+            <svg className='w-4 h-4 text-amber-600' fill='currentColor' viewBox='0 0 20 20'>
               <path
                 fillRule='evenodd'
                 d='M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z'
@@ -62,9 +52,7 @@ export function HostControlsInfo({ isHost }: HostControlsInfoProps) {
           </IconContainer>
         </div>
         <div className='flex-1'>
-          <h3 className='text-sm font-semibold text-amber-900 mb-2'>
-            Host Controls
-          </h3>
+          <h3 className='text-sm font-semibold text-amber-900 mb-2'>Host Controls</h3>
           <Stack spacing='2'>
             <div className='flex items-center space-x-2 text-sm text-amber-800'>
               <IconContainer size='sm' variant='white'>
@@ -104,11 +92,7 @@ export function HostControlsInfo({ isHost }: HostControlsInfoProps) {
             </div>
             <div className='flex items-center space-x-2 text-sm text-amber-800'>
               <IconContainer size='sm' variant='white'>
-                <svg
-                  className='w-3 h-3 text-gray-600'
-                  fill='currentColor'
-                  viewBox='0 0 20 20'
-                >
+                <svg className='w-3 h-3 text-gray-600' fill='currentColor' viewBox='0 0 20 20'>
                   <path d='M7 2a1 1 0 000 2h6a1 1 0 100-2H7zM7 8a1 1 0 000 2h6a1 1 0 100-2H7zM7 14a1 1 0 000 2h6a1 1 0 100-2H7z' />
                 </svg>
               </IconContainer>

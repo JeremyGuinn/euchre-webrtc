@@ -42,8 +42,7 @@ export function useGameActions(
       return;
     }
 
-    const { currentPlayerIndex, currentCardIndex } =
-      gameStore.firstBlackJackDealing;
+    const { currentPlayerIndex, currentCardIndex } = gameStore.firstBlackJackDealing;
 
     if (currentCardIndex >= gameStore.deck.length) {
       return;
@@ -51,8 +50,7 @@ export function useGameActions(
 
     const currentPlayer = gameStore.players[currentPlayerIndex];
     const card = gameStore.deck[currentCardIndex];
-    const isBlackJack =
-      card.value === 'J' && (card.suit === 'spades' || card.suit === 'clubs');
+    const isBlackJack = card.value === 'J' && (card.suit === 'spades' || card.suit === 'clubs');
 
     // Broadcast the dealt card to all clients
     networkService.sendMessage({
@@ -68,12 +66,7 @@ export function useGameActions(
     });
 
     // Update local state
-    gameStore.dealerCardDealt(
-      currentPlayer.id,
-      card,
-      currentCardIndex,
-      isBlackJack
-    );
+    gameStore.dealerCardDealt(currentPlayer.id, card, currentCardIndex, isBlackJack);
   }, [isHost, gameStore, networkService]);
 
   const completeBlackJackDealerSelection = useCallback(() => {
@@ -116,11 +109,7 @@ export function useGameActions(
         }
 
         let drawnCard: Card;
-        if (
-          cardIndex !== undefined &&
-          cardIndex >= 0 &&
-          cardIndex < availableCards.length
-        ) {
+        if (cardIndex !== undefined && cardIndex >= 0 && cardIndex < availableCards.length) {
           drawnCard = availableCards[cardIndex];
         } else {
           const randomIndex = Math.floor(Math.random() * availableCards.length);
@@ -183,14 +172,7 @@ export function useGameActions(
         });
       }
     },
-    [
-      gameStore.players,
-      gameStore.currentPlayerId,
-      myPlayerId,
-      isHost,
-      gameStore,
-      networkService,
-    ]
+    [gameStore.players, gameStore.currentPlayerId, myPlayerId, isHost, gameStore, networkService]
   );
 
   const playCard = useCallback(
@@ -327,8 +309,7 @@ export function useGameActions(
     (playerId: string) => {
       if (!isHost) return;
       if (gameStore.phase !== 'lobby') return;
-      if (gameStore.options.dealerSelection !== 'predetermined_first_dealer')
-        return;
+      if (gameStore.options.dealerSelection !== 'predetermined_first_dealer') return;
 
       // Validate the player exists
       const player = gameStore.players.find(p => p.id === playerId);
@@ -352,14 +333,7 @@ export function useGameActions(
         });
       }
     },
-    [
-      isHost,
-      gameStore.phase,
-      gameStore.options,
-      gameStore.players,
-      gameStore,
-      networkService,
-    ]
+    [isHost, gameStore.phase, gameStore.options, gameStore.players, gameStore, networkService]
   );
 
   const continueTrick = useCallback(() => {
@@ -392,14 +366,7 @@ export function useGameActions(
         });
       }
     },
-    [
-      gameStore.players,
-      gameStore.farmersHandPlayer,
-      myPlayerId,
-      isHost,
-      gameStore,
-      networkService,
-    ]
+    [gameStore.players, gameStore.farmersHandPlayer, myPlayerId, isHost, gameStore, networkService]
   );
 
   const declineFarmersHand = useCallback(() => {

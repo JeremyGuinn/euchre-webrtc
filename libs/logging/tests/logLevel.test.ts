@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  LogLevel,
-  LogLevelNames,
-  LogLevelUtils,
-} from '../src/core/logLevel.js';
+import { LogLevel, LogLevelNames, LogLevelUtils } from '../src/core/logLevel.js';
 
 describe('LogLevel', () => {
   it('should have correct numeric values for each level', () => {
@@ -70,60 +66,35 @@ describe('LogLevelUtils', () => {
     });
 
     it('should throw error for invalid log level strings', () => {
-      expect(() => LogLevelUtils.fromString('INVALID')).toThrow(
-        'Invalid log level: INVALID'
-      );
+      expect(() => LogLevelUtils.fromString('INVALID')).toThrow('Invalid log level: INVALID');
       expect(() => LogLevelUtils.fromString('')).toThrow('Invalid log level: ');
-      expect(() => LogLevelUtils.fromString('VERBOSE')).toThrow(
-        'Invalid log level: VERBOSE'
-      );
+      expect(() => LogLevelUtils.fromString('VERBOSE')).toThrow('Invalid log level: VERBOSE');
     });
   });
 
   describe('meetsThreshold', () => {
     it('should return true when level meets or exceeds threshold', () => {
-      expect(LogLevelUtils.meetsThreshold(LogLevel.ERROR, LogLevel.WARN)).toBe(
-        true
-      );
-      expect(LogLevelUtils.meetsThreshold(LogLevel.WARN, LogLevel.WARN)).toBe(
-        true
-      );
-      expect(LogLevelUtils.meetsThreshold(LogLevel.FATAL, LogLevel.ERROR)).toBe(
-        true
-      );
+      expect(LogLevelUtils.meetsThreshold(LogLevel.ERROR, LogLevel.WARN)).toBe(true);
+      expect(LogLevelUtils.meetsThreshold(LogLevel.WARN, LogLevel.WARN)).toBe(true);
+      expect(LogLevelUtils.meetsThreshold(LogLevel.FATAL, LogLevel.ERROR)).toBe(true);
     });
 
     it('should return false when level is below threshold', () => {
-      expect(LogLevelUtils.meetsThreshold(LogLevel.DEBUG, LogLevel.INFO)).toBe(
-        false
-      );
-      expect(LogLevelUtils.meetsThreshold(LogLevel.WARN, LogLevel.ERROR)).toBe(
-        false
-      );
-      expect(LogLevelUtils.meetsThreshold(LogLevel.TRACE, LogLevel.FATAL)).toBe(
-        false
-      );
+      expect(LogLevelUtils.meetsThreshold(LogLevel.DEBUG, LogLevel.INFO)).toBe(false);
+      expect(LogLevelUtils.meetsThreshold(LogLevel.WARN, LogLevel.ERROR)).toBe(false);
+      expect(LogLevelUtils.meetsThreshold(LogLevel.TRACE, LogLevel.FATAL)).toBe(false);
     });
 
     it('should handle edge cases correctly', () => {
-      expect(LogLevelUtils.meetsThreshold(LogLevel.TRACE, LogLevel.TRACE)).toBe(
-        true
-      );
-      expect(LogLevelUtils.meetsThreshold(LogLevel.FATAL, LogLevel.FATAL)).toBe(
-        true
-      );
+      expect(LogLevelUtils.meetsThreshold(LogLevel.TRACE, LogLevel.TRACE)).toBe(true);
+      expect(LogLevelUtils.meetsThreshold(LogLevel.FATAL, LogLevel.FATAL)).toBe(true);
     });
   });
 
   describe('getEnabledLevels', () => {
     it('should return all levels at or above threshold', () => {
       const infoAndAbove = LogLevelUtils.getEnabledLevels(LogLevel.INFO);
-      expect(infoAndAbove).toEqual([
-        LogLevel.INFO,
-        LogLevel.WARN,
-        LogLevel.ERROR,
-        LogLevel.FATAL,
-      ]);
+      expect(infoAndAbove).toEqual([LogLevel.INFO, LogLevel.WARN, LogLevel.ERROR, LogLevel.FATAL]);
     });
 
     it('should return only higher levels for high thresholds', () => {

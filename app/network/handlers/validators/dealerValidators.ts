@@ -8,9 +8,11 @@ import type {
 /**
  * Validates that the sender is actually the current dealer
  */
-export const validateSenderIsDealer: ValidationFunction<
-  DealerDiscardMessage
-> = (_message, senderId, context): ValidationResult => {
+export const validateSenderIsDealer: ValidationFunction<DealerDiscardMessage> = (
+  _message,
+  senderId,
+  context
+): ValidationResult => {
   if (context.gameStore.currentDealerId !== senderId) {
     return {
       isValid: false,
@@ -24,9 +26,11 @@ export const validateSenderIsDealer: ValidationFunction<
 /**
  * Validates that the player hasn't already drawn a card
  */
-export const validatePlayerHasNotDrawn: ValidationFunction<
-  DrawDealerCardMessage
-> = (_message, senderId, context): ValidationResult => {
+export const validatePlayerHasNotDrawn: ValidationFunction<DrawDealerCardMessage> = (
+  _message,
+  senderId,
+  context
+): ValidationResult => {
   if (context.gameStore.dealerSelectionCards?.[senderId]) {
     return {
       isValid: false,
@@ -40,9 +44,11 @@ export const validatePlayerHasNotDrawn: ValidationFunction<
 /**
  * Validates that there are cards available to draw
  */
-export const validateCardsAvailable: ValidationFunction<
-  DrawDealerCardMessage
-> = (_message, _senderId, context): ValidationResult => {
+export const validateCardsAvailable: ValidationFunction<DrawDealerCardMessage> = (
+  _message,
+  _senderId,
+  context
+): ValidationResult => {
   const { gameStore } = context;
 
   if (!gameStore.deck || gameStore.deck.length === 0) {
@@ -72,9 +78,11 @@ export const validateCardsAvailable: ValidationFunction<
 /**
  * Validates the selected dealer exists
  */
-export const validateDealerExists: ValidationFunction<
-  SetPredeterminedDealerMessage
-> = (_message, _senderId, context): ValidationResult => {
+export const validateDealerExists: ValidationFunction<SetPredeterminedDealerMessage> = (
+  _message,
+  _senderId,
+  context
+): ValidationResult => {
   const { dealerId } = _message.payload;
   const dealer = context.gameStore.players.find(p => p.id === dealerId);
 

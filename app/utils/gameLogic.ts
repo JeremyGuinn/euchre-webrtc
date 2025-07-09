@@ -115,10 +115,7 @@ export function getOffSuit(trump: Card['suit']): Card['suit'] {
   }
 }
 
-export function getEffectiveSuit(
-  card: Card,
-  trump: Card['suit']
-): Card['suit'] {
+export function getEffectiveSuit(card: Card, trump: Card['suit']): Card['suit'] {
   // Off-jack becomes trump suit
   if (card.value === 'J' && card.suit === getOffSuit(trump)) {
     return trump;
@@ -158,8 +155,7 @@ export function getWinningCard(
   let winningPlay = cards[0];
   let highestValue = getCardValue(winningPlay.card, trump);
   let isWinningTrump = getEffectiveSuit(winningPlay.card, trump) === trump;
-  let isWinningLeadSuit =
-    getEffectiveSuit(winningPlay.card, trump) === leadSuit;
+  let isWinningLeadSuit = getEffectiveSuit(winningPlay.card, trump) === leadSuit;
 
   for (let i = 1; i < cards.length; i++) {
     const currentPlay = cards[i];
@@ -184,12 +180,7 @@ export function getWinningCard(
       }
     }
     // Non-trump can only win if current winner is also non-trump and it's lead suit
-    else if (
-      !currentIseTrump &&
-      !isWinningTrump &&
-      currentIsLeadSuit &&
-      isWinningLeadSuit
-    ) {
+    else if (!currentIseTrump && !isWinningTrump && currentIsLeadSuit && isWinningLeadSuit) {
       if (currentValue > highestValue) {
         winningPlay = currentPlay;
         highestValue = currentValue;
@@ -269,9 +260,7 @@ export function selectDealerAndTeams(
   };
 
   // Find dealer's partner (same team)
-  const dealerTeam = team0Players.includes(dealer)
-    ? team0Players
-    : team1Players;
+  const dealerTeam = team0Players.includes(dealer) ? team0Players : team1Players;
   const dealerPartner = dealerTeam.find(p => p.id !== dealer.id)!;
 
   // Partner sits opposite (position 2)
@@ -338,11 +327,7 @@ export function selectDealerOnly(
 
   // Rotate positions so dealer is at position 0
   players.forEach(player => {
-    const newPosition = ((player.position - dealerOriginalPosition + 4) % 4) as
-      | 0
-      | 1
-      | 2
-      | 3;
+    const newPosition = ((player.position - dealerOriginalPosition + 4) % 4) as 0 | 1 | 2 | 3;
     arrangedPlayers[newPosition] = {
       ...player,
       position: newPosition,
@@ -377,10 +362,7 @@ export function findFirstBlackJackDealer(
     const currentPlayer = players[currentPlayerIndex];
 
     // Check if this is a black Jack (Jack of Spades or Jack of Clubs)
-    if (
-      card.value === 'J' &&
-      (card.suit === 'spades' || card.suit === 'clubs')
-    ) {
+    if (card.value === 'J' && (card.suit === 'spades' || card.suit === 'clubs')) {
       // This player becomes the dealer
       const dealer = currentPlayer;
       const dealerOriginalPosition = dealer.position;
@@ -388,8 +370,7 @@ export function findFirstBlackJackDealer(
       // Arrange players so dealer is at position 0
       const arrangedPlayers: Player[] = [];
       players.forEach(player => {
-        const newPosition = ((player.position - dealerOriginalPosition + 4) %
-          4) as 0 | 1 | 2 | 3;
+        const newPosition = ((player.position - dealerOriginalPosition + 4) % 4) as 0 | 1 | 2 | 3;
         arrangedPlayers[newPosition] = {
           ...player,
           position: newPosition,
@@ -465,9 +446,7 @@ export function performFarmersHandSwap(
   }
 
   // Remove the cards to swap from the hand
-  const newHand = hand.filter(
-    card => !cardsToSwap.some(swapCard => swapCard.id === card.id)
-  );
+  const newHand = hand.filter(card => !cardsToSwap.some(swapCard => swapCard.id === card.id));
 
   // Add the bottom 3 cards from the deck to the hand
   const bottom3Cards = remainingDeck.slice(-3);
@@ -501,12 +480,8 @@ export function dealTestFarmersHand(
   const hands: [Card[], Card[], Card[], Card[]] = [[], [], [], []];
 
   // Find all 9s and 10s in the deck
-  const farmersCards = deck.filter(
-    card => card.value === '9' || card.value === '10'
-  );
-  const otherCards = deck.filter(
-    card => card.value !== '9' && card.value !== '10'
-  );
+  const farmersCards = deck.filter(card => card.value === '9' || card.value === '10');
+  const otherCards = deck.filter(card => card.value !== '9' && card.value !== '10');
 
   // Give the farmer player all 9s and 10s (take first 5)
   hands[farmerPlayerIndex] = farmersCards.slice(0, 5);

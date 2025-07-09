@@ -14,11 +14,7 @@ interface PlaceholderProps {
  * @param variant - 'default' for standard gray styling, 'subtle' for lighter styling
  * @param className - Additional CSS classes
  */
-export function Placeholder({
-  children,
-  className,
-  variant = 'default',
-}: PlaceholderProps) {
+export function Placeholder({ children, className, variant = 'default' }: PlaceholderProps) {
   const variantClasses = {
     default: 'border-gray-300 bg-gray-50',
     subtle: 'border-gray-200 bg-gray-25',
@@ -26,11 +22,7 @@ export function Placeholder({
 
   return (
     <div
-      className={cn(
-        'p-4 border-2 border-dashed rounded-lg',
-        variantClasses[variant],
-        className
-      )}
+      className={cn('p-4 border-2 border-dashed rounded-lg', variantClasses[variant], className)}
     >
       {children}
     </div>

@@ -116,9 +116,7 @@ export function DealingAnimation({
     // Start animation after a brief delay to ensure the element is rendered
     const startAnimationTimer = setTimeout(() => {
       setAnimatingCards(prev =>
-        prev.map(card =>
-          card.id === cardId ? { ...card, isAnimating: true } : card
-        )
+        prev.map(card => (card.id === cardId ? { ...card, isAnimating: true } : card))
       );
     }, 25); // Reduced delay for snappier feel
 
@@ -176,9 +174,7 @@ export function DealingAnimation({
     }
   };
 
-  const getCardTargetPosition = (
-    playerId: string
-  ): { x: number; y: number; rotation: number } => {
+  const getCardTargetPosition = (playerId: string): { x: number; y: number; rotation: number } => {
     const player = players.find(p => p.id === playerId);
     if (!player) return { x: 0, y: 0, rotation: 0 };
 
@@ -195,14 +191,8 @@ export function DealingAnimation({
     }
 
     // Calculate relative position from center
-    let x =
-      containerRect.left +
-      containerRect.width / 2 -
-      (centerRect.left + centerRect.width / 2);
-    let y =
-      containerRect.top +
-      containerRect.height / 2 -
-      (centerRect.top + centerRect.height / 2);
+    let x = containerRect.left + containerRect.width / 2 - (centerRect.left + centerRect.width / 2);
+    let y = containerRect.top + containerRect.height / 2 - (centerRect.top + centerRect.height / 2);
 
     // Add slight random offset for natural feel
     x += (Math.random() - 0.5) * 20;
@@ -226,10 +216,7 @@ export function DealingAnimation({
             <div
               className='absolute top-0 left-0 opacity-60 transition-transform duration-100'
               style={{
-                transform:
-                  animatingCards.length > 0
-                    ? 'translateY(-1px) rotate(-0.5deg)'
-                    : 'none',
+                transform: animatingCards.length > 0 ? 'translateY(-1px) rotate(-0.5deg)' : 'none',
               }}
             >
               <CardBack size='medium' />
@@ -237,10 +224,7 @@ export function DealingAnimation({
             <div
               className='absolute top-0.5 left-0.5 opacity-80 transition-transform duration-100'
               style={{
-                transform:
-                  animatingCards.length > 0
-                    ? 'translateY(-0.5px) rotate(0.3deg)'
-                    : 'none',
+                transform: animatingCards.length > 0 ? 'translateY(-0.5px) rotate(0.3deg)' : 'none',
               }}
             >
               <CardBack size='medium' />
@@ -248,8 +232,7 @@ export function DealingAnimation({
             <div
               className='absolute top-1 left-1 transition-transform duration-100'
               style={{
-                transform:
-                  animatingCards.length > 0 ? 'translateY(-0.2px)' : 'none',
+                transform: animatingCards.length > 0 ? 'translateY(-0.2px)' : 'none',
               }}
             >
               <CardBack size='medium' />
@@ -299,10 +282,7 @@ export function DealingAnimation({
               </div>
 
               {/* Show card backs for dealt cards */}
-              <div
-                id={`player-cards-${player.id}`}
-                className='flex justify-center'
-              >
+              <div id={`player-cards-${player.id}`} className='flex justify-center'>
                 {Array.from({ length: cardsDealtToPlayer }, (_, index) => (
                   <div
                     key={index}
@@ -332,9 +312,7 @@ export function DealingAnimation({
                 ? 'Dealing complete!'
                 : (() => {
                     const currentStepData = dealingSteps[currentStep];
-                    const playerName = players.find(
-                      p => p.id === currentStepData?.playerId
-                    )?.name;
+                    const playerName = players.find(p => p.id === currentStepData?.playerId)?.name;
                     return `Dealing to ${playerName}... (${currentStep + 1}/${dealingSteps.length})`;
                   })()}
           </div>

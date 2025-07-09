@@ -63,10 +63,7 @@ export default function Host() {
   if (isLoading) {
     return (
       <PageContainer>
-        <LoadingScreen
-          title='Creating Game...'
-          message='Setting up your Euchre table'
-        />
+        <LoadingScreen title='Creating Game...' message='Setting up your Euchre table' />
       </PageContainer>
     );
   }
@@ -101,23 +98,16 @@ export default function Host() {
     <PageContainer>
       <div className='text-center mb-6'>
         <div className='text-green-500 text-4xl mb-4'>✅</div>
-        <h2 className='text-xl font-semibold text-gray-800 mb-2'>
-          Game Created!
-        </h2>
+        <h2 className='text-xl font-semibold text-gray-800 mb-2'>Game Created!</h2>
         <p className='text-gray-600'>Share this code with your friends</p>
       </div>
 
       <GameCodeSharing gameId={gameId} className='mb-6' />
 
       <div className='mt-6'>
-        <ConnectionStatusDisplay
-          status={connectionStatus}
-          className='justify-between mb-4'
-        />
+        <ConnectionStatusDisplay status={connectionStatus} className='justify-between mb-4' />
 
-        <p className='text-sm text-gray-600 text-center'>
-          Redirecting to lobby in a moment...
-        </p>
+        <p className='text-sm text-gray-600 text-center'>Redirecting to lobby in a moment...</p>
       </div>
     </PageContainer>
   );
