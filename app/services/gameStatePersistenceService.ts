@@ -117,6 +117,29 @@ export class GameStatePersistenceService {
     }
   }
 
+  static clear(): void {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return;
+    }
+
+    try {
+      const keysToRemove: string[] = [];
+
+      for (let i = 0; i < window.localStorage.length; i++) {
+        const key = window.localStorage.key(i);
+        if (key?.startsWith(this.KEY_PREFIX)) {
+          keysToRemove.push(key);
+        }
+      }
+
+      keysToRemove.forEach(key => {
+        window.localStorage.removeItem(key);
+      });
+    } catch {
+      // ignore errors during clearing
+    }
+  }
+
   /**
    * Clean up old/expired game states
    */

@@ -424,6 +424,7 @@ export function useConnectionActions(
         setMyPlayerId('');
         setIsHost(false);
         sessionManager.clearSession();
+        GameStatePersistenceService.clear();
         logger.debug('Player state and session cleared');
 
         // If we're a client (not host), send leave message first
@@ -478,6 +479,7 @@ export function useConnectionActions(
       logger,
       myPlayerId,
       sessionManager,
+      gameStore.id,
     ]
   );
 
