@@ -1,41 +1,6 @@
 import { cn } from './cn';
 
 /**
- * Common button class combinations
- */
-export const buttonVariants = {
-  primary: cn(
-    'w-full font-semibold py-3 px-6 rounded-lg',
-    'transition-colors duration-200',
-    'bg-blue-600 hover:bg-blue-700 text-white'
-  ),
-  secondary: cn(
-    'w-full font-semibold py-3 px-6 rounded-lg',
-    'transition-colors duration-200',
-    'bg-gray-600 hover:bg-gray-700 text-white'
-  ),
-  success: cn(
-    'w-full font-semibold py-3 px-6 rounded-lg',
-    'transition-colors duration-200',
-    'bg-green-600 hover:bg-green-700 text-white'
-  ),
-  danger: cn(
-    'w-full font-semibold py-3 px-6 rounded-lg',
-    'transition-colors duration-200',
-    'bg-red-600 hover:bg-red-700 text-white'
-  ),
-};
-
-/**
- * Common card/container class combinations
- */
-export const cardVariants = {
-  default: cn('bg-white rounded-lg shadow-lg p-8'),
-  compact: cn('bg-white rounded-lg shadow-md p-4'),
-  large: cn('bg-white rounded-xl shadow-xl p-12'),
-};
-
-/**
  * Common text class combinations
  */
 export const textVariants = {
