@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist, subscribeWithSelector } from 'zustand/middleware';
+import { subscribeWithSelector } from 'zustand/middleware';
 import type { GameState } from '~/types/game';
 import type {
   BiddingSlice,
@@ -56,27 +56,17 @@ const initialGameState: GameState = {
 };
 
 export const useGameStore = create<GameStore>()(
-  subscribeWithSelector(
-    persist(
-      (...a) => ({
-        ...initialGameState,
+  subscribeWithSelector((...a) => ({
+    ...initialGameState,
 
-        // Combine all slices
-        ...createBiddingSlice(...a),
-        ...createCoreSlice(...a),
-        ...createFarmersHandSlice(...a),
-        ...createGameFlowSlice(...a),
-        ...createOptionsSlice(...a),
-        ...createPlayerSlice(...a),
-        ...createPlayingSlice(...a),
-        ...createTeamSlice(...a),
-      }),
-      {
-        name: 'euchre-game-state',
-        version: 1,
-        // Skip hydration on server side
-        skipHydration: typeof window === 'undefined',
-      }
-    )
-  )
+    // Combine all slices
+    ...createBiddingSlice(...a),
+    ...createCoreSlice(...a),
+    ...createFarmersHandSlice(...a),
+    ...createGameFlowSlice(...a),
+    ...createOptionsSlice(...a),
+    ...createPlayerSlice(...a),
+    ...createPlayingSlice(...a),
+    ...createTeamSlice(...a),
+  }))
 );

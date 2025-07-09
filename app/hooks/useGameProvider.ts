@@ -41,7 +41,8 @@ export function useGameProvider() {
         farmersHand: false,
       });
     }
-  }, [gameState]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState.id]); // Only depend on gameState.id to avoid infinite loops
 
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(
     getInitialConnectionStatus()

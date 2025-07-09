@@ -9,6 +9,7 @@ import { TeamSummaryOverlay } from '~/components/game/overlays/TeamSummaryOverla
 import { TrickCompleteOverlay } from '~/components/game/overlays/TrickCompleteOverlay';
 import Button from '~/components/ui/Button';
 import { Center } from '~/components/ui/Center';
+import { useGameStore } from '~/store/gameStore';
 import type { Card as CardType, GameState, Player } from '~/types/game';
 
 interface GamePhaseManagerProps {
@@ -58,6 +59,7 @@ export function GamePhaseManager({
   onRenameTeam,
   onLeaveGame,
 }: GamePhaseManagerProps) {
+  const gameStore = useGameStore();
   // Dealer Selection Animation
   if (gameState.phase === 'dealer_selection') {
     if (!gameState.dealerSelectionCards && !gameState.firstBlackJackDealing) {
@@ -188,7 +190,7 @@ export function GamePhaseManager({
         suitSymbols={suitSymbols}
         suitColors={suitColors}
         _screwTheDealer={gameState.options.screwTheDealer}
-        isDealerScrewed={isDealerScrewed(gameState)}
+        isDealerScrewed={gameStore.isDealerScrewed()}
         onBid={onBid}
       />
     );

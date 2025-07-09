@@ -18,7 +18,24 @@ export function useGameActions(
     }
 
     gameStore.startGame();
-  }, [isHost, gameStore]);
+
+    // Broadcast the game start to all clients
+    gameStore.players.forEach(player => {
+      if (player.id !== myPlayerId) {
+        const personalizedState = gameStore.createPublicGameState(player.id);
+
+        networkService.sendMessage(
+          {
+            type: 'START_GAME',
+            timestamp: Date.now(),
+            messageId: createMessageId(),
+            payload: { gameState: personalizedState },
+          },
+          player.id
+        );
+      }
+    });
+  }, [isHost, gameStore, networkService, myPlayerId]);
 
   const selectDealer = useCallback(() => {
     if (!isHost) {

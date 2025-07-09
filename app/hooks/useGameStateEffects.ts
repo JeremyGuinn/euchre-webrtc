@@ -2,42 +2,41 @@ import { useCallback, useEffect, useRef } from 'react';
 
 import { createMessageId } from '~/network/protocol';
 import { GameNetworkService } from '~/services/networkService';
-import type { GameState, Player } from '~/types/game';
+import type { GameStore } from '~/store/gameStore';
+import { useGameStore } from '~/store/gameStore';
+import type { Player } from '~/types/game';
 
 export function useGameStateEffects(
-  gameState: GameState,
+  gameStore: GameStore,
   myPlayerId: string,
   isHost: boolean,
   networkService: GameNetworkService
 ) {
-  const prevGameStateRef = useRef<GameState | undefined>(undefined);
-
-  // Use refs to avoid recreating broadcastGameState on every render
   const stateRef = useRef({
-    gameState,
+    gameStore,
     myPlayerId,
     networkService,
   });
 
-  // Update refs without triggering re-renders
-  stateRef.current = {
-    gameState,
-    myPlayerId,
-    networkService,
-  };
+  // Update the ref when props change
+  useEffect(() => {
+    stateRef.current = {
+      gameStore,
+      myPlayerId,
+      networkService,
+    };
+  }, [gameStore, myPlayerId, networkService]);
 
-  // Create stable broadcastGameState function
   const broadcastGameState = useCallback(() => {
     const {
-      gameState: currentGameState,
+      gameStore: currentGameStore,
       myPlayerId: currentMyPlayerId,
       networkService: currentNetworkService,
     } = stateRef.current;
 
-    // Send personalized state to each player
-    currentGameState.players.forEach((player: Player) => {
+    currentGameStore.players.forEach((player: Player) => {
       if (player.id !== currentMyPlayerId) {
-        const personalizedState = createPublicGameState(currentGameState, player.id);
+        const personalizedState = currentGameStore.createPublicGameState(player.id);
 
         currentNetworkService.sendMessage(
           {
@@ -50,16 +49,27 @@ export function useGameStateEffects(
         );
       }
     });
-  }, []); // Empty dependency array - function is stable
+  }, []);
 
-  // Auto-broadcast game state changes when host
   useEffect(() => {
-    if (isHost && prevGameStateRef.current) {
-      broadcastGameState();
-    }
+    if (!isHost) return;
 
-    prevGameStateRef.current = { ...gameState };
-  }, [gameState, isHost, broadcastGameState]);
+    const unsubscribe = useGameStore.subscribe(
+      state => ({
+        players: state.players,
+        phase: state.phase,
+        currentDealerId: state.currentDealerId,
+        hands: state.hands,
+        bids: state.bids,
+        completedTricks: state.completedTricks,
+        scores: state.scores,
+        handScores: state.handScores,
+      }),
+      () => broadcastGameState()
+    );
+
+    return unsubscribe;
+  }, [isHost, broadcastGameState]);
 
   return {
     broadcastGameState,

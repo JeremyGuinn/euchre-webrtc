@@ -70,7 +70,7 @@ export interface ValidationResult {
   reason?: string;
 }
 
-export type ValidationFunction<T extends BaseMessage = never> = (
+export type ValidationFunction<T extends BaseMessage = BaseMessage> = (
   message: T,
   senderId: string,
   context: HandlerContext
