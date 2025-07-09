@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { DealerSelectionAnimation } from '~/components/game/dealer-selection/DealerSelectionAnimation';
 import { DealingAnimation } from '~/components/game/DealingAnimation';
 import { BiddingInterface } from '~/components/game/interfaces/BiddingInterface';
@@ -11,6 +12,7 @@ import Button from '~/components/ui/Button';
 import { Center } from '~/components/ui/Center';
 import { useGameStore } from '~/store/gameStore';
 import type { Card as CardType, GameState, Player } from '~/types/game';
+import { getPlayerIdFromPosition } from '~/utils/game/playerUtils';
 
 interface GamePhaseManagerProps {
   gameState: GameState;
@@ -60,6 +62,11 @@ export function GamePhaseManager({
   onLeaveGame,
 }: GamePhaseManagerProps) {
   const gameStore = useGameStore();
+  const currentDealerId = useMemo(
+    () => getPlayerIdFromPosition(gameState.currentDealerPosition, gameState.players),
+    [gameState.currentDealerPosition, gameState.players]
+  );
+
   // Dealer Selection Animation
   if (gameState.phase === 'dealer_selection') {
     if (!gameState.dealerSelectionCards && !gameState.firstBlackJackDealing) {
@@ -152,6 +159,10 @@ export function GamePhaseManager({
 
   // Dealing Animation
   if (gameState.phase === 'dealing_animation') {
+    if (!currentDealerId) {
+      return null;
+    }
+
     return (
       <div
         className='relative w-full'
@@ -164,7 +175,7 @@ export function GamePhaseManager({
           players={gameState.players}
           myPlayer={myPlayer}
           isVisible={true}
-          currentDealerId={gameState.currentDealerId}
+          currentDealerId={currentDealerId}
           onComplete={onCompleteDealingAnimation}
         />
       </div>
@@ -177,13 +188,17 @@ export function GamePhaseManager({
       gameState.phase === 'bidding_round2') &&
     isMyTurn()
   ) {
+    if (!currentDealerId) {
+      return null;
+    }
+
     return (
       <BiddingInterface
         phase={gameState.phase as 'bidding_round1' | 'bidding_round2'}
         kitty={gameState.kitty}
-        isDealer={gameState.currentDealerId === myPlayer.id}
+        isDealer={currentDealerId === myPlayer.id}
         isDealerTeammate={(() => {
-          const dealer = gameState.players.find(p => p.id === gameState.currentDealerId);
+          const dealer = gameState.players.find(p => p.id === currentDealerId);
           return dealer ? dealer.teamId === myPlayer.teamId && dealer.id !== myPlayer.id : false;
         })()}
         turnedDownSuit={gameState.turnedDownSuit}
@@ -227,7 +242,7 @@ export function GamePhaseManager({
 
   // Farmer's Hand Interface - Allow player to swap cards
   if (gameState.phase === 'farmers_hand_swap') {
-    if (gameState.farmersHandPlayer === myPlayer.id) {
+    if (gameState.farmersHandPosition === myPlayer.position) {
       return (
         <FarmersHandInterface
           hand={myHand}
@@ -235,10 +250,12 @@ export function GamePhaseManager({
           onDecline={onDeclineFarmersHand}
         />
       );
-    } else if (gameState.farmersHandPlayer) {
+    } else if (gameState.farmersHandPosition) {
       return (
         <FarmersHandWaiting
-          farmersHandPlayer={gameState.players.find(p => p.id === gameState.farmersHandPlayer)!}
+          farmersHandPlayer={
+            gameState.players.find(p => p.position === gameState.farmersHandPosition)!
+          }
         />
       );
     }

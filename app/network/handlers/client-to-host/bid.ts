@@ -1,5 +1,6 @@
 import type { ClientToHostHandler } from '~/types/handlers';
 import type { BidMessage } from '~/types/messages';
+import { getPositionFromPlayerId } from '~/utils/game/playerUtils';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
 import { validatePlayerExists, validatePlayerTurn } from '../validators';
 
@@ -8,8 +9,11 @@ const handleBidMessageImpl: ClientToHostHandler<BidMessage> = (
   senderId,
   { gameStore }
 ) => {
+  const senderPosition = getPositionFromPlayerId(senderId, gameStore.players);
+  if (senderPosition === undefined) return;
+
   gameStore.placeBid({
-    playerId: senderId,
+    playerPosition: senderPosition,
     suit: bid.suit,
     alone: bid.alone,
   });

@@ -40,7 +40,7 @@ export default function GameControlsPanel({
           <div>
             {connectedPlayersCount === 4 &&
             gameOptions.dealerSelection === 'predetermined_first_dealer' &&
-            !gameOptions.predeterminedFirstDealerId ? (
+            gameOptions.predeterminedFirstDealerPosition === undefined ? (
               <div>
                 <p className='text-yellow-600 font-medium mb-4'>
                   Please select a first dealer before starting the game.

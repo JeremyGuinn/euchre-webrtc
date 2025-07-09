@@ -24,7 +24,7 @@ export function TeamSummaryOverlay({
   onRenameTeam,
   onProceedToDealing,
 }: TeamSummaryOverlayProps) {
-  const dealer = gameState.players.find(p => p.id === gameState.currentDealerId);
+  const dealer = gameState.players.find(p => p.position === gameState.currentPlayerPosition);
 
   return (
     <div className='absolute inset-0 bg-black/40 z-40'>
@@ -74,21 +74,21 @@ export function TeamSummaryOverlay({
                       className={`
                         p-2 rounded-md text-center font-medium
                         ${player.id === myPlayer.id ? 'bg-blue-200 text-blue-900' : 'bg-white text-blue-800'}
-                        ${player.id === gameState.currentDealerId ? 'ring-2 ring-yellow-400' : ''}
+                        ${player.position === gameState.currentDealerPosition ? 'ring-2 ring-yellow-400' : ''}
                       `}
                     >
                       {player.name}
                       {player.id === myPlayer.id && ' (You)'}
-                      {player.id === gameState.currentDealerId && ' 🃏'}
+                      {player.position === gameState.currentDealerPosition && ' 🃏'}
                       {/* Show the randomly selected card */}
-                      {gameState.dealerSelectionCards?.[player.id] && (
+                      {gameState.dealerSelectionCards?.[player.position] && (
                         <div className='text-sm text-gray-500'>
                           Drawn card:{' '}
                           <span
-                            className={`font-medium ${suitColors[gameState.dealerSelectionCards[player.id].suit]}`}
+                            className={`font-medium ${suitColors[gameState.dealerSelectionCards[player.position]!.suit]}`}
                           >
-                            {suitSymbols[gameState.dealerSelectionCards[player.id].suit]}{' '}
-                            {gameState.dealerSelectionCards[player.id].value}
+                            {suitSymbols[gameState.dealerSelectionCards[player.position]!.suit]}{' '}
+                            {gameState.dealerSelectionCards[player.position]!.value}
                           </span>
                         </div>
                       )}
@@ -120,20 +120,20 @@ export function TeamSummaryOverlay({
                       className={`
                         p-2 rounded-md text-center font-medium
                         ${player.id === myPlayer.id ? 'bg-red-200 text-red-900' : 'bg-white text-red-800'}
-                        ${player.id === gameState.currentDealerId ? 'ring-2 ring-yellow-400' : ''}
+                        ${player.position === gameState.currentDealerPosition ? 'ring-2 ring-yellow-400' : ''}
                       `}
                     >
                       {player.name}
                       {player.id === myPlayer.id && ' (You)'}
-                      {player.id === gameState.currentDealerId && ' 🃏'}
+                      {player.position === gameState.currentDealerPosition && ' 🃏'}
                       {gameState.dealerSelectionCards && (
                         <div className='text-sm text-gray-500'>
                           Drawn card:{' '}
                           <span
-                            className={`font-medium ${suitColors[gameState.dealerSelectionCards[player.id].suit]}`}
+                            className={`font-medium ${suitColors[gameState.dealerSelectionCards[player.position]!.suit]}`}
                           >
-                            {suitSymbols[gameState.dealerSelectionCards[player.id].suit]}{' '}
-                            {gameState.dealerSelectionCards[player.id].value}
+                            {suitSymbols[gameState.dealerSelectionCards[player.position]!.suit]}{' '}
+                            {gameState.dealerSelectionCards[player.position]!.value}
                           </span>
                         </div>
                       )}

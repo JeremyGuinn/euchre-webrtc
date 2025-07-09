@@ -1,5 +1,6 @@
 import type { ClientToHostHandler } from '~/types/handlers';
 import type { FarmersHandDeclineMessage } from '~/types/messages';
+import { getPositionFromPlayerId } from '~/utils/game/playerUtils';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
 import {
   validateGameOption,
@@ -12,7 +13,10 @@ const handleFarmersHandDeclineImpl: ClientToHostHandler<FarmersHandDeclineMessag
   senderId,
   { gameStore }
 ) => {
-  gameStore.farmersHandDeclined(senderId);
+  const senderPosition = getPositionFromPlayerId(senderId, gameStore.players);
+  if (senderPosition === undefined) return;
+
+  gameStore.farmersHandDeclined(senderPosition);
 };
 
 /**

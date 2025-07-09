@@ -2,11 +2,16 @@ import { useCallback } from 'react';
 
 import type { Card, GameState, Player } from '~/types/game';
 import { canPlayCardWithOptions, getEffectiveSuit } from '~/utils/game/gameLogic';
+import { getPositionFromPlayerId } from '~/utils/game/playerUtils';
 
 export function useGameUtils(gameState: GameState, myPlayerId: string) {
+  const myPosition = getPositionFromPlayerId(myPlayerId, gameState.players);
+
   const canPlay = useCallback(
     (card: Card): boolean => {
-      const myHand = gameState.hands[myPlayerId] || [];
+      if (myPosition === undefined) return false;
+
+      const myHand = gameState.hands[myPosition] || [];
 
       let effectiveLeadSuit = undefined;
       if (gameState.currentTrick?.cards[0] && gameState.trump) {
@@ -26,35 +31,37 @@ export function useGameUtils(gameState: GameState, myPlayerId: string) {
       gameState.currentTrick,
       gameState.trump,
       gameState.options.allowReneging,
-      myPlayerId,
+      myPosition,
     ]
   );
 
   const isMyTurn = useCallback((): boolean => {
-    return gameState.currentPlayerId === myPlayerId;
-  }, [gameState.currentPlayerId, myPlayerId]);
+    return gameState.currentPlayerPosition === myPosition;
+  }, [gameState.currentPlayerPosition, myPosition]);
 
   const isSittingOut = useCallback((): boolean => {
     // Check if I'm the teammate of someone going alone
-    if (gameState.maker?.alone) {
+    if (gameState.maker?.alone && myPosition !== undefined) {
       const myPlayer = gameState.players.find(p => p.id === myPlayerId);
-      const makerPlayer = gameState.players.find(p => p.id === gameState.maker!.playerId);
+      const makerPosition = gameState.maker.playerPosition;
+      const makerPlayer = gameState.players.find(p => p.position === makerPosition);
 
       if (myPlayer && makerPlayer) {
         // If I'm on the same team as the maker but not the maker myself, I'm sitting out
-        return myPlayer.teamId === makerPlayer.teamId && myPlayer.id !== makerPlayer.id;
+        return myPlayer.teamId === makerPlayer.teamId && myPosition !== makerPosition;
       }
     }
     return false;
-  }, [gameState.maker, gameState.players, myPlayerId]);
+  }, [gameState.maker, gameState.players, myPlayerId, myPosition]);
 
   const getMyPlayer = useCallback((): Player | undefined => {
     return gameState.players.find(p => p.id === myPlayerId);
   }, [gameState.players, myPlayerId]);
 
   const getMyHand = useCallback((): Card[] => {
-    return gameState.hands[myPlayerId] || [];
-  }, [gameState.hands, myPlayerId]);
+    if (myPosition === undefined) return [];
+    return gameState.hands[myPosition] || [];
+  }, [gameState.hands, myPosition]);
 
   return {
     canPlay,

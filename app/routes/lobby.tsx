@@ -57,7 +57,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
 
     // If predetermined dealer is selected, ensure a dealer is chosen
     if (gameState.options.dealerSelection === 'predetermined_first_dealer') {
-      return !!gameState.options.predeterminedFirstDealerId;
+      return gameState.options.predeterminedFirstDealerPosition !== undefined;
     }
 
     return true;
@@ -65,7 +65,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
     isHost,
     connectedPlayers.length,
     gameState.options.dealerSelection,
-    gameState.options.predeterminedFirstDealerId,
+    gameState.options.predeterminedFirstDealerPosition,
   ]);
 
   useEffect(() => {
@@ -144,7 +144,13 @@ export default function Lobby({ params }: Route.ComponentProps) {
             {gameState.options.dealerSelection === 'predetermined_first_dealer' && (
               <PredeterminedDealerSelector
                 players={gameState.players.filter(p => p.isConnected)}
-                selectedDealerId={gameState.options.predeterminedFirstDealerId}
+                selectedDealerId={
+                  gameState.options.predeterminedFirstDealerPosition !== undefined
+                    ? gameState.players.find(
+                        p => p.position === gameState.options.predeterminedFirstDealerPosition
+                      )?.id
+                    : undefined
+                }
                 onDealerSelect={setPredeterminedDealer}
                 isHost={isHost}
               />

@@ -30,7 +30,7 @@ export type GamePhase =
   | 'game_complete';
 
 export type Bid = {
-  playerId: string;
+  playerPosition: 0 | 1 | 2 | 3;
   suit: Card['suit'] | 'pass';
   alone?: boolean;
 };
@@ -39,16 +39,16 @@ export type Trick = {
   id: string;
   cards: Array<{
     card: Card;
-    playerId: string;
+    playerPosition: 0 | 1 | 2 | 3;
   }>;
-  winnerId?: string;
-  leaderId: string;
+  winnerPosition?: 0 | 1 | 2 | 3;
+  leaderPosition: 0 | 1 | 2 | 3;
 };
 
 export type GameOptions = {
   teamSelection: 'predetermined' | 'random_cards';
   dealerSelection: 'random_cards' | 'first_black_jack' | 'predetermined_first_dealer';
-  predeterminedFirstDealerId?: string;
+  predeterminedFirstDealerPosition?: 0 | 1 | 2 | 3;
   allowReneging: boolean;
   screwTheDealer: boolean;
   farmersHand: boolean;
@@ -60,10 +60,10 @@ export type GameState = {
   players: Player[];
   phase: GamePhase;
   options: GameOptions;
-  currentDealerId: string;
-  currentPlayerId?: string;
+  currentDealerPosition: 0 | 1 | 2 | 3;
+  currentPlayerPosition?: 0 | 1 | 2 | 3;
   deck: Card[];
-  hands: Record<string, Card[]>; // Only on host
+  hands: Record<0 | 1 | 2 | 3, Card[]>; // Keyed by position instead of player ID
   trump?: Card['suit'];
   kitty?: Card; // The turned-up card
   turnedDownSuit?: Card['suit']; // The suit that was turned down in round 1
@@ -83,17 +83,17 @@ export type GameState = {
     team1: string;
   };
   maker?: {
-    playerId: string;
+    playerPosition: 0 | 1 | 2 | 3;
     teamId: 0 | 1;
     alone: boolean;
   };
-  farmersHandPlayer?: string; // Player who has a farmer's hand and can swap cards
-  dealerSelectionCards?: Record<string, Card>; // Cards drawn for dealer selection
+  farmersHandPosition?: 0 | 1 | 2 | 3; // Position of player who has a farmer's hand
+  dealerSelectionCards?: Partial<Record<0 | 1 | 2 | 3, Card>>; // Cards drawn for dealer selection
   firstBlackJackDealing?: {
     currentPlayerIndex: number;
     currentCardIndex: number;
-    dealtCards: Array<{ playerId: string; card: Card }>;
-    blackJackFound?: { playerId: string; card: Card };
+    dealtCards: Array<{ playerPosition: 0 | 1 | 2 | 3; card: Card }>;
+    blackJackFound?: { playerPosition: 0 | 1 | 2 | 3; card: Card };
   };
 };
 

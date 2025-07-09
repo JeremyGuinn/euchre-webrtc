@@ -1,5 +1,6 @@
 import type { ClientToHostHandler } from '~/types/handlers';
 import type { PlayCardMessage } from '~/types/messages';
+import { getPositionFromPlayerId } from '~/utils/game/playerUtils';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
 import {
   validateCardCanBePlayed,
@@ -24,7 +25,10 @@ const handlePlayCardMessageImpl: ClientToHostHandler<PlayCardMessage> = (
   const { gameStore } = context;
   const { card } = message.payload;
 
-  gameStore.playCard(card, senderId);
+  const senderPosition = getPositionFromPlayerId(senderId, gameStore.players);
+  if (senderPosition === undefined) return;
+
+  gameStore.playCard(card, senderPosition);
 };
 
 export const handlePlayCardMessage = createClientToHostHandler(handlePlayCardMessageImpl, [

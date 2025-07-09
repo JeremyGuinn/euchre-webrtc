@@ -146,10 +146,10 @@ export function canPlayCard(
 }
 
 export function getWinningCard(
-  cards: Array<{ card: Card; playerId: string }>,
+  cards: Array<{ card: Card; playerPosition: 0 | 1 | 2 | 3 }>,
   trump: Card['suit'],
   leadSuit: Card['suit']
-): { card: Card; playerId: string } {
+): { card: Card; playerPosition: 0 | 1 | 2 | 3 } {
   if (cards.length === 0) throw new Error('No cards to evaluate');
 
   let winningPlay = cards[0];
@@ -519,7 +519,7 @@ export function dealTestFarmersHand(
  * @returns Expected trick size (3 if going alone, 4 otherwise)
  */
 export function getExpectedTrickSize(maker?: {
-  playerId: string;
+  playerPosition: 0 | 1 | 2 | 3;
   teamId: 0 | 1;
   alone: boolean;
 }): number {
@@ -542,8 +542,8 @@ export function calculateHandScore(
   alone: boolean
 ): { team0: number; team1: number } {
   const makingTeamTricks = tricks.filter(trick => {
-    if (!trick.winnerId) return false;
-    const winner = players.find(p => p.id === trick.winnerId);
+    if (trick.winnerPosition === undefined) return false;
+    const winner = players.find(p => p.position === trick.winnerPosition);
     return winner?.teamId === makingTeam;
   }).length;
 

@@ -27,9 +27,11 @@ export function TrickCompleteOverlay({
   }
 
   const lastTrick = gameState.completedTricks[gameState.completedTricks.length - 1];
-  const winner = lastTrick ? gameState.players.find(p => p.id === lastTrick.winnerId) : null;
+  const winner = lastTrick
+    ? gameState.players.find(p => p.position === lastTrick.winnerPosition)
+    : null;
   const winningCard = lastTrick?.cards.find(
-    playedCard => playedCard.playerId === lastTrick.winnerId
+    playedCard => playedCard.playerPosition === lastTrick.winnerPosition
   );
 
   return (

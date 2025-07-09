@@ -5,6 +5,7 @@ import type {
   MovePlayerMessage,
   RenameTeamMessage,
 } from '~/types/messages';
+import { getPositionFromPlayerId } from '~/utils/game/playerUtils';
 
 /**
  * Validates the target player exists
@@ -54,7 +55,8 @@ export const validatePlayerTurn: ValidationFunction = (
   senderId,
   context
 ): ValidationResult => {
-  if (context.gameStore.currentPlayerId !== senderId) {
+  const senderPosition = getPositionFromPlayerId(senderId, context.gameStore.players);
+  if (senderPosition === undefined || context.gameStore.currentPlayerPosition !== senderPosition) {
     return {
       isValid: false,
       reason: `It's not ${senderId}'s turn`,
@@ -110,7 +112,8 @@ export const validatePlayerCanRenameTeam: ValidationFunction<RenameTeamMessage> 
 export const validateIsFarmersHandPlayer: ValidationFunction<
   FarmersHandSwapMessage | FarmersHandDeclineMessage
 > = (_message, senderId, { gameStore }): ValidationResult => {
-  if (gameStore.farmersHandPlayer !== senderId) {
+  const senderPosition = getPositionFromPlayerId(senderId, gameStore.players);
+  if (senderPosition === undefined || gameStore.farmersHandPosition !== senderPosition) {
     return {
       isValid: false,
       reason: 'Player is not the farmers hand player',

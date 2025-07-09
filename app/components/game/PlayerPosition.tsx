@@ -133,7 +133,7 @@ export function PlayerPosition({
               >
                 {player.name} {player.id === myPlayer.id && '(You)'}
                 {!player.isConnected && ' (Disconnected)'}
-                {gameState.currentDealerId === player.id && ' (Dealer)'}
+                {gameState.currentDealerPosition === player.position && ' (Dealer)'}
                 {isPlayerSittingOut && ' (Sitting Out)'}
               </button>
             ) : (
@@ -148,7 +148,7 @@ export function PlayerPosition({
               >
                 {player.name} {player.id === myPlayer.id && '(You)'}
                 {!player.isConnected && ' (Disconnected)'}
-                {gameState.currentDealerId === player.id && ' (Dealer)'}
+                {gameState.currentDealerPosition === player.position && ' (Dealer)'}
                 {isPlayerSittingOut && ' (Sitting Out)'}
               </div>
             )}

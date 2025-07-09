@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand';
-import type { Card, Player } from '~/types/game';
+import type { Player } from '~/types/game';
 import { getTeamId } from '~/utils/game/playerUtils';
 import type { GameStore } from '../gameStore';
 
@@ -15,7 +15,7 @@ export interface PlayerSlice {
 
 export const createPlayerSlice: StateCreator<GameStore, [], [], PlayerSlice> = (set, get) => ({
   addPlayer: (player: Player) => {
-    const { players } = get();
+    const { players, hands } = get();
 
     const occupiedPositions = new Set(players.map(p => p.position));
     const availablePosition = ([0, 1, 2, 3] as const).find(pos => !occupiedPositions.has(pos));
@@ -30,9 +30,18 @@ export const createPlayerSlice: StateCreator<GameStore, [], [], PlayerSlice> = (
       teamId: getTeamId(availablePosition),
     };
 
-    set(state => ({
-      players: [...state.players, newPlayer],
-    }));
+    set({
+      players: [...players, newPlayer],
+      // If there's already a hand at this position (from a previously kicked player), keep it
+      // Otherwise, initialize with empty hand
+      hands:
+        hands[availablePosition]?.length > 0
+          ? hands
+          : {
+              ...hands,
+              [availablePosition]: hands[availablePosition] || [],
+            },
+    });
   },
 
   removePlayer: (playerId: string) => {
@@ -55,6 +64,7 @@ export const createPlayerSlice: StateCreator<GameStore, [], [], PlayerSlice> = (
       return;
     }
 
+    // Simple player data update - all game state uses positions now
     const updatedPlayer: Player = {
       ...playerToReconnect,
       id: newPlayerId,
@@ -62,66 +72,8 @@ export const createPlayerSlice: StateCreator<GameStore, [], [], PlayerSlice> = (
       isConnected: true,
     };
 
-    const newHands: Record<string, Card[]> = { ...state.hands };
-    if (state.hands[oldPlayerId]) {
-      newHands[newPlayerId] = state.hands[oldPlayerId];
-      delete newHands[oldPlayerId];
-    }
-
-    const newCurrentDealerId =
-      state.currentDealerId === oldPlayerId ? newPlayerId : state.currentDealerId;
-
-    const newCurrentPlayerId =
-      state.currentPlayerId === oldPlayerId ? newPlayerId : state.currentPlayerId;
-
-    const newBids = state.bids.map(bid =>
-      bid.playerId === oldPlayerId ? { ...bid, playerId: newPlayerId } : bid
-    );
-
-    const newCurrentTrick = state.currentTrick
-      ? {
-          ...state.currentTrick,
-          cards: state.currentTrick.cards.map(card =>
-            card.playerId === oldPlayerId ? { ...card, playerId: newPlayerId } : card
-          ),
-        }
-      : undefined;
-
-    const newCompletedTricks = state.completedTricks.map(trick => ({
-      ...trick,
-      winnerId: trick.winnerId === oldPlayerId ? newPlayerId : trick.winnerId,
-      cards: trick.cards.map(card =>
-        card.playerId === oldPlayerId ? { ...card, playerId: newPlayerId } : card
-      ),
-    }));
-
-    const newMaker =
-      state.maker?.playerId === oldPlayerId
-        ? { ...state.maker, playerId: newPlayerId }
-        : state.maker;
-
-    let newDealerSelectionCards = state.dealerSelectionCards;
-    if (state.dealerSelectionCards && state.dealerSelectionCards[oldPlayerId]) {
-      const newCards = { ...state.dealerSelectionCards };
-      newCards[newPlayerId] = newCards[oldPlayerId];
-      delete newCards[oldPlayerId];
-      newDealerSelectionCards = newCards;
-    }
-
-    const newFarmersHandPlayer =
-      state.farmersHandPlayer === oldPlayerId ? newPlayerId : state.farmersHandPlayer;
-
     set({
       players: state.players.map(p => (p.id === oldPlayerId ? updatedPlayer : p)),
-      hands: newHands,
-      currentDealerId: newCurrentDealerId,
-      currentPlayerId: newCurrentPlayerId,
-      bids: newBids,
-      currentTrick: newCurrentTrick,
-      completedTricks: newCompletedTricks,
-      maker: newMaker,
-      dealerSelectionCards: newDealerSelectionCards,
-      farmersHandPlayer: newFarmersHandPlayer,
     });
   },
 
@@ -132,9 +84,19 @@ export const createPlayerSlice: StateCreator<GameStore, [], [], PlayerSlice> = (
   },
 
   kickPlayer: (playerId: string) => {
-    set(state => ({
+    const state = get();
+    const kickedPlayer = state.players.find(p => p.id === playerId);
+
+    if (!kickedPlayer) return;
+
+    // Remove the player and clear their position's hand
+    set({
       players: state.players.filter(p => p.id !== playerId),
-    }));
+      hands: {
+        ...state.hands,
+        [kickedPlayer.position]: [],
+      },
+    });
   },
 
   movePlayer: (playerId: string, newPosition: 0 | 1 | 2 | 3) => {

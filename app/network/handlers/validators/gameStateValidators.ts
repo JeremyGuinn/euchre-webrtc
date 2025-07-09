@@ -5,6 +5,7 @@ import type {
   RenameTeamMessage,
   SetPredeterminedDealerMessage,
 } from '~/types/messages';
+import { getPositionFromPlayerId } from '~/utils/game/playerUtils';
 
 /**
  * Validates that the game is in the expected phase before processing a message
@@ -126,12 +127,12 @@ export const validateSenderIsHost = validateSenderIs((senderId, context) => {
   return sender?.isHost === true;
 }, 'Non-host player attempted to perform host-only action');
 
-export const validateSenderIsDealer = validateSenderIs(
-  (senderId, context) => context.gameStore.currentDealerId === senderId,
-  'Received action from non-dealer player'
-);
+export const validateSenderIsDealer = validateSenderIs((senderId, context) => {
+  const senderPosition = getPositionFromPlayerId(senderId, context.gameStore.players);
+  return senderPosition !== undefined && context.gameStore.currentDealerPosition === senderPosition;
+}, 'Received action from non-dealer player');
 
-export const validateSenderIsFarmersHandPlayer = validateSenderIs(
-  (senderId, context) => context.gameStore.farmersHandPlayer === senderId,
-  'Received action from non-farmers-hand player'
-);
+export const validateSenderIsFarmersHandPlayer = validateSenderIs((senderId, context) => {
+  const senderPosition = getPositionFromPlayerId(senderId, context.gameStore.players);
+  return senderPosition !== undefined && context.gameStore.farmersHandPosition === senderPosition;
+}, 'Received action from non-farmers-hand player');

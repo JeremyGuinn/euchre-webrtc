@@ -53,67 +53,98 @@ export function getTeamId(position: number): 0 | 1 {
 }
 
 /**
- * Get the next player in turn order
- * @param currentPlayerId - Current player's ID
- * @param players - Array of all players
- * @returns Next player's ID
+ * Get the next player position in turn order
+ * @param currentPosition - Current player's position
+ * @returns Next player's position
  */
-export function getNextPlayer(currentPlayerId: string, players: Player[]): string {
-  const currentIndex = players.findIndex(p => p.id === currentPlayerId);
-  if (currentIndex === -1) return players[0]?.id || '';
-
-  const nextIndex = (currentIndex + 1) % players.length;
-  return players[nextIndex].id;
+export function getNextPlayerPosition(currentPosition: 0 | 1 | 2 | 3): 0 | 1 | 2 | 3 {
+  return ((currentPosition + 1) % 4) as 0 | 1 | 2 | 3;
 }
 
 /**
- * Get the next player in turn order, considering "going alone" rules
- * @param currentPlayerId - Current player's ID
- * @param players - Array of all players
+ * Get the next player position in turn order, considering "going alone" rules
+ * @param currentPosition - Current player's position
  * @param maker - The player who made trump and whether they're going alone
- * @returns Next player's ID
+ * @returns Next player's position
  */
-export function getNextPlayerWithAlone(
-  currentPlayerId: string,
-  players: Player[],
-  maker?: { playerId: string; teamId: 0 | 1; alone: boolean }
-): string {
-  const currentIndex = players.findIndex(p => p.id === currentPlayerId);
-  if (currentIndex === -1) return players[0]?.id || '';
-
+export function getNextPlayerPositionWithAlone(
+  currentPosition: 0 | 1 | 2 | 3,
+  maker?: { playerPosition: 0 | 1 | 2 | 3; teamId: 0 | 1; alone: boolean }
+): 0 | 1 | 2 | 3 {
   // If someone is going alone, skip their teammate
   if (maker?.alone) {
-    const makerPlayer = players.find(p => p.id === maker.playerId);
-    if (makerPlayer) {
-      const teammateId = players.find(
-        p => p.teamId === makerPlayer.teamId && p.id !== makerPlayer.id
-      )?.id;
+    const makerTeamId = maker.teamId;
 
-      // Find next player, skipping the teammate
-      let nextIndex = (currentIndex + 1) % players.length;
-      let nextPlayer = players[nextIndex];
+    // Find next position, skipping the teammate
+    let nextPosition = getNextPlayerPosition(currentPosition);
 
-      // If the next player is the teammate, skip them
-      if (nextPlayer.id === teammateId) {
-        nextIndex = (nextIndex + 1) % players.length;
-        nextPlayer = players[nextIndex];
-      }
-
-      return nextPlayer.id;
+    // If the next position is the teammate, skip them
+    const nextPlayerTeamId = getTeamId(nextPosition);
+    if (nextPlayerTeamId === makerTeamId && nextPosition !== maker.playerPosition) {
+      nextPosition = getNextPlayerPosition(nextPosition);
     }
+
+    return nextPosition;
   }
 
   // Normal turn order
-  const nextIndex = (currentIndex + 1) % players.length;
-  return players[nextIndex].id;
+  return getNextPlayerPosition(currentPosition);
 }
 
 /**
- * Get the next dealer in turn order
- * @param currentDealerId - Current dealer's ID
- * @param players - Array of all players
- * @returns Next dealer's ID
+ * Get the next dealer position in turn order
+ * @param currentDealerPosition - Current dealer's position
+ * @returns Next dealer's position
  */
-export function getNextDealer(currentDealerId: string, players: Player[]): string {
-  return getNextPlayer(currentDealerId, players);
+export function getNextDealerPosition(currentDealerPosition: 0 | 1 | 2 | 3): 0 | 1 | 2 | 3 {
+  return getNextPlayerPosition(currentDealerPosition);
+}
+
+/**
+ * Get player ID from position
+ * @param position - Player position
+ * @param players - Array of all players
+ * @returns Player ID at that position, or undefined if no player
+ */
+export function getPlayerIdFromPosition(
+  position: 0 | 1 | 2 | 3,
+  players: Player[]
+): string | undefined {
+  return players.find(p => p.position === position)?.id;
+}
+
+/**
+ * Get player from position
+ * @param position - Player position
+ * @param players - Array of all players
+ * @returns Player at that position, or undefined if no player
+ */
+export function getPlayerFromPosition(
+  position: 0 | 1 | 2 | 3,
+  players: Player[]
+): Player | undefined {
+  return players.find(p => p.position === position);
+}
+
+/**
+ * Get position from player ID
+ * @param playerId - Player ID
+ * @param players - Array of all players
+ * @returns Player position, or undefined if player not found
+ */
+export function getPositionFromPlayerId(
+  playerId: string,
+  players: Player[]
+): 0 | 1 | 2 | 3 | undefined {
+  return players.find(p => p.id === playerId)?.position;
+}
+
+/**
+ * Check if a position has a player
+ * @param position - Player position
+ * @param players - Array of all players
+ * @returns True if position is occupied
+ */
+export function isPositionOccupied(position: 0 | 1 | 2 | 3, players: Player[]): boolean {
+  return players.some(p => p.position === position);
 }

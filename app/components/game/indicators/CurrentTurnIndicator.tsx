@@ -31,7 +31,7 @@ export function CurrentTurnIndicator({
               <>
                 <span className='font-medium text-yellow-400'>
                   {/* If they were ordered up add text */}
-                  {gameState.maker?.playerId !== myPlayer.id
+                  {gameState.maker?.playerPosition !== myPlayer.position
                     ? 'You were ordered up!'
                     : 'You took it up!'}
                 </span>

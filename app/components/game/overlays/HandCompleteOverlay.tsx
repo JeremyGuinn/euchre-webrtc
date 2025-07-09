@@ -25,18 +25,20 @@ export function HandCompleteOverlay({
   }
 
   const maker = gameState.maker;
-  const makerPlayer = maker ? gameState.players.find(p => p.id === maker.playerId) : null;
+  const makerPlayer = maker
+    ? gameState.players.find(p => p.position === maker.playerPosition)
+    : null;
   const makerTeam = maker?.teamId;
   const handScores = gameState.handScores;
 
   // Count tricks won by each team
   const team0Tricks = gameState.completedTricks.filter(trick => {
-    const winner = gameState.players.find(p => p.id === trick.winnerId);
+    const winner = gameState.players.find(p => p.position === trick.winnerPosition);
     return winner?.teamId === 0;
   }).length;
 
   const team1Tricks = gameState.completedTricks.filter(trick => {
-    const winner = gameState.players.find(p => p.id === trick.winnerId);
+    const winner = gameState.players.find(p => p.position === trick.winnerPosition);
     return winner?.teamId === 1;
   }).length;
 

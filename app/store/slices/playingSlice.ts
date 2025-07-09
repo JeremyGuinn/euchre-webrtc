@@ -6,45 +6,45 @@ import {
   getExpectedTrickSize,
   getWinningCard,
 } from '~/utils/game/gameLogic';
-import { getNextDealer, getNextPlayerWithAlone } from '~/utils/game/playerUtils';
+import { getNextDealerPosition, getNextPlayerPositionWithAlone } from '~/utils/game/playerUtils';
 import type { GameStore } from '../gameStore';
 
 export interface PlayingSlice {
-  playCard: (card: Card, playerId: string) => void;
+  playCard: (card: Card, playerPosition: 0 | 1 | 2 | 3) => void;
   completeTrick: () => void;
   completeHand: () => void;
 }
 
 export const createPlayingSlice: StateCreator<GameStore, [], [], PlayingSlice> = (set, get) => ({
-  playCard: (card: Card, playerId: string) => {
+  playCard: (card: Card, playerPosition: 0 | 1 | 2 | 3) => {
     const state = get();
 
     if (!state.currentTrick) {
       const newTrick: Trick = {
         id: crypto.randomUUID(),
-        cards: [{ card, playerId }],
-        leaderId: playerId,
+        cards: [{ card, playerPosition }],
+        leaderPosition: playerPosition,
       };
 
       set({
         currentTrick: newTrick,
         hands: {
           ...state.hands,
-          [playerId]: state.hands[playerId].filter(c => c.id !== card.id),
+          [playerPosition]: state.hands[playerPosition].filter(c => c.id !== card.id),
         },
-        currentPlayerId: getNextPlayerWithAlone(playerId, state.players, state.maker),
+        currentPlayerPosition: getNextPlayerPositionWithAlone(playerPosition, state.maker),
       });
       return;
     }
 
     const updatedTrick = {
       ...state.currentTrick,
-      cards: [...state.currentTrick.cards, { card, playerId }],
+      cards: [...state.currentTrick.cards, { card, playerPosition }],
     };
 
     const newHands = {
       ...state.hands,
-      [playerId]: state.hands[playerId].filter(c => c.id !== card.id),
+      [playerPosition]: state.hands[playerPosition].filter(c => c.id !== card.id),
     };
 
     const expectedTrickSize = getExpectedTrickSize(state.maker);
@@ -53,7 +53,7 @@ export const createPlayingSlice: StateCreator<GameStore, [], [], PlayingSlice> =
       set({
         hands: newHands,
         currentTrick: updatedTrick,
-        currentPlayerId: getNextPlayerWithAlone(playerId, state.players, state.maker),
+        currentPlayerPosition: getNextPlayerPositionWithAlone(playerPosition, state.maker),
       });
       return;
     }
@@ -63,7 +63,7 @@ export const createPlayingSlice: StateCreator<GameStore, [], [], PlayingSlice> =
       : updatedTrick.cards[0].card.suit;
 
     const winningPlay = getWinningCard(updatedTrick.cards, state.trump!, leadSuit);
-    updatedTrick.winnerId = winningPlay.playerId;
+    updatedTrick.winnerPosition = winningPlay.playerPosition;
 
     const newCompletedTricks = [...state.completedTricks, updatedTrick];
 
@@ -73,7 +73,7 @@ export const createPlayingSlice: StateCreator<GameStore, [], [], PlayingSlice> =
         currentTrick: undefined,
         completedTricks: newCompletedTricks,
         phase: 'trick_complete',
-        currentPlayerId: winningPlay.playerId,
+        currentPlayerPosition: winningPlay.playerPosition,
       });
       return;
     }
@@ -99,7 +99,7 @@ export const createPlayingSlice: StateCreator<GameStore, [], [], PlayingSlice> =
       hands: newHands,
       currentTrick: undefined,
       completedTricks: newCompletedTricks,
-      currentPlayerId: winningPlay.playerId,
+      currentPlayerPosition: winningPlay.playerPosition,
       scores: newScores,
       phase: gameComplete ? 'game_complete' : 'hand_complete',
     });
@@ -110,16 +110,16 @@ export const createPlayingSlice: StateCreator<GameStore, [], [], PlayingSlice> =
   },
 
   completeHand: () => {
-    const { currentDealerId, players, phase } = get();
+    const { currentDealerPosition, phase } = get();
 
     set({
       phase: 'dealing_animation',
-      currentDealerId: getNextDealer(currentDealerId, players),
+      currentDealerPosition: getNextDealerPosition(currentDealerPosition),
       completedTricks: [],
       trump: undefined,
       maker: undefined,
       bids: [],
-      hands: phase === 'game_complete' ? get().hands : {},
+      hands: phase === 'game_complete' ? get().hands : ({} as Record<0 | 1 | 2 | 3, Card[]>),
       currentTrick: undefined,
       turnedDownSuit: undefined,
       handScores: { team0: 0, team1: 0 },

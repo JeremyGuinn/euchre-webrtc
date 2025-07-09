@@ -1,5 +1,6 @@
 import type { ClientToHostHandler } from '~/types/handlers';
 import type { FarmersHandSwapMessage } from '~/types/messages';
+import { getPositionFromPlayerId } from '~/utils/game/playerUtils';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
 import {
   validateGameOption,
@@ -15,7 +16,10 @@ const handleFarmersHandSwapImpl: ClientToHostHandler<FarmersHandSwapMessage> = (
   senderId,
   { gameStore }
 ) => {
-  gameStore.farmersHandSwap(senderId, cardsToSwap);
+  const senderPosition = getPositionFromPlayerId(senderId, gameStore.players);
+  if (senderPosition === undefined) return;
+
+  gameStore.farmersHandSwap(senderPosition, cardsToSwap);
 };
 
 /**

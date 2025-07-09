@@ -36,7 +36,8 @@ export function PlayerHand({
       <div className='flex space-x-1'>
         {myHand.map(card => {
           const isInDealerDiscardPhase =
-            gameState.phase === 'dealer_discard' && myPlayer.id === gameState.currentDealerId;
+            gameState.phase === 'dealer_discard' &&
+            myPlayer.position === gameState.currentDealerPosition;
           const isKittyCard =
             isInDealerDiscardPhase && gameState.kitty && card.id === gameState.kitty.id;
           const canDiscard = isInDealerDiscardPhase && !isKittyCard;
@@ -117,14 +118,14 @@ export function PlayerHand({
     if (gameState.completedTricks) {
       const cardsPlayedInCompletedTricks = gameState.completedTricks
         .flatMap(trick => trick.cards)
-        .filter(playedCard => playedCard.playerId === player.id).length;
+        .filter(playedCard => playedCard.playerPosition === player.position).length;
       cardsRemaining -= cardsPlayedInCompletedTricks;
     }
 
     // Count cards played in current trick
     if (gameState.currentTrick) {
       const cardsPlayedInCurrentTrick = gameState.currentTrick.cards.filter(
-        playedCard => playedCard.playerId === player.id
+        playedCard => playedCard.playerPosition === player.position
       ).length;
       cardsRemaining -= cardsPlayedInCurrentTrick;
     }

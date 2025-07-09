@@ -58,7 +58,7 @@ export function useGameStateEffects(
       state => ({
         players: state.players,
         phase: state.phase,
-        currentDealerId: state.currentDealerId,
+        currentDealerPosition: state.currentDealerPosition,
         hands: state.hands,
         bids: state.bids,
         completedTricks: state.completedTricks,

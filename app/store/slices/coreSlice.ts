@@ -6,7 +6,7 @@ export interface CoreSlice {
   initGame: (hostId: string, gameId: string, gameCode?: string) => void;
   restoreGameState: (gameState: GameState) => void;
   syncState: (gameState: PublicGameState, playerHand?: Card[], receivingPlayerId?: string) => void;
-  setCurrentPlayer: (playerId: string) => void;
+  setCurrentPlayerPosition: (position: 0 | 1 | 2 | 3) => void;
   setPhase: (phase: GameState['phase']) => void;
   createPublicGameState: (forPlayerId?: string) => PublicGameState;
   isDealerScrewed: () => boolean;
@@ -35,9 +35,9 @@ export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set,
         screwTheDealer: false,
         farmersHand: false,
       },
-      currentDealerId: hostId,
+      currentDealerPosition: 0,
       deck: [],
-      hands: {},
+      hands: { 0: [], 1: [], 2: [], 3: [] },
       bids: [],
       completedTricks: [],
       scores: { team0: 0, team1: 0 },
@@ -51,15 +51,25 @@ export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set,
   },
 
   syncState: (gameState: PublicGameState, playerHand?: Card[], receivingPlayerId?: string) => {
+    const state = get();
+    const receivingPlayer = receivingPlayerId
+      ? state.players.find(p => p.id === receivingPlayerId)
+      : undefined;
+    const newHands = { 0: [], 1: [], 2: [], 3: [] } as Record<0 | 1 | 2 | 3, Card[]>;
+
+    if (playerHand && receivingPlayer) {
+      newHands[receivingPlayer.position] = playerHand;
+    }
+
     set({
-      ...get(),
+      ...state,
       id: gameState.id,
       players: gameState.players,
       teamNames: gameState.teamNames,
       phase: gameState.phase,
       options: gameState.options,
-      currentDealerId: gameState.currentDealerId,
-      currentPlayerId: gameState.currentPlayerId,
+      currentDealerPosition: gameState.currentDealerPosition,
+      currentPlayerPosition: gameState.currentPlayerPosition,
       trump: gameState.trump,
       kitty: gameState.kitty,
       turnedDownSuit: gameState.turnedDownSuit,
@@ -70,14 +80,14 @@ export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set,
       handScores: gameState.handScores,
       maker: gameState.maker,
       dealerSelectionCards: gameState.dealerSelectionCards,
-      hands: playerHand && receivingPlayerId ? { [receivingPlayerId]: playerHand } : {},
+      hands: newHands,
       deck: gameState.deck,
-      farmersHandPlayer: gameState.farmersHandPlayer,
+      farmersHandPosition: gameState.farmersHandPosition,
     });
   },
 
-  setCurrentPlayer: (playerId: string) => {
-    set({ currentPlayerId: playerId });
+  setCurrentPlayerPosition: (position: 0 | 1 | 2 | 3) => {
+    set({ currentPlayerPosition: position });
   },
 
   setPhase: (phase: GameState['phase']) => {
@@ -86,6 +96,9 @@ export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set,
 
   createPublicGameState: (forPlayerId?: string): PublicGameState => {
     const state = get();
+    const requestingPlayer = forPlayerId
+      ? state.players.find(p => p.id === forPlayerId)
+      : undefined;
 
     const placeholderCards: [Card, Card, Card] = [
       { id: `placeholder-${0}`, suit: 'spades' as const, value: 'A' as const },
@@ -99,8 +112,8 @@ export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set,
       players: state.players,
       phase: state.phase,
       options: state.options,
-      currentDealerId: state.currentDealerId,
-      currentPlayerId: state.currentPlayerId,
+      currentDealerPosition: state.currentDealerPosition,
+      currentPlayerPosition: state.currentPlayerPosition,
       trump: state.trump,
       kitty: state.kitty,
       turnedDownSuit: state.turnedDownSuit,
@@ -109,16 +122,17 @@ export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set,
       completedTricks: state.completedTricks,
       scores: state.scores,
       handScores: state.handScores,
-      teamNames: state.teamNames,
       maker: state.maker,
-      farmersHandPlayer: state.farmersHandPlayer,
       dealerSelectionCards: state.dealerSelectionCards,
-      firstBlackJackDealing: state.firstBlackJackDealing,
       deck: placeholderCards,
+      farmersHandPosition: state.farmersHandPosition,
+      firstBlackJackDealing: state.firstBlackJackDealing,
+      teamNames: state.teamNames,
     };
 
-    if (forPlayerId && state.hands[forPlayerId]) {
-      publicState.playerHand = state.hands[forPlayerId];
+    // Include player's hand if they're requesting their own state
+    if (requestingPlayer && state.hands[requestingPlayer.position]) {
+      publicState.playerHand = state.hands[requestingPlayer.position];
     }
 
     return publicState;
@@ -127,21 +141,26 @@ export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set,
   isDealerScrewed: (): boolean => {
     const state = get();
 
+    // Only applies in round 2 with screw-the-dealer enabled
     if (state.phase !== 'bidding_round2' || !state.options.screwTheDealer) {
       return false;
     }
 
-    if (state.currentPlayerId !== state.currentDealerId) {
+    // Check if current player is the dealer
+    if (state.currentPlayerPosition !== state.currentDealerPosition) {
       return false;
     }
 
-    const round1Passes = state.players.length;
+    // In round 2, the dealer is screwed if everyone else has passed
+    const round1Passes = 4; // Each position passes once in round 1
     const round2Bids = state.bids.slice(round1Passes);
 
+    // Count how many non-dealer positions have passed in round 2
     const round2Passes = round2Bids.filter(
-      bid => bid.suit === 'pass' && bid.playerId !== state.currentDealerId
+      bid => bid.suit === 'pass' && bid.playerPosition !== state.currentDealerPosition
     ).length;
 
+    // If all 3 other positions have passed in round 2, dealer is screwed
     return round2Passes === 3;
   },
 });

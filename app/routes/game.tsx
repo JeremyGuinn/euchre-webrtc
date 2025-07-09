@@ -78,7 +78,10 @@ export default function Game({ params }: Route.ComponentProps) {
 
   const myPlayer = getMyPlayer();
   const myHand = getMyHand();
-  const currentPlayer = gameState.players.find(p => p.id === gameState.currentPlayerId);
+  const currentPlayer =
+    gameState.currentPlayerPosition !== undefined
+      ? gameState.players.find(p => p.position === gameState.currentPlayerPosition)
+      : undefined;
 
   useEffect(() => {
     // Redirect to lobby if game hasn't started

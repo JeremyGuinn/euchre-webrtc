@@ -1,12 +1,12 @@
 import type { StateCreator } from 'zustand';
 import type { Bid, Card } from '~/types/game';
-import { getNextDealer, getNextPlayerWithAlone } from '~/utils/game/playerUtils';
+import { getNextDealerPosition, getNextPlayerPositionWithAlone } from '~/utils/game/playerUtils';
 import type { GameStore } from '../gameStore';
 
 export interface BiddingSlice {
   placeBid: (bid: Bid) => void;
   dealerDiscard: (card: Card) => void;
-  setTrump: (trump: Card['suit'], makerId: string, alone?: boolean) => void;
+  setTrump: (trump: Card['suit'], makerPosition: 0 | 1 | 2 | 3, alone?: boolean) => void;
 }
 
 export const createBiddingSlice: StateCreator<GameStore, [], [], BiddingSlice> = (set, get) => ({
@@ -17,76 +17,87 @@ export const createBiddingSlice: StateCreator<GameStore, [], [], BiddingSlice> =
     let newPhase = state.phase;
     let trump = state.trump;
     let maker = state.maker;
-    let currentPlayer = state.currentPlayerId;
+    let currentPlayerPosition = state.currentPlayerPosition;
     let turnedDownSuit = state.turnedDownSuit;
     let newHands = state.hands;
 
     if (state.phase === 'bidding_round1') {
       if (bid.suit !== 'pass') {
         trump = state.kitty!.suit;
-        const player = state.players.find(p => p.id === bid.playerId);
+        const player = state.players.find(p => p.position === bid.playerPosition);
         maker = {
-          playerId: bid.playerId,
+          playerPosition: bid.playerPosition,
           teamId: player?.teamId || 0,
           alone: bid.alone || false,
         };
 
-        if (newHands[state.currentDealerId]) {
+        // Add kitty to dealer's hand
+        if (newHands[state.currentDealerPosition]) {
           newHands = {
             ...newHands,
-            [state.currentDealerId]: [...newHands[state.currentDealerId], state.kitty!],
+            [state.currentDealerPosition]: [...newHands[state.currentDealerPosition], state.kitty!],
           };
         }
 
-        const dealerPlayer = state.players.find(p => p.id === state.currentDealerId);
+        const dealerPlayer = state.players.find(p => p.position === state.currentDealerPosition);
         const isDealerSittingOut =
           maker.alone &&
-          maker.playerId !== state.currentDealerId &&
+          maker.playerPosition !== state.currentDealerPosition &&
           dealerPlayer?.teamId === maker.teamId;
 
         if (isDealerSittingOut) {
           newPhase = 'playing';
-          currentPlayer = getNextPlayerWithAlone(state.currentDealerId, state.players, maker);
+          currentPlayerPosition = getNextPlayerPositionWithAlone(
+            state.currentDealerPosition,
+            maker
+          );
         } else {
           newPhase = 'dealer_discard';
-          currentPlayer = state.currentDealerId;
+          currentPlayerPosition = state.currentDealerPosition;
         }
       } else {
-        const currentPlayerIndex = state.players.findIndex(p => p.id === bid.playerId);
-        const dealerIndex = state.players.findIndex(p => p.id === state.currentDealerId);
+        const currentPlayerIndex = state.players.findIndex(p => p.position === bid.playerPosition);
+        const dealerIndex = state.players.findIndex(
+          p => p.position === state.currentDealerPosition
+        );
 
         if (currentPlayerIndex === dealerIndex) {
           newPhase = 'bidding_round2';
           turnedDownSuit = state.kitty!.suit;
-          currentPlayer = getNextPlayerWithAlone(state.currentDealerId, state.players, maker);
+          currentPlayerPosition = getNextPlayerPositionWithAlone(
+            state.currentDealerPosition,
+            maker
+          );
         } else {
-          currentPlayer = getNextPlayerWithAlone(bid.playerId, state.players, maker);
+          currentPlayerPosition = getNextPlayerPositionWithAlone(bid.playerPosition, maker);
         }
       }
     } else if (state.phase === 'bidding_round2') {
       if (bid.suit !== 'pass') {
         trump = bid.suit as Card['suit'];
-        const player = state.players.find(p => p.id === bid.playerId);
+        const player = state.players.find(p => p.position === bid.playerPosition);
         maker = {
-          playerId: bid.playerId,
+          playerPosition: bid.playerPosition,
           teamId: player?.teamId || 0,
           alone: bid.alone || false,
         };
         newPhase = 'playing';
-        currentPlayer = getNextPlayerWithAlone(state.currentDealerId, state.players, maker);
+        currentPlayerPosition = getNextPlayerPositionWithAlone(state.currentDealerPosition, maker);
       } else {
-        const currentPlayerIndex = state.players.findIndex(p => p.id === bid.playerId);
-        const dealerIndex = state.players.findIndex(p => p.id === state.currentDealerId);
+        const currentPlayerIndex = state.players.findIndex(p => p.position === bid.playerPosition);
+        const dealerIndex = state.players.findIndex(
+          p => p.position === state.currentDealerPosition
+        );
 
         if (currentPlayerIndex === dealerIndex) {
           if (state.options.screwTheDealer) {
             return;
           } else {
             newPhase = 'dealing_animation';
-            currentPlayer = getNextDealer(state.currentDealerId, state.players);
+            currentPlayerPosition = getNextDealerPosition(state.currentDealerPosition);
           }
         } else {
-          currentPlayer = getNextPlayerWithAlone(bid.playerId, state.players, maker);
+          currentPlayerPosition = getNextPlayerPositionWithAlone(bid.playerPosition, maker);
         }
       }
     }
@@ -97,38 +108,39 @@ export const createBiddingSlice: StateCreator<GameStore, [], [], BiddingSlice> =
       trump,
       maker,
       turnedDownSuit,
-      currentPlayerId: currentPlayer,
-      currentDealerId:
+      currentPlayerPosition,
+      currentDealerPosition:
         newPhase === 'dealing_animation'
-          ? currentPlayer || state.currentDealerId
-          : state.currentDealerId,
-      hands: newPhase === 'dealing_animation' ? {} : newHands,
+          ? currentPlayerPosition || state.currentDealerPosition
+          : state.currentDealerPosition,
+      hands: newPhase === 'dealing_animation' ? ({} as Record<0 | 1 | 2 | 3, Card[]>) : newHands,
     });
   },
 
   dealerDiscard: (card: Card) => {
-    const { currentDealerId, hands, players, maker } = get();
+    const { currentDealerPosition, hands, players, maker } = get();
 
     const newHands = {
       ...hands,
-      [currentDealerId]: hands[currentDealerId]?.filter(c => c.id !== card.id) || [],
+      [currentDealerPosition]: hands[currentDealerPosition]?.filter(c => c.id !== card.id) || [],
     };
 
     set({
       hands: newHands,
       phase: 'playing',
-      currentPlayerId: getNextPlayerWithAlone(currentDealerId, players, maker),
+      currentPlayerPosition: getNextPlayerPositionWithAlone(currentDealerPosition, maker),
     });
   },
 
-  setTrump: (trump: Card['suit'], makerId: string, alone?: boolean) => {
+  setTrump: (trump: Card['suit'], makerPosition: 0 | 1 | 2 | 3, alone?: boolean) => {
     const { players } = get();
 
+    const makerPlayer = players.find(p => p.position === makerPosition);
     set({
       trump,
       maker: {
-        playerId: makerId,
-        teamId: players.find(p => p.id === makerId)?.teamId || 0,
+        playerPosition: makerPosition,
+        teamId: makerPlayer?.teamId || 0,
         alone: alone || false,
       },
       phase: 'playing',

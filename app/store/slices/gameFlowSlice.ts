@@ -8,7 +8,12 @@ import {
   selectDealerAndTeams,
   selectDealerOnly,
 } from '~/utils/game/gameLogic';
-import { getNextDealer, getNextPlayer, getTeamId } from '~/utils/game/playerUtils';
+import {
+  getNextDealerPosition,
+  getNextPlayerPosition,
+  getPositionFromPlayerId,
+  getTeamId,
+} from '~/utils/game/playerUtils';
 import type { GameStore } from '../gameStore';
 
 export interface GameFlowSlice {
@@ -31,13 +36,13 @@ export const createGameFlowSlice: StateCreator<GameStore, [], [], GameFlowSlice>
     }
 
     if (options.dealerSelection === 'predetermined_first_dealer') {
-      const predeterminedDealerId = options.predeterminedFirstDealerId;
+      const predeterminedDealerPosition = options.predeterminedFirstDealerPosition;
 
-      if (!predeterminedDealerId) {
+      if (predeterminedDealerPosition === undefined) {
         return;
       }
 
-      const dealer = players.find(p => p.id === predeterminedDealerId);
+      const dealer = players.find(p => p.position === predeterminedDealerPosition);
       if (!dealer) {
         return;
       }
@@ -56,7 +61,7 @@ export const createGameFlowSlice: StateCreator<GameStore, [], [], GameFlowSlice>
 
       set({
         players: arrangedPlayers,
-        currentDealerId: predeterminedDealerId,
+        currentDealerPosition: predeterminedDealerPosition,
         phase: 'team_summary',
         deck: createDeck(),
       });
@@ -70,19 +75,19 @@ export const createGameFlowSlice: StateCreator<GameStore, [], [], GameFlowSlice>
     const { options } = get();
 
     if (options.dealerSelection === 'predetermined_first_dealer') {
-      const predeterminedDealerId = options.predeterminedFirstDealerId;
+      const predeterminedDealerPosition = options.predeterminedFirstDealerPosition;
 
-      if (!predeterminedDealerId) {
+      if (predeterminedDealerPosition === undefined) {
         return;
       }
 
-      const dealer = get().players.find(p => p.id === predeterminedDealerId);
+      const dealer = get().players.find(p => p.position === predeterminedDealerPosition);
       if (!dealer) {
         return;
       }
 
       set({
-        currentDealerId: predeterminedDealerId,
+        currentDealerPosition: predeterminedDealerPosition,
         phase: 'team_summary',
         deck: createDeck(),
       });
@@ -103,7 +108,7 @@ export const createGameFlowSlice: StateCreator<GameStore, [], [], GameFlowSlice>
     } else {
       set({
         deck,
-        dealerSelectionCards: {},
+        dealerSelectionCards: {} as Partial<Record<0 | 1 | 2 | 3, Card>>,
       });
     }
   },
@@ -111,9 +116,13 @@ export const createGameFlowSlice: StateCreator<GameStore, [], [], GameFlowSlice>
   drawDealerCard: (playerId: string, card: Card) => {
     const { dealerSelectionCards, players, options } = get();
 
+    // Convert player ID to position for storing the card
+    const playerPosition = getPositionFromPlayerId(playerId, players);
+    if (playerPosition === undefined) return;
+
     const newDealerSelectionCards = {
       ...dealerSelectionCards,
-      [playerId]: card,
+      [playerPosition]: card,
     };
 
     if (Object.keys(newDealerSelectionCards).length === 4) {
@@ -132,7 +141,7 @@ export const createGameFlowSlice: StateCreator<GameStore, [], [], GameFlowSlice>
 
       set({
         players: arrangedPlayers,
-        currentDealerId: dealer.id,
+        currentDealerPosition: dealer.position,
         dealerSelectionCards: newDealerSelectionCards,
         phase: 'team_summary',
       });
@@ -144,6 +153,10 @@ export const createGameFlowSlice: StateCreator<GameStore, [], [], GameFlowSlice>
   dealerCardDealt: (playerId: string, card: Card, cardIndex: number, isBlackJack: boolean) => {
     const { firstBlackJackDealing, players } = get();
 
+    // Convert player ID to position for the dealt card
+    const playerPosition = getPositionFromPlayerId(playerId, players);
+    if (playerPosition === undefined) return;
+
     const currentDealing = firstBlackJackDealing || {
       currentPlayerIndex: 0,
       currentCardIndex: 0,
@@ -153,8 +166,8 @@ export const createGameFlowSlice: StateCreator<GameStore, [], [], GameFlowSlice>
     const updatedDealing = {
       currentPlayerIndex: (currentDealing.currentPlayerIndex + 1) % players.length,
       currentCardIndex: cardIndex + 1,
-      dealtCards: [...currentDealing.dealtCards, { playerId, card }],
-      blackJackFound: isBlackJack ? { playerId, card } : currentDealing.blackJackFound,
+      dealtCards: [...currentDealing.dealtCards, { playerPosition, card }],
+      blackJackFound: isBlackJack ? { playerPosition, card } : currentDealing.blackJackFound,
     };
 
     set({ firstBlackJackDealing: updatedDealing });
@@ -171,7 +184,7 @@ export const createGameFlowSlice: StateCreator<GameStore, [], [], GameFlowSlice>
 
     set({
       players: arrangedPlayers,
-      currentDealerId: dealer.id,
+      currentDealerPosition: dealer.position,
       phase: 'team_summary',
     });
   },
@@ -184,30 +197,31 @@ export const createGameFlowSlice: StateCreator<GameStore, [], [], GameFlowSlice>
   },
 
   dealCards: () => {
-    const { players, currentDealerId, options } = get();
+    const { players, currentDealerPosition, options } = get();
 
     const deck = createDeck();
     const { hands, kitty, remainingDeck } = dealHands(deck);
 
-    const playerHands: Record<string, Card[]> = {};
+    // Create position-based hands mapping
+    const playerHands: Record<0 | 1 | 2 | 3, Card[]> = {} as Record<0 | 1 | 2 | 3, Card[]>;
     players.forEach((player, index) => {
-      playerHands[player.id] = hands[index];
+      playerHands[player.position] = hands[index];
     });
 
     let nextPhase: GameState['phase'] = 'bidding_round1';
-    let farmersHandPlayer: string | undefined = undefined;
-    let currentPlayerId = getNextPlayer(currentDealerId, players);
+    let farmersHandPosition: 0 | 1 | 2 | 3 | undefined = undefined;
+    let currentPlayerPosition = getNextPlayerPosition(currentDealerPosition);
 
     if (options.farmersHand) {
       const playerWithFarmersHand = players.find(player => {
-        const hand = playerHands[player.id];
+        const hand = playerHands[player.position];
         return hand && isFarmersHand(hand);
       });
 
       if (playerWithFarmersHand) {
         nextPhase = 'farmers_hand_swap';
-        farmersHandPlayer = playerWithFarmersHand.id;
-        currentPlayerId = playerWithFarmersHand.id;
+        farmersHandPosition = playerWithFarmersHand.position;
+        currentPlayerPosition = playerWithFarmersHand.position;
       }
     }
 
@@ -217,25 +231,25 @@ export const createGameFlowSlice: StateCreator<GameStore, [], [], GameFlowSlice>
       kitty,
       phase: nextPhase,
       bids: [],
-      currentPlayerId,
+      currentPlayerPosition,
       trump: undefined,
       maker: undefined,
       turnedDownSuit: undefined,
-      farmersHandPlayer,
+      farmersHandPosition,
     });
   },
 
   nextHand: () => {
-    const { currentDealerId, players } = get();
+    const { currentDealerPosition } = get();
 
     set({
       phase: 'dealing_animation',
-      currentDealerId: getNextDealer(currentDealerId, players),
+      currentDealerPosition: getNextDealerPosition(currentDealerPosition),
       completedTricks: [],
       trump: undefined,
       maker: undefined,
       bids: [],
-      hands: {},
+      hands: {} as Record<0 | 1 | 2 | 3, Card[]>,
       currentTrick: undefined,
       turnedDownSuit: undefined,
       handScores: { team0: 0, team1: 0 },

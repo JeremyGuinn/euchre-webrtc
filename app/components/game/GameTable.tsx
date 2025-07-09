@@ -68,13 +68,14 @@ export function GameTable({
       {/* Players around the table */}
       {gameState.players.map(player => {
         const position = getPlayerPosition(player, myPlayer.position);
-        const isCurrentPlayer = player.id === gameState.currentPlayerId;
+        const isCurrentPlayer = player.position === gameState.currentPlayerPosition;
 
         // Check if this player is sitting out due to going alone
         const isPlayerSittingOut =
           gameState.maker?.alone &&
-          gameState.maker.playerId !== player.id &&
-          gameState.players.find(p => p.id === gameState.maker!.playerId)?.teamId === player.teamId;
+          gameState.maker.playerPosition !== player.position &&
+          gameState.players.find(p => p.position === gameState.maker!.playerPosition)?.teamId ===
+            player.teamId;
 
         return (
           <PlayerPosition

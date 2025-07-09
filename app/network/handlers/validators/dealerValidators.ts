@@ -4,6 +4,7 @@ import type {
   DrawDealerCardMessage,
   SetPredeterminedDealerMessage,
 } from '~/types/messages';
+import { getPositionFromPlayerId } from '~/utils/game/playerUtils';
 
 /**
  * Validates that the sender is actually the current dealer
@@ -13,7 +14,8 @@ export const validateSenderIsDealer: ValidationFunction<DealerDiscardMessage> = 
   senderId,
   context
 ): ValidationResult => {
-  if (context.gameStore.currentDealerId !== senderId) {
+  const senderPosition = getPositionFromPlayerId(senderId, context.gameStore.players);
+  if (senderPosition === undefined || context.gameStore.currentDealerPosition !== senderPosition) {
     return {
       isValid: false,
       reason: `Received dealer discard from non-dealer player ${senderId}`,
@@ -31,7 +33,8 @@ export const validatePlayerHasNotDrawn: ValidationFunction<DrawDealerCardMessage
   senderId,
   context
 ): ValidationResult => {
-  if (context.gameStore.dealerSelectionCards?.[senderId]) {
+  const senderPosition = getPositionFromPlayerId(senderId, context.gameStore.players);
+  if (senderPosition === undefined || context.gameStore.dealerSelectionCards?.[senderPosition]) {
     return {
       isValid: false,
       reason: 'Player has already drawn a card',

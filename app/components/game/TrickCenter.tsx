@@ -15,7 +15,7 @@ export function TrickCenter({ gameState, myPlayer, getPlayerPosition }: TrickCen
         {/* Current trick cards */}
         {gameState.currentTrick &&
           gameState.currentTrick.cards.map(playedCard => {
-            const player = gameState.players.find(p => p.id === playedCard.playerId);
+            const player = gameState.players.find(p => p.position === playedCard.playerPosition);
             if (!player) return null;
 
             // Get the relative position of the player who played this card

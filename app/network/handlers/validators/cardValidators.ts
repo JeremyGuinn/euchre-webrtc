@@ -1,6 +1,8 @@
+import type { Card } from '~/types/game';
 import type { ValidationFunction, ValidationResult } from '~/types/handlers';
 import type { FarmersHandSwapMessage, PlayCardMessage } from '~/types/messages';
 import { canPlayCardWithOptions, getEffectiveSuit } from '~/utils/game/gameLogic';
+import { getPositionFromPlayerId } from '~/utils/game/playerUtils';
 
 /**
  * Validates that the player has the card they're trying to play
@@ -10,9 +12,17 @@ export const validatePlayerHasCard: ValidationFunction<PlayCardMessage> = (
   senderId,
   { gameStore }
 ): ValidationResult => {
-  const playerHand = gameStore.hands[senderId];
+  const senderPosition = getPositionFromPlayerId(senderId, gameStore.players);
+  if (senderPosition === undefined) {
+    return {
+      isValid: false,
+      reason: 'Player not found',
+    };
+  }
 
-  if (!playerHand || !playerHand.some(c => c.id === card.id)) {
+  const playerHand = gameStore.hands[senderPosition];
+
+  if (!playerHand || !playerHand.some((c: Card) => c.id === card.id)) {
     return {
       isValid: false,
       reason: 'Player does not have the card they are trying to play',
@@ -30,7 +40,15 @@ export const validateCardCanBePlayed: ValidationFunction<PlayCardMessage> = (
   senderId,
   { gameStore }
 ): ValidationResult => {
-  const playerHand = gameStore.hands[senderId];
+  const senderPosition = getPositionFromPlayerId(senderId, gameStore.players);
+  if (senderPosition === undefined) {
+    return {
+      isValid: false,
+      reason: 'Player not found',
+    };
+  }
+
+  const playerHand = gameStore.hands[senderPosition];
 
   if (!playerHand) {
     return { isValid: false, reason: 'Player hand not found' };
@@ -85,7 +103,15 @@ export const validatePlayerHasSwapCards: ValidationFunction<FarmersHandSwapMessa
   senderId,
   context
 ): ValidationResult => {
-  const playerHand = context.gameStore.hands[senderId];
+  const senderPosition = getPositionFromPlayerId(senderId, context.gameStore.players);
+  if (senderPosition === undefined) {
+    return {
+      isValid: false,
+      reason: 'Player not found',
+    };
+  }
+
+  const playerHand = context.gameStore.hands[senderPosition];
 
   if (!playerHand) {
     return {
@@ -95,7 +121,7 @@ export const validatePlayerHasSwapCards: ValidationFunction<FarmersHandSwapMessa
   }
 
   const hasAllCards = cardsToSwap.every(swapCard =>
-    playerHand.some(handCard => handCard.id === swapCard.id)
+    playerHand.some((handCard: Card) => handCard.id === swapCard.id)
   );
 
   if (!hasAllCards) {

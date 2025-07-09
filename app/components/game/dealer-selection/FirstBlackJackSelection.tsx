@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useGame } from '~/contexts/GameContext';
 import type { Card, Player } from '~/types/game';
+import { getPlayerIdFromPosition } from '~/utils/game/playerUtils';
 import CardDeck from './CardDeck';
 import DealerSelectionStatus from './DealerSelectionStatus';
 import { FirstBlackJackDealingAnimation } from './FirstBlackJackDealingAnimation';
@@ -51,13 +52,16 @@ export function FirstBlackJackSelection({
   useEffect(() => {
     if (!lastDealtCard || !isVisible) return;
 
+    const playerId = getPlayerIdFromPosition(lastDealtCard.playerPosition, players);
+    if (!playerId) return; // Ensure we have a valid player ID
+
     // Set up the pending deal for animation
     setPendingDeal({
       card: lastDealtCard.card,
-      playerId: lastDealtCard.playerId,
+      playerId,
     });
     setIsAnimating(true);
-  }, [dealtCardsCount, lastDealtCard, isVisible]); // Use dealtCardsCount to trigger on new cards
+  }, [dealtCardsCount, lastDealtCard, isVisible, players]); // Use dealtCardsCount to trigger on new cards
 
   // Handle animation completion
   const handleAnimationComplete = () => {
@@ -96,10 +100,11 @@ export function FirstBlackJackSelection({
   // Group dealt cards by player for display - only show cards that have completed animation
   const playerCardHistories = useMemo(() => {
     const dealtCards = dealingState?.dealtCards ?? [];
+
     return players.map(player => ({
       playerId: player.id,
       cards: dealtCards
-        .filter(dealt => dealt.playerId === player.id)
+        .filter(dealt => dealt.playerPosition === player.position)
         .map(dealt => dealt.card)
         .filter(
           card =>
@@ -111,10 +116,10 @@ export function FirstBlackJackSelection({
 
   // Find winner (player who got a black jack) - memoized
   const blackJackWinner = useMemo(() => {
-    return dealingComplete && gameState.currentDealerId
-      ? players.find(p => p.id === gameState.currentDealerId)
-      : null;
-  }, [dealingComplete, gameState.currentDealerId, players]);
+    const currentDealerId = getPlayerIdFromPosition(gameState.currentDealerPosition, players);
+
+    return dealingComplete && currentDealerId ? players.find(p => p.id === currentDealerId) : null;
+  }, [dealingComplete, gameState.currentDealerPosition, players]);
 
   // Memoize current player dealing calculation
   const currentPlayerDealing = useMemo(() => {
@@ -238,7 +243,7 @@ export function FirstBlackJackSelection({
           totalSteps={gameState.deck?.length ?? 52}
           currentPlayerName={
             dealingState?.blackJackFound
-              ? players.find(p => p.id === dealingState.blackJackFound?.playerId)?.name
+              ? players.find(p => p.position === dealingState.blackJackFound?.playerPosition)?.name
               : players[currentPlayerIndex]?.name
           }
         />
