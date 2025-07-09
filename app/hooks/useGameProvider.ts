@@ -7,8 +7,8 @@ import {
   useState,
 } from 'react';
 
+import { useSession } from '~/contexts/SessionContext';
 import { GameNetworkService } from '~/services/networkService';
-import { SessionStorageService } from '~/services/sessionService';
 import { gameReducer } from '~/utils/gameState';
 import { shouldAttemptAutoReconnection } from '~/utils/reconnection';
 
@@ -21,9 +21,11 @@ import { useGameStatePersistence } from './useGameStatePersistence';
 import { useGameUtils } from './useGameUtils';
 
 export function useGameProvider() {
+  const sessionManager = useSession();
+
   // Check for existing session to determine initial connection status
   const getInitialConnectionStatus = (): ConnectionStatus => {
-    const session = SessionStorageService.getSession();
+    const session = sessionManager.sessionData;
 
     if (session && shouldAttemptAutoReconnection(session)) {
       return 'reconnecting'; // Start in reconnecting state if we have a valid session
@@ -82,6 +84,7 @@ export function useGameProvider() {
     connectionStatus,
     myPlayerId,
     isHost,
+    sessionManager,
     setMyPlayerId,
     setIsHost,
     setConnectionStatus,
@@ -108,6 +111,12 @@ export function useGameProvider() {
       setMyPlayerId,
       setIsHost,
       pollForHostReconnection: connectionActions.pollForHostReconnection,
+      sessionManager: {
+        saveSession: sessionManager.saveSession,
+        updateSession: sessionManager.updateSession,
+        clearSession: sessionManager.clearSession,
+        sessionData: sessionManager.sessionData,
+      },
     });
   }, [
     networkService,
@@ -121,6 +130,10 @@ export function useGameProvider() {
     setMyPlayerId,
     setIsHost,
     connectionActions.pollForHostReconnection,
+    sessionManager.saveSession,
+    sessionManager.updateSession,
+    sessionManager.clearSession,
+    sessionManager.sessionData,
   ]);
 
   // Track if we've already attempted auto-reconnection to prevent infinite loops
@@ -135,7 +148,7 @@ export function useGameProvider() {
 
     const attemptAutoReconnection = async () => {
       // Check if we have a valid session that should trigger auto-reconnection
-      const session = SessionStorageService.getSession();
+      const session = sessionManager.sessionData;
       if (session && shouldAttemptAutoReconnection(session)) {
         hasAttemptedReconnection.current = true;
         const success = await connectionActions.attemptReconnection();

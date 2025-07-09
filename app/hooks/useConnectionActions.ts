@@ -1,10 +1,10 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router';
 
+import { type SessionContextType } from '~/contexts/SessionContext';
 import { GameStatePersistenceService } from '~/services/gameStatePersistenceService';
 import { createScopedLogger } from '~/services/loggingService';
 import { GameNetworkService } from '~/services/networkService';
-import { SessionStorageService } from '~/services/sessionService';
 import type { ReconnectionStatus } from '~/types/gameContext';
 import type { GameAction } from '~/utils/gameState';
 import type { ConnectionStatus } from '~/utils/networking';
@@ -19,6 +19,7 @@ export function useConnectionActions(
   connectionStatus: ConnectionStatus,
   myPlayerId: string,
   isHost: boolean,
+  sessionManager: SessionContextType,
   setMyPlayerId: (id: string) => void,
   setIsHost: (isHost: boolean) => void,
   setConnectionStatus: (status: ConnectionStatus) => void,
@@ -41,7 +42,7 @@ export function useConnectionActions(
         throw new Error(error);
       }
 
-      SessionStorageService.clearSession();
+      sessionManager.clearSession();
       logger.debug('Cleared previous session');
 
       const { gameCode, hostId, gameUuid } = await networkService.hostGame();
@@ -59,7 +60,7 @@ export function useConnectionActions(
         playerName: 'Host',
       };
 
-      SessionStorageService.saveSession(sessionData);
+      sessionManager.saveSession(sessionData);
       logger.debug('Session saved for reconnection', { sessionData });
 
       dispatch({
@@ -78,6 +79,7 @@ export function useConnectionActions(
     dispatch,
     logger,
     myPlayerId,
+    sessionManager,
   ]);
 
   const joinGame = useCallback(
@@ -99,7 +101,7 @@ export function useConnectionActions(
           throw new Error(error);
         }
 
-        SessionStorageService.clearSession();
+        sessionManager.clearSession();
         logger.debug('Cleared previous session');
 
         const playerId = await networkService.joinGame(gameCode, playerName);
@@ -132,6 +134,7 @@ export function useConnectionActions(
       setIsHost,
       logger,
       myPlayerId,
+      sessionManager,
     ]
   );
 
@@ -139,7 +142,7 @@ export function useConnectionActions(
     return logger.withPerformance('attemptReconnection', async () => {
       logger.info('Starting reconnection attempt');
 
-      const session = SessionStorageService.getSession();
+      const session = sessionManager.sessionData;
       if (!session || !session.gameCode) {
         logger.warn('No session found for reconnection');
         return false;
@@ -155,7 +158,7 @@ export function useConnectionActions(
       // Check if we should attempt auto-reconnection based on time
       if (!shouldAttemptAutoReconnection(session)) {
         logger.warn('Auto-reconnection window expired, clearing session');
-        SessionStorageService.clearSession();
+        sessionManager.clearSession();
         return false;
       }
 
@@ -241,7 +244,7 @@ export function useConnectionActions(
             navigate('/');
           }
 
-          SessionStorageService.updateLastConnectionTime();
+          sessionManager.updateLastConnectionTime();
           setConnectionStatus('connected');
 
           // Reset reconnection status on success
@@ -282,7 +285,7 @@ export function useConnectionActions(
           }
           setIsHost(false);
 
-          SessionStorageService.updateLastConnectionTime();
+          sessionManager.updateLastConnectionTime();
           logger.info('Client reconnection successful');
           // Connection status will be updated when we receive JOIN_RESPONSE
           return true;
@@ -306,7 +309,7 @@ export function useConnectionActions(
         // Clear session if reconnection failed
         setTimeout(() => {
           logger.debug('Clearing session after reconnection failure');
-          SessionStorageService.clearSession();
+          sessionManager.clearSession();
           setConnectionStatus('disconnected');
         }, 3000); // Show error for 3 seconds before clearing
 
@@ -322,13 +325,14 @@ export function useConnectionActions(
     navigate,
     setReconnectionStatus,
     logger,
+    sessionManager,
   ]);
 
   const pollForHostReconnection = useCallback(async (): Promise<boolean> => {
     return logger.withPerformance('pollForHostReconnection', async () => {
       logger.info('Starting host reconnection polling');
 
-      const session = SessionStorageService.getSession();
+      const session = sessionManager.sessionData;
       if (!session || !session.gameCode || session.isHost) {
         logger.warn('Cannot poll for host reconnection', {
           hasSession: !!session,
@@ -391,7 +395,7 @@ export function useConnectionActions(
         }
         setIsHost(false);
 
-        SessionStorageService.updateLastConnectionTime();
+        sessionManager.updateLastConnectionTime();
         setConnectionStatus('connected');
 
         // Reset reconnection status on success
@@ -423,7 +427,7 @@ export function useConnectionActions(
           logger.debug(
             'Clearing session and navigating home after polling failure'
           );
-          SessionStorageService.clearSession();
+          sessionManager.clearSession();
           setConnectionStatus('disconnected');
           navigate('/');
         }, 3000); // Show error for 3 seconds before clearing
@@ -439,6 +443,7 @@ export function useConnectionActions(
     setReconnectionStatus,
     navigate,
     logger,
+    sessionManager,
   ]);
 
   const leaveGame = useCallback(
@@ -458,7 +463,7 @@ export function useConnectionActions(
         setConnectionStatus('disconnected');
         setMyPlayerId('');
         setIsHost(false);
-        SessionStorageService.clearSession();
+        sessionManager.clearSession();
         logger.debug('Player state and session cleared');
 
         // If we're a client (not host), send leave message first
@@ -514,6 +519,7 @@ export function useConnectionActions(
       navigate,
       logger,
       myPlayerId,
+      sessionManager,
     ]
   );
 

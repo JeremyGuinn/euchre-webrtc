@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useGame } from '~/contexts/game/GameContext';
+import { useGame } from '~/contexts/GameContext';
 import type { Card, Player } from '~/types/game';
 import CardDeck from './CardDeck';
 import DealerSelectionStatus from './DealerSelectionStatus';

@@ -3,7 +3,8 @@ import { Links, Meta, Outlet, Scripts, ScrollRestoration } from 'react-router';
 import type { Route } from './+types/root';
 import './app.css';
 import { ErrorBoundary } from './components/error/ErrorBoundary';
-import { GameProvider } from './contexts/game/GameContext';
+import { GameProvider } from './contexts/GameContext';
+import { SessionProvider } from './contexts/SessionContext';
 
 declare global {
   interface Window {
@@ -64,9 +65,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <ErrorBoundary>
-      <GameProvider>
-        <Outlet />
-      </GameProvider>
+      <SessionProvider>
+        <GameProvider>
+          <Outlet />
+        </GameProvider>
+      </SessionProvider>
     </ErrorBoundary>
   );
 }

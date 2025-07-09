@@ -8,10 +8,10 @@ import PageContainer from '~/components/layout/PageContainer';
 import Button from '~/components/ui/Button';
 import LinkButton from '~/components/ui/LinkButton';
 import { Stack } from '~/components/ui/Stack';
-import { useGame } from '~/contexts/game/GameContext';
+import { useGame } from '~/contexts/GameContext';
+import { useSession } from '~/contexts/SessionContext';
 import { isValidGameCode, normalizeGameCode } from '~/utils/gameCode';
 
-import { SessionStorageService } from '~/services/sessionService';
 import type { Route } from './+types/join';
 
 export function meta({ params }: Route.MetaArgs) {
@@ -24,6 +24,7 @@ export function meta({ params }: Route.MetaArgs) {
 export default function Join({ params }: Route.ComponentProps) {
   const navigate = useNavigate();
   const { joinGame, connectionStatus } = useGame();
+  const { playerName: savedPlayerName, savePlayerName } = useSession();
   const gameCode = normalizeGameCode(params.gameCode || '');
 
   const [playerName, setPlayerName] = useState('');
@@ -37,11 +38,10 @@ export default function Join({ params }: Route.ComponentProps) {
       return;
     }
 
-    const savedName = SessionStorageService.getPlayerName();
-    if (savedName) {
-      setPlayerName(savedName);
+    if (savedPlayerName) {
+      setPlayerName(savedPlayerName);
     }
-  }, [gameCode]);
+  }, [gameCode, savedPlayerName]);
 
   // Handle connection status changes
   useEffect(() => {
@@ -68,7 +68,7 @@ export default function Join({ params }: Route.ComponentProps) {
     setError('');
 
     try {
-      SessionStorageService.savePlayerName(playerName.trim());
+      savePlayerName(playerName.trim());
       await joinGame(gameCode, playerName.trim());
 
       // Navigation to lobby will be handled by the useEffect watching connectionStatus

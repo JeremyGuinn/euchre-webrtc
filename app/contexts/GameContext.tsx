@@ -5,6 +5,14 @@ import type { GameContextType, GameProviderProps } from '~/types/gameContext';
 
 const GameContext = createContext<GameContextType | null>(null);
 
+export function GameProvider({ children }: GameProviderProps) {
+  const contextValue = useGameProvider();
+
+  return (
+    <GameContext.Provider value={contextValue}>{children}</GameContext.Provider>
+  );
+}
+
 export function useGame() {
   const context = useContext(GameContext);
 
@@ -13,12 +21,4 @@ export function useGame() {
   }
 
   return context;
-}
-
-export function GameProvider({ children }: GameProviderProps) {
-  const contextValue = useGameProvider();
-
-  return (
-    <GameContext.Provider value={contextValue}>{children}</GameContext.Provider>
-  );
 }

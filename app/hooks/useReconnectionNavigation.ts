@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { useGame } from '~/contexts/game/GameContext';
+import { useGame } from '~/contexts/GameContext';
 
 /**
  * Hook that handles navigation after successful reconnection

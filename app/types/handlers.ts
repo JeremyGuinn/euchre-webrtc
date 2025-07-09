@@ -1,3 +1,4 @@
+import type { SessionData } from '~/contexts/SessionContext';
 import type { GameState } from '~/types/game';
 import type {
   BaseMessage,
@@ -45,6 +46,16 @@ export interface HandlerContext {
 
   /** Function to update whether this client is the host */
   setIsHost: (isHost: boolean) => void;
+
+  /** Session management functions */
+  sessionManager: {
+    saveSession: (data: Omit<SessionData, 'lastConnectionTime'>) => void;
+    updateSession: (
+      updates: Partial<Omit<SessionData, 'lastConnectionTime'>>
+    ) => void;
+    clearSession: () => void;
+    sessionData: SessionData | null;
+  };
 }
 
 /**

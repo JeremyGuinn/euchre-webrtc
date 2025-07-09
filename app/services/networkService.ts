@@ -1,3 +1,4 @@
+import type { SessionData } from '~/contexts/SessionContext';
 import { createMessageHandlers } from '~/network/handlers';
 import { createScopedLogger } from '~/services/loggingService';
 import type { GameState } from '~/types/game';
@@ -27,6 +28,14 @@ export interface GameNetworkServiceConfig {
   setMyPlayerId: (id: string) => void;
   setIsHost: (isHost: boolean) => void;
   pollForHostReconnection?: () => Promise<boolean>;
+  sessionManager?: {
+    saveSession: (data: Omit<SessionData, 'lastConnectionTime'>) => void;
+    updateSession: (
+      updates: Partial<Omit<SessionData, 'lastConnectionTime'>>
+    ) => void;
+    clearSession: () => void;
+    sessionData: SessionData | null;
+  };
 }
 
 export class GameNetworkService {
@@ -154,12 +163,9 @@ export class GameNetworkService {
               newHostId: currentHostId,
             });
 
-            const { SessionStorageService } = await import(
-              '~/services/sessionService'
-            );
-            const session = SessionStorageService.getSession();
-            if (session) {
-              SessionStorageService.saveSession({
+            const session = this.config?.sessionManager?.sessionData;
+            if (session && this.config?.sessionManager) {
+              this.config.sessionManager.saveSession({
                 ...session,
                 gameCode: currentGameCode,
                 playerId: currentHostId,
@@ -594,6 +600,15 @@ export class GameNetworkService {
       setConnectionStatus: this.config.setConnectionStatus,
       setMyPlayerId: this.config.setMyPlayerId,
       setIsHost: this.config.setIsHost,
+      sessionManager: this.config.sessionManager || {
+        saveSession: () =>
+          console.warn('SessionManager not available in handler context'),
+        updateSession: () =>
+          console.warn('SessionManager not available in handler context'),
+        clearSession: () =>
+          console.warn('SessionManager not available in handler context'),
+        sessionData: null,
+      },
     };
 
     try {

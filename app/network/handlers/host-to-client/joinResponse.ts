@@ -1,4 +1,3 @@
-import { SessionStorageService } from '~/services/sessionService';
 import type { MessageHandler } from '~/types/handlers';
 import type { JoinResponseMessage } from '~/types/messages';
 import { createHostToClientHandler } from '../base/hostToClientHandler';
@@ -18,7 +17,7 @@ const handleJoinResponseImpl: MessageHandler<JoinResponseMessage> = (
 
   // Save session data for reconnection (for clients)
   if (newGameState.gameCode && !player.isHost) {
-    SessionStorageService.saveSession({
+    context.sessionManager.saveSession({
       playerId: player.id,
       gameId: newGameState.id,
       gameCode: newGameState.gameCode,

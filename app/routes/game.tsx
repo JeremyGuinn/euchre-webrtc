@@ -8,7 +8,7 @@ import GameContainer from '~/components/layout/GameContainer';
 import { Center } from '~/components/ui/Center';
 import { Spinner } from '~/components/ui/Spinner';
 import { Stack } from '~/components/ui/Stack';
-import { useGame } from '~/contexts/game/GameContext';
+import { useGame } from '~/contexts/GameContext';
 import type { Card as CardType } from '~/types/game';
 
 import type { Route } from './+types/game';

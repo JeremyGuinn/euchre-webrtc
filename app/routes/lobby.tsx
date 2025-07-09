@@ -10,7 +10,7 @@ import PredeterminedDealerSelector from '~/components/lobby/PredeterminedDealerS
 import Button from '~/components/ui/Button';
 import Panel from '~/components/ui/Panel';
 import { Stack } from '~/components/ui/Stack';
-import { useGame } from '~/contexts/game/GameContext';
+import { useGame } from '~/contexts/GameContext';
 
 import PageContainer from '~/components/layout/PageContainer';
 import type { Route } from './+types/lobby';

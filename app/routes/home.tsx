@@ -8,9 +8,9 @@ import PageContainer from '~/components/layout/PageContainer';
 import ButtonDivider from '~/components/ui/ButtonDivider';
 import LinkButton from '~/components/ui/LinkButton';
 import { Stack } from '~/components/ui/Stack';
-import { useGame } from '~/contexts/game/GameContext';
+import { useGame } from '~/contexts/GameContext';
+import { useSession } from '~/contexts/SessionContext';
 import { useReconnectionNavigation } from '~/hooks/useReconnectionNavigation';
-import { SessionStorageService } from '~/services/sessionService';
 import { isValidGameCode, normalizeGameCode } from '~/utils/gameCode';
 import { shouldAttemptAutoReconnection } from '~/utils/reconnection';
 
@@ -30,6 +30,7 @@ export default function Home() {
   const location = useLocation();
   const [kickMessage, setKickMessage] = useState<string | null>(null);
   const { reconnectionStatus } = useGame();
+  const { sessionData } = useSession();
 
   // Handle automatic reconnection and navigation
   useReconnectionNavigation();
@@ -43,13 +44,12 @@ export default function Home() {
 
     // Show if we have a valid session that should trigger auto-reconnection
     // This catches cases where the component renders before connection status is set
-    const session = SessionStorageService.getSession();
-    if (session && shouldAttemptAutoReconnection(session)) {
+    if (sessionData && shouldAttemptAutoReconnection(sessionData)) {
       return true;
     }
 
     return false;
-  }, [reconnectionStatus]);
+  }, [reconnectionStatus, sessionData]);
 
   // Check for kick message from navigation state
   useEffect(() => {
