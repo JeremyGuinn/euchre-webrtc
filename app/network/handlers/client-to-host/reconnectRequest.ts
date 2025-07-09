@@ -1,7 +1,7 @@
 import type { ReconnectRequestMessage } from '~/types/messages';
 
+import { createMessageId } from '~/network/protocol';
 import type { ClientToHostHandler } from '~/types/handlers';
-import { createMessageId } from '~/utils/protocol';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
 
 /**

@@ -11,8 +11,8 @@ import { Stack } from '~/components/ui/Stack';
 import { useGame } from '~/contexts/GameContext';
 import { useSession } from '~/contexts/SessionContext';
 import { useReconnectionNavigation } from '~/hooks/useReconnectionNavigation';
+import { shouldAttemptAutoReconnection } from '~/network/reconnection';
 import { isValidGameCode, normalizeGameCode } from '~/utils/gameCode';
-import { shouldAttemptAutoReconnection } from '~/utils/reconnection';
 
 export function meta() {
   return [

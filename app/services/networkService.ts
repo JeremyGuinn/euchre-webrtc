@@ -1,14 +1,15 @@
 import type { SessionData } from '~/contexts/SessionContext';
 import { createMessageHandlers } from '~/network/handlers';
+import { NetworkManager, type ConnectionStatus } from '~/network/networkManager';
+import { createMessageId } from '~/network/protocol';
+import { RECONNECTION_CONFIG, isPeerJSIdConflictError } from '~/network/reconnection';
 import { createScopedLogger } from '~/services/loggingService';
 import type { GameStore } from '~/store/gameStore';
 import type { GameState } from '~/types/game';
 import type { HandlerContext } from '~/types/handlers';
 import type { GameMessage } from '~/types/messages';
+import { sleep } from '~/utils/async';
 import { gameCodeToHostId, generateGameCode } from '~/utils/gameCode';
-import { NetworkManager, type ConnectionStatus } from '~/utils/networking';
-import { createMessageId } from '~/utils/protocol';
-import { RECONNECTION_CONFIG, isPeerJSIdConflictError, sleep } from '~/utils/reconnection';
 
 // Cooldown period to prevent rapid reconnection attempts (5 seconds)
 const RECONNECTION_COOLDOWN_MS = 5000;

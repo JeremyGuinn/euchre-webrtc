@@ -1,4 +1,4 @@
-import type { ConnectionStatus, NetworkManager } from '~/utils/networking';
+import type { ConnectionStatus, NetworkManager } from '~/network/networkManager';
 import type { Card, GameOptions, GameState, Player } from './game';
 
 export interface ReconnectionStatus {

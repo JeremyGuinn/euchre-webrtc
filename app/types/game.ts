@@ -97,7 +97,7 @@ export type GameState = {
   };
 };
 
-export type PublicGameState = Omit<GameState, 'hands' | 'deck'> & {
+export type PublicGameState = Omit<GameState, 'hands'> & {
   playerHand?: Card[]; // Only for the current player
-  deck: Card[]; // Placeholder cards for clients, actual cards for host
+  deck: [Card, Card, Card]; // Placeholder cards for clients, actual cards for host
 };

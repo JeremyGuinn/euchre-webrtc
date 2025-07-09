@@ -1,4 +1,4 @@
-import type { ConnectionStatus } from '~/utils/networking';
+import type { ConnectionStatus } from '~/network/networkManager';
 
 interface ConnectionStatusDisplayProps {
   status: ConnectionStatus;

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useSession } from '~/contexts/SessionContext';
+import { shouldAttemptAutoReconnection } from '~/network/reconnection';
 import { GameNetworkService } from '~/services/networkService';
 import { useGameStore } from '~/store/gameStore';
-import { shouldAttemptAutoReconnection } from '~/utils/reconnection';
 
+import type { ConnectionStatus } from '~/network/networkManager';
 import type { GameContextType, ReconnectionStatus } from '~/types/gameContext';
-import type { ConnectionStatus } from '~/utils/networking';
 import { useConnectionActions } from './useConnectionActions';
 import { useGameActions } from './useGameActions';
 import { useGameStateEffects } from './useGameStateEffects';

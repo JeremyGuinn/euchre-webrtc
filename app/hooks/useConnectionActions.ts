@@ -2,17 +2,14 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router';
 
 import { type SessionContextType } from '~/contexts/SessionContext';
+import type { ConnectionStatus } from '~/network/networkManager';
+import { RECONNECTION_CONFIG, shouldAttemptAutoReconnection } from '~/network/reconnection';
 import { GameStatePersistenceService } from '~/services/gameStatePersistenceService';
 import { createScopedLogger } from '~/services/loggingService';
 import { GameNetworkService } from '~/services/networkService';
 import { useGameStore } from '~/store/gameStore';
 import type { ReconnectionStatus } from '~/types/gameContext';
-import type { ConnectionStatus } from '~/utils/networking';
-import {
-  RECONNECTION_CONFIG,
-  shouldAttemptAutoReconnection,
-  withTimeout,
-} from '~/utils/reconnection';
+import { withTimeout } from '~/utils/async';
 
 export function useConnectionActions(
   networkService: GameNetworkService,

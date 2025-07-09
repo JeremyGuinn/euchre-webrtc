@@ -1,7 +1,7 @@
+import { createMessageId } from '~/network/protocol';
 import type { Player } from '~/types/game';
 import type { ClientToHostHandler } from '~/types/handlers';
 import type { LeaveGameMessage } from '~/types/messages';
-import { createMessageId } from '~/utils/protocol';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
 
 /**

@@ -1,4 +1,4 @@
-import type { Card, Player } from '~/types/game';
+import type { Card, Player, Trick } from '~/types/game';
 
 export function createDeck(): Card[] {
   const suits: Card['suit'][] = ['spades', 'hearts', 'diamonds', 'clubs'];
@@ -511,4 +511,55 @@ export function dealTestFarmersHand(
     kitty,
     remainingDeck: allRemainingCards.slice(cardIndex),
   };
+}
+
+/**
+ * Get the expected number of players in a trick considering "going alone" rules
+ * @param maker - The player who made trump and whether they're going alone
+ * @returns Expected trick size (3 if going alone, 4 otherwise)
+ */
+export function getExpectedTrickSize(maker?: {
+  playerId: string;
+  teamId: 0 | 1;
+  alone: boolean;
+}): number {
+  // If someone is going alone, only 3 players participate
+  return maker?.alone ? 3 : 4;
+}
+
+/**
+ * Calculate hand scores based on completed tricks
+ * @param tricks - All completed tricks in the hand
+ * @param players - Array of all players
+ * @param makingTeam - The team that made trump
+ * @param alone - Whether the trump maker is going alone
+ * @returns Score object with points for each team
+ */
+export function calculateHandScore(
+  tricks: Trick[],
+  players: Player[],
+  makingTeam: 0 | 1,
+  alone: boolean
+): { team0: number; team1: number } {
+  const makingTeamTricks = tricks.filter(trick => {
+    if (!trick.winnerId) return false;
+    const winner = players.find(p => p.id === trick.winnerId);
+    return winner?.teamId === makingTeam;
+  }).length;
+
+  const scores = { team0: 0, team1: 0 };
+
+  if (makingTeamTricks === 5) {
+    // Made all 5 tricks
+    scores[`team${makingTeam}`] = alone ? 4 : 2;
+  } else if (makingTeamTricks >= 3) {
+    // Made the bid (3 or 4 tricks)
+    scores[`team${makingTeam}`] = 1;
+  } else {
+    // Failed to make bid - opposing team gets 2 points
+    const opposingTeam = makingTeam === 0 ? 1 : 0;
+    scores[`team${opposingTeam}`] = 2;
+  }
+
+  return scores;
 }

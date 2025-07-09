@@ -1,9 +1,9 @@
 import type { Player } from '~/types/game';
 import type { JoinRequestMessage } from '~/types/messages';
 
+import { createMessageId } from '~/network/protocol';
 import type { ClientToHostHandler } from '~/types/handlers';
 import { makeNameUnique } from '~/utils/playerUtils';
-import { createMessageId } from '~/utils/protocol';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
 import { validateGameCapacity, validatePlayerNotAlreadyJoined } from '../validators';
 

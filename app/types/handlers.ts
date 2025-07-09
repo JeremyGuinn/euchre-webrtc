@@ -9,7 +9,7 @@ import type {
   PeerToPeerMessage,
 } from '~/types/messages';
 
-import type { ConnectionStatus, NetworkManager } from '~/utils/networking';
+import type { ConnectionStatus, NetworkManager } from '~/network/networkManager';
 
 /**
  * Context object that contains all the necessary state and functions
