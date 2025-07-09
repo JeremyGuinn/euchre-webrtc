@@ -15,6 +15,8 @@ interface GameTableProps {
   isMyTurn: () => boolean;
   onCardClick: (card: CardType) => void;
   onDealerDiscard: (card: CardType) => void;
+  isHost?: boolean;
+  onKickPlayer?: (playerId: string) => void;
 }
 
 export function GameTable({
@@ -29,6 +31,8 @@ export function GameTable({
   isMyTurn,
   onCardClick,
   onDealerDiscard,
+  isHost = false,
+  onKickPlayer,
 }: GameTableProps) {
   const getPlayerPosition = (player: Player, myPosition: number) => {
     const relativePosition = (player.position - myPosition + 4) % 4;
@@ -88,6 +92,8 @@ export function GameTable({
             onCardClick={onCardClick}
             onDealerDiscard={onDealerDiscard}
             shouldShowCards={shouldShowCards}
+            isHost={isHost}
+            onKickPlayer={onKickPlayer}
           />
         );
       })}

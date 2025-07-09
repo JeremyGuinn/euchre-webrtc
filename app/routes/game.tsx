@@ -70,6 +70,7 @@ export default function Game({ params }: Route.ComponentProps) {
     declineFarmersHand,
     renameTeam,
     leaveGame,
+    kickPlayer,
   } = useGame();
   const { gameCode } = params;
 
@@ -198,6 +199,8 @@ export default function Game({ params }: Route.ComponentProps) {
           isMyTurn={isMyTurn}
           onCardClick={handleCardClick}
           onDealerDiscard={dealerDiscard}
+          isHost={isHost}
+          onKickPlayer={kickPlayer}
         />
       )}
 
