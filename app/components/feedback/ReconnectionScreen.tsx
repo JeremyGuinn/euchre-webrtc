@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { ReconnectionStatus } from '~/types/gameContext';
+import Button from '../ui/Button';
 import { Center } from '../ui/Center';
 import { Spinner } from '../ui/Spinner';
 import { Stack } from '../ui/Stack';
@@ -7,11 +8,13 @@ import { Stack } from '../ui/Stack';
 interface ReconnectionScreenProps {
   reconnectionStatus: ReconnectionStatus;
   className?: string;
+  onCancel?: () => void;
 }
 
 export default function ReconnectionScreen({
   reconnectionStatus,
   className = '',
+  onCancel,
 }: ReconnectionScreenProps) {
   const [dots, setDots] = useState('');
 
@@ -74,6 +77,14 @@ export default function ReconnectionScreen({
                   Your original game code may be taken. We&apos;ll generate a new one if needed.
                 </p>
               )}
+            </div>
+          )}
+
+          {onCancel && (
+            <div className='mt-4'>
+              <Button onClick={onCancel} variant='secondary' size='sm'>
+                Cancel Reconnection
+              </Button>
             </div>
           )}
         </div>

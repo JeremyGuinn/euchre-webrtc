@@ -29,7 +29,7 @@ export default function Home() {
   const [gameCode, setGameCode] = useState('');
   const location = useLocation();
   const [kickMessage, setKickMessage] = useState<string | null>(null);
-  const { reconnectionStatus } = useGame();
+  const { reconnectionStatus, leaveGame } = useGame();
   const { sessionData } = useSession();
 
   // Handle automatic reconnection and navigation
@@ -63,11 +63,19 @@ export default function Home() {
     }
   }, [location.state]);
 
+  // Handler for cancelling reconnection
+  const handleCancelReconnection = () => {
+    leaveGame('manual');
+  };
+
   // Show reconnection screen if we're reconnecting to prevent flash of home page content
   if (shouldShowReconnectionScreen) {
     return (
       <PageContainer>
-        <ReconnectionScreen reconnectionStatus={reconnectionStatus} />
+        <ReconnectionScreen
+          reconnectionStatus={reconnectionStatus}
+          onCancel={handleCancelReconnection}
+        />
       </PageContainer>
     );
   }
