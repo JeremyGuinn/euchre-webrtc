@@ -1,7 +1,7 @@
-import type {
-  ClientToHostHandler,
-  HandlerContext,
-  ValidationResult,
+import {
+  type ClientToHostHandler,
+  type HandlerContext,
+  type ValidationFunction,
 } from '~/types/handlers';
 import type { ClientToHostMessage } from '~/types/messages';
 import { validatePermissionForHost } from '../validators';
@@ -11,9 +11,7 @@ import { validatePermissionForHost } from '../validators';
  */
 export const createClientToHostHandler = <T extends ClientToHostMessage>(
   handler: ClientToHostHandler<T>,
-  additionalValidations?: Array<
-    (senderId: string, context: HandlerContext, message: T) => ValidationResult
-  >
+  additionalValidations?: Array<ValidationFunction<T>>
 ): ClientToHostHandler<T> => {
   return (message: T, senderId: string, context: HandlerContext) => {
     // First, validate host permission
@@ -25,7 +23,7 @@ export const createClientToHostHandler = <T extends ClientToHostMessage>(
     // Run additional validations if provided
     if (additionalValidations) {
       for (const validation of additionalValidations) {
-        const result = validation(senderId, context, message);
+        const result = validation(message, senderId, context);
         if (!result.isValid) {
           return;
         }

@@ -1,15 +1,12 @@
-import type { MessageHandler } from '~/types/handlers';
+import type { HostToClientHandler } from '~/types/handlers';
 import type { JoinResponseMessage } from '~/types/messages';
 import { createHostToClientHandler } from '../base/hostToClientHandler';
 
-const handleJoinResponseImpl: MessageHandler<JoinResponseMessage> = (
-  message,
+const handleJoinResponseImpl: HostToClientHandler<JoinResponseMessage> = (
+  { payload: { success, gameState: newGameState, player, error } },
   _senderId,
-  context
+  { gameStore, setConnectionStatus, sessionManager }
 ) => {
-  const { dispatch, setConnectionStatus } = context;
-  const { success, gameState: newGameState, player, error } = message.payload;
-
   if (!success || !newGameState || !player) {
     setConnectionStatus('error');
     throw new Error(error || 'Failed to join game');
@@ -17,7 +14,7 @@ const handleJoinResponseImpl: MessageHandler<JoinResponseMessage> = (
 
   // Save session data for reconnection (for clients)
   if (newGameState.gameCode && !player.isHost) {
-    context.sessionManager.saveSession({
+    sessionManager.saveSession({
       playerId: player.id,
       gameId: newGameState.id,
       gameCode: newGameState.gameCode,
@@ -26,15 +23,7 @@ const handleJoinResponseImpl: MessageHandler<JoinResponseMessage> = (
     });
   }
 
-  dispatch({
-    type: 'SYNC_STATE',
-
-    payload: {
-      gameState: newGameState,
-      playerHand: newGameState.playerHand,
-      receivingPlayerId: player.id,
-    },
-  });
+  gameStore.syncState(newGameState, newGameState.playerHand, player.id);
 
   setConnectionStatus('connected');
 };
@@ -45,7 +34,7 @@ const handleJoinResponseImpl: MessageHandler<JoinResponseMessage> = (
  *
  * @param message - The join response containing success status and game state
  * @param senderId - The ID of the host who sent this response
- * @param context - Handler context with dispatch functions
+ * @param context - Handler context with gameStore actions
  */
 export const handleJoinResponse = createHostToClientHandler(
   handleJoinResponseImpl,

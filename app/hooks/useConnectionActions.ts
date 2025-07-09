@@ -5,8 +5,8 @@ import { type SessionContextType } from '~/contexts/SessionContext';
 import { GameStatePersistenceService } from '~/services/gameStatePersistenceService';
 import { createScopedLogger } from '~/services/loggingService';
 import { GameNetworkService } from '~/services/networkService';
+import { useGameStore } from '~/store/gameStore';
 import type { ReconnectionStatus } from '~/types/gameContext';
-import type { GameAction } from '~/utils/gameState';
 import type { ConnectionStatus } from '~/utils/networking';
 import {
   RECONNECTION_CONFIG,
@@ -23,11 +23,11 @@ export function useConnectionActions(
   setMyPlayerId: (id: string) => void,
   setIsHost: (isHost: boolean) => void,
   setConnectionStatus: (status: ConnectionStatus) => void,
-  dispatch: React.Dispatch<GameAction>,
   setReconnectionStatus: (status: ReconnectionStatus) => void
 ) {
   const navigate = useNavigate();
   const logger = createScopedLogger('useConnectionActions');
+  const gameStore = useGameStore();
 
   const hostGame = useCallback(async (): Promise<string> => {
     return logger.withPerformance('hostGame', async () => {
@@ -63,11 +63,8 @@ export function useConnectionActions(
       sessionManager.saveSession(sessionData);
       logger.debug('Session saved for reconnection', { sessionData });
 
-      dispatch({
-        type: 'INIT_GAME',
-        payload: { hostId, gameId: gameUuid, gameCode },
-      });
-      logger.debug('Game initialization dispatched');
+      gameStore.initGame(hostId, gameUuid, gameCode);
+      logger.debug('Game initialization called');
 
       return gameCode;
     });
@@ -76,7 +73,7 @@ export function useConnectionActions(
     networkService,
     setMyPlayerId,
     setIsHost,
-    dispatch,
+    gameStore,
     logger,
     myPlayerId,
     sessionManager,
@@ -233,10 +230,7 @@ export function useConnectionActions(
                 : savedGameState;
 
             // Restore the complete game state
-            dispatch({
-              type: 'RESTORE_GAME_STATE',
-              payload: { gameState: gameStateToRestore },
-            });
+            gameStore.restoreGameState(gameStateToRestore);
             logger.debug('Game state restored successfully');
           } else {
             logger.warn('No saved game state found, returning to home');
@@ -321,7 +315,7 @@ export function useConnectionActions(
     setConnectionStatus,
     setMyPlayerId,
     setIsHost,
-    dispatch,
+    gameStore,
     navigate,
     setReconnectionStatus,
     logger,

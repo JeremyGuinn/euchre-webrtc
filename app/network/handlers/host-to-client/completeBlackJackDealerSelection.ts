@@ -1,16 +1,12 @@
-import type { MessageHandler } from '~/types/handlers';
+import type { HostToClientHandler } from '~/types/handlers';
 import type { CompleteBlackJackDealerSelectionMessage } from '~/types/messages';
 import { createHostToClientHandler } from '../base/hostToClientHandler';
 import { validateGamePhase } from '../validators';
 
-const handleCompleteBlackJackDealerSelectionImpl: MessageHandler<
+const handleCompleteBlackJackDealerSelectionImpl: HostToClientHandler<
   CompleteBlackJackDealerSelectionMessage
-> = (_message, _senderId, context) => {
-  const { dispatch } = context;
-
-  dispatch({
-    type: 'COMPLETE_BLACKJACK_DEALER_SELECTION',
-  });
+> = (_message, _senderId, { gameStore }) => {
+  gameStore.completeBlackjackDealerSelection();
 };
 
 /**

@@ -1,20 +1,14 @@
-import type { MessageHandler } from '~/types/handlers';
+import type { HostToClientHandler, MessageHandler } from '~/types/handlers';
 import type { DealerCardDealtMessage } from '~/types/messages';
 import { createHostToClientHandler } from '../base/hostToClientHandler';
 import { validateGameOption, validateGamePhase } from '../validators';
 
-const handleDealerCardDealtImpl: MessageHandler<DealerCardDealtMessage> = (
-  message,
+const handleDealerCardDealtImpl: HostToClientHandler<DealerCardDealtMessage> = (
+  { payload: { playerId, card, cardIndex, isBlackJack } },
   _senderId,
-  context
+  { gameStore }
 ) => {
-  const { dispatch } = context;
-  const { playerId, card, cardIndex, isBlackJack } = message.payload;
-
-  dispatch({
-    type: 'DEALER_CARD_DEALT',
-    payload: { playerId, card, cardIndex, isBlackJack },
-  });
+  gameStore.dealerCardDealt(playerId, card, cardIndex, isBlackJack);
 };
 
 /**

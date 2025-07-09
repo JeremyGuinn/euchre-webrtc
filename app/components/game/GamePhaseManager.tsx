@@ -10,7 +10,6 @@ import { TrickCompleteOverlay } from '~/components/game/overlays/TrickCompleteOv
 import Button from '~/components/ui/Button';
 import { Center } from '~/components/ui/Center';
 import type { Card as CardType, GameState, Player } from '~/types/game';
-import { isDealerScrewed } from '~/utils/gameState';
 
 interface GamePhaseManagerProps {
   gameState: GameState;

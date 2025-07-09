@@ -1,20 +1,13 @@
-import type { MessageHandler } from '~/types/handlers';
+import type { HostToClientHandler } from '~/types/handlers';
 import type { KickPlayerMessage } from '~/types/messages';
 import { createHostToClientHandler } from '../base/hostToClientHandler';
 
-const handleKickPlayerImpl: MessageHandler<KickPlayerMessage> = (
-  message,
+const handleKickPlayerImpl: HostToClientHandler<KickPlayerMessage> = (
+  { payload: { targetPlayerId } },
   _senderId,
-  context
+  { myPlayerId, gameStore, handleKicked }
 ) => {
-  const { myPlayerId, dispatch, handleKicked } = context;
-
-  const { targetPlayerId } = message.payload;
-
-  dispatch({
-    type: 'KICK_PLAYER',
-    payload: { playerId: targetPlayerId },
-  });
+  gameStore.kickPlayer(targetPlayerId);
 
   if (targetPlayerId === myPlayerId) {
     handleKicked('You have been removed from the game by the host.');

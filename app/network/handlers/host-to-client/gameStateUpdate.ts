@@ -1,23 +1,13 @@
-import type { MessageHandler } from '~/types/handlers';
+import type { HostToClientHandler } from '~/types/handlers';
 import type { GameStateUpdateMessage } from '~/types/messages';
 import { createHostToClientHandler } from '../base/hostToClientHandler';
 
-const handleGameStateUpdateImpl: MessageHandler<GameStateUpdateMessage> = (
-  message,
+const handleGameStateUpdateImpl: HostToClientHandler<GameStateUpdateMessage> = (
+  { payload: { gameState: newGameState } },
   _senderId,
-  context
+  { gameStore, myPlayerId }
 ) => {
-  const { dispatch, myPlayerId } = context;
-  const { gameState: newGameState } = message.payload;
-
-  dispatch({
-    type: 'SYNC_STATE',
-    payload: {
-      gameState: newGameState,
-      playerHand: newGameState.playerHand,
-      receivingPlayerId: myPlayerId,
-    },
-  });
+  gameStore.syncState(newGameState, newGameState.playerHand, myPlayerId);
 };
 
 /**
@@ -26,7 +16,7 @@ const handleGameStateUpdateImpl: MessageHandler<GameStateUpdateMessage> = (
  *
  * @param message - The game state update containing the current game state
  * @param senderId - The ID of the host who sent this update
- * @param context - Handler context with dispatch functions
+ * @param context - Handler context with gameStore actions
  */
 export const handleGameStateUpdate = createHostToClientHandler(
   handleGameStateUpdateImpl

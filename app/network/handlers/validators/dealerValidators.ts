@@ -1,4 +1,4 @@
-import type { HandlerContext, ValidationResult } from '~/types/handlers';
+import type { ValidationFunction, ValidationResult } from '~/types/handlers';
 import type {
   DealerDiscardMessage,
   DrawDealerCardMessage,
@@ -8,12 +8,10 @@ import type {
 /**
  * Validates that the sender is actually the current dealer
  */
-export const validateSenderIsDealer = (
-  senderId: string,
-  context: HandlerContext,
-  _message: DealerDiscardMessage
-): ValidationResult => {
-  if (context.gameState.currentDealerId !== senderId) {
+export const validateSenderIsDealer: ValidationFunction<
+  DealerDiscardMessage
+> = (_message, senderId, context): ValidationResult => {
+  if (context.gameStore.currentDealerId !== senderId) {
     return {
       isValid: false,
       reason: `Received dealer discard from non-dealer player ${senderId}`,
@@ -26,12 +24,10 @@ export const validateSenderIsDealer = (
 /**
  * Validates that the player hasn't already drawn a card
  */
-export const validatePlayerHasNotDrawn = (
-  senderId: string,
-  context: HandlerContext,
-  _message: DrawDealerCardMessage
-): ValidationResult => {
-  if (context.gameState.dealerSelectionCards?.[senderId]) {
+export const validatePlayerHasNotDrawn: ValidationFunction<
+  DrawDealerCardMessage
+> = (_message, senderId, context): ValidationResult => {
+  if (context.gameStore.dealerSelectionCards?.[senderId]) {
     return {
       isValid: false,
       reason: 'Player has already drawn a card',
@@ -44,23 +40,21 @@ export const validatePlayerHasNotDrawn = (
 /**
  * Validates that there are cards available to draw
  */
-export const validateCardsAvailable = (
-  senderId: string,
-  context: HandlerContext,
-  _message: DrawDealerCardMessage
-): ValidationResult => {
-  const { gameState } = context;
+export const validateCardsAvailable: ValidationFunction<
+  DrawDealerCardMessage
+> = (_message, _senderId, context): ValidationResult => {
+  const { gameStore } = context;
 
-  if (!gameState.deck || gameState.deck.length === 0) {
+  if (!gameStore.deck || gameStore.deck.length === 0) {
     return {
       isValid: false,
       reason: 'No deck available',
     };
   }
 
-  const availableCards = gameState.deck.filter(
+  const availableCards = gameStore.deck.filter(
     card =>
-      !Object.values(gameState.dealerSelectionCards || {}).some(
+      !Object.values(gameStore.dealerSelectionCards || {}).some(
         drawnCard => drawnCard.id === card.id
       )
   );
@@ -78,13 +72,11 @@ export const validateCardsAvailable = (
 /**
  * Validates the selected dealer exists
  */
-export const validateDealerExists = (
-  senderId: string,
-  context: HandlerContext,
-  message: SetPredeterminedDealerMessage
-): ValidationResult => {
-  const { dealerId } = message.payload;
-  const dealer = context.gameState.players.find(p => p.id === dealerId);
+export const validateDealerExists: ValidationFunction<
+  SetPredeterminedDealerMessage
+> = (_message, _senderId, context): ValidationResult => {
+  const { dealerId } = _message.payload;
+  const dealer = context.gameStore.players.find(p => p.id === dealerId);
 
   if (!dealer) {
     return {

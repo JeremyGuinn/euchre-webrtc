@@ -1,4 +1,4 @@
-import type { HandlerContext } from '~/types/handlers';
+import type { ClientToHostHandler } from '~/types/handlers';
 import type { DrawDealerCardMessage } from '~/types/messages';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
 import {
@@ -7,38 +7,27 @@ import {
   validatePlayerHasNotDrawn,
 } from '../validators';
 
-const handleDrawDealerCardImpl = (
-  message: DrawDealerCardMessage,
-  senderId: string,
-  context: HandlerContext
+const handleDrawDealerCardImpl: ClientToHostHandler<DrawDealerCardMessage> = (
+  { payload: { cardIndex } },
+  senderId,
+  { gameStore }
 ) => {
-  const { dispatch, gameState } = context;
-
-  const availableCards = gameState.deck!.filter(
+  const availableCards = gameStore.deck!.filter(
     card =>
-      !Object.values(gameState.dealerSelectionCards || {}).some(
+      !Object.values(gameStore.dealerSelectionCards || {}).some(
         drawnCard => drawnCard.id === card.id
       )
   );
 
-  let drawnCard;
-  const { cardIndex } = message.payload;
-
-  if (
+  const defaultIndex = Math.floor(Math.random() * availableCards.length);
+  const selectedIndex =
     cardIndex !== undefined &&
     cardIndex >= 0 &&
     cardIndex < availableCards.length
-  ) {
-    drawnCard = availableCards[cardIndex];
-  } else {
-    const randomIndex = Math.floor(Math.random() * availableCards.length);
-    drawnCard = availableCards[randomIndex];
-  }
+      ? cardIndex
+      : defaultIndex;
 
-  dispatch({
-    type: 'DRAW_DEALER_CARD',
-    payload: { playerId: senderId, card: drawnCard },
-  });
+  gameStore.drawDealerCard(senderId, availableCards[selectedIndex]);
 };
 
 /**
@@ -47,7 +36,7 @@ const handleDrawDealerCardImpl = (
  *
  * @param message - The draw dealer card message containing the request from a player
  * @param senderId - The ID of the player who wants to draw a card
- * @param context - Handler context with dispatch functions
+ * @param context - Handler context with gameStore actions
  */
 export const handleDrawDealerCard = createClientToHostHandler(
   handleDrawDealerCardImpl,

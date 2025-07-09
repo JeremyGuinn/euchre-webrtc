@@ -1,4 +1,4 @@
-import type { HandlerContext } from '~/types/handlers';
+import type { ClientToHostHandler } from '~/types/handlers';
 import type { SetPredeterminedDealerMessage } from '~/types/messages';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
 import {
@@ -15,25 +15,23 @@ import {
  *
  * @param message - The set predetermined dealer message containing the dealer ID
  * @param senderId - The ID of the player who sent the message (should be the host)
- * @param context - Handler context with dispatch functions
+ * @param context - Handler context with gameStore actions
  */
-const handleSetPredeterminedDealerImpl = (
-  message: SetPredeterminedDealerMessage,
-  senderId: string,
-  context: HandlerContext
-) => {
-  const { dispatch, gameState } = context;
+const handleSetPredeterminedDealerImpl: ClientToHostHandler<
+  SetPredeterminedDealerMessage
+> = (message, _senderId, context) => {
+  const { gameStore } = context;
   const { dealerId } = message.payload;
+
+  // Get current game state from store
+  const gameState = gameStore;
 
   const updatedOptions = {
     ...gameState.options,
     predeterminedFirstDealerId: dealerId,
   };
 
-  dispatch({
-    type: 'UPDATE_GAME_OPTIONS',
-    payload: { options: updatedOptions },
-  });
+  gameStore.updateGameOptions(updatedOptions);
 };
 
 export const handleSetPredeterminedDealer = createClientToHostHandler(

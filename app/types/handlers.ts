@@ -1,5 +1,5 @@
 import type { SessionData } from '~/contexts/SessionContext';
-import type { GameState } from '~/types/game';
+import type { GameStore } from '~/store/gameStore';
 import type {
   BaseMessage,
   ClientToHostMessage,
@@ -8,7 +8,6 @@ import type {
   MessageType,
   PeerToPeerMessage,
 } from '~/types/messages';
-import type { GameAction } from '~/utils/gameState';
 
 import type { ConnectionStatus, NetworkManager } from '~/utils/networking';
 
@@ -17,17 +16,14 @@ import type { ConnectionStatus, NetworkManager } from '~/utils/networking';
  * that message handlers need to process messages and update the game state.
  */
 export interface HandlerContext {
-  /** Current state of the game including players, cards, scores, etc. */
-  gameState: GameState;
-
   /** The ID of the current player/client */
   myPlayerId: string;
 
   /** Whether this client is the host of the game */
   isHost: boolean;
 
-  /** React dispatch function to update the game state */
-  dispatch: React.Dispatch<GameAction>;
+  /** Zustand store actions to update the game state */
+  gameStore: GameStore;
 
   /** Network manager instance for sending messages to other players */
   networkManager: NetworkManager;
@@ -75,6 +71,12 @@ export interface ValidationResult {
   isValid: boolean;
   reason?: string;
 }
+
+export type ValidationFunction<T extends BaseMessage = never> = (
+  message: T,
+  senderId: string,
+  context: HandlerContext
+) => ValidationResult;
 
 /**
  * Base handler for Client-to-Host messages.

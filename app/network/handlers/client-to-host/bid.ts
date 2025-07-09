@@ -1,25 +1,17 @@
-import type { MessageHandler } from '~/types/handlers';
+import type { ClientToHostHandler } from '~/types/handlers';
 import type { BidMessage } from '~/types/messages';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
 import { validatePlayerExists, validatePlayerTurn } from '../validators';
 
-const handleBidMessageImpl: MessageHandler<BidMessage> = (
-  message,
+const handleBidMessageImpl: ClientToHostHandler<BidMessage> = (
+  { payload: { bid } },
   senderId,
-  context
+  { gameStore }
 ) => {
-  const { dispatch } = context;
-  const { bid } = message.payload;
-
-  dispatch({
-    type: 'PLACE_BID',
-    payload: {
-      bid: {
-        playerId: senderId,
-        suit: bid.suit,
-        alone: bid.alone,
-      },
-    },
+  gameStore.placeBid({
+    playerId: senderId,
+    suit: bid.suit,
+    alone: bid.alone,
   });
 };
 
@@ -29,7 +21,7 @@ const handleBidMessageImpl: MessageHandler<BidMessage> = (
  *
  * @param message - The bid message containing the player's bid (suit or pass, with optional alone flag)
  * @param senderId - The ID of the player who placed the bid
- * @param context - Handler context with game state and dispatch functions
+ * @param context - Handler context with game state and gameStore actions
  */
 export const handleBidMessage = createClientToHostHandler(
   handleBidMessageImpl,

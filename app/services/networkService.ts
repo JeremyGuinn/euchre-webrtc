@@ -1,11 +1,11 @@
 import type { SessionData } from '~/contexts/SessionContext';
 import { createMessageHandlers } from '~/network/handlers';
 import { createScopedLogger } from '~/services/loggingService';
+import type { GameStore } from '~/store/gameStore';
 import type { GameState } from '~/types/game';
 import type { HandlerContext } from '~/types/handlers';
 import type { GameMessage } from '~/types/messages';
 import { gameCodeToHostId, generateGameCode } from '~/utils/gameCode';
-import type { GameAction } from '~/utils/gameState';
 import { NetworkManager, type ConnectionStatus } from '~/utils/networking';
 import { createMessageId } from '~/utils/protocol';
 import {
@@ -19,9 +19,9 @@ const RECONNECTION_COOLDOWN_MS = 5000;
 
 export interface GameNetworkServiceConfig {
   gameState: GameState;
+  gameStore: GameStore;
   myPlayerId: string;
   isHost: boolean;
-  dispatch: React.Dispatch<GameAction>;
   broadcastGameState: () => void;
   handleKicked: (message: string) => void;
   setConnectionStatus: (status: ConnectionStatus) => void;
@@ -590,10 +590,9 @@ export class GameNetworkService {
     });
 
     const context: HandlerContext = {
-      gameState: this.config.gameState,
       myPlayerId: this.config.myPlayerId,
       isHost: this.config.isHost,
-      dispatch: this.config.dispatch,
+      gameStore: this.config.gameStore,
       networkManager: this.networkManager,
       broadcastGameState: this.config.broadcastGameState,
       handleKicked: this.config.handleKicked,
@@ -641,10 +640,7 @@ export class GameNetworkService {
       gamePhase: this.config.gameState.phase,
     });
 
-    this.config.dispatch({
-      type: 'UPDATE_PLAYER_CONNECTION',
-      payload: { playerId: peerId, isConnected: connected },
-    });
+    this.config.gameStore.updatePlayerConnection(peerId, connected);
 
     // Handle host disconnection for clients
     if (

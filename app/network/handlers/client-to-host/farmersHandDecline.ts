@@ -1,4 +1,4 @@
-import type { HandlerContext } from '~/types/handlers';
+import type { ClientToHostHandler } from '~/types/handlers';
 import type { FarmersHandDeclineMessage } from '~/types/messages';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
 import {
@@ -7,17 +7,10 @@ import {
   validateSenderIsFarmersHandPlayer,
 } from '../validators';
 
-const handleFarmersHandDeclineImpl = (
-  _message: FarmersHandDeclineMessage,
-  senderId: string,
-  context: HandlerContext
-) => {
-  const { dispatch } = context;
-
-  dispatch({
-    type: 'FARMERS_HAND_DECLINED',
-    payload: { playerId: senderId },
-  });
+const handleFarmersHandDeclineImpl: ClientToHostHandler<
+  FarmersHandDeclineMessage
+> = (_message, senderId, { gameStore }) => {
+  gameStore.farmersHandDeclined(senderId);
 };
 
 /**

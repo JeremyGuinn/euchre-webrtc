@@ -1,23 +1,13 @@
-import type { MessageHandler } from '~/types/handlers';
+import type { HostToClientHandler } from '~/types/handlers';
 import type { PlayerJoinedMessage } from '~/types/messages';
 import { createHostToClientHandler } from '../base/hostToClientHandler';
 
-const handlePlayerJoinedImpl: MessageHandler<PlayerJoinedMessage> = (
-  message,
+const handlePlayerJoinedImpl: HostToClientHandler<PlayerJoinedMessage> = (
+  { payload: { gameState: newGameState } },
   _senderId,
-  context
+  { gameStore, myPlayerId }
 ) => {
-  const { dispatch, myPlayerId } = context;
-  const { gameState: newGameState } = message.payload;
-
-  dispatch({
-    type: 'SYNC_STATE',
-    payload: {
-      gameState: newGameState,
-      playerHand: newGameState.playerHand,
-      receivingPlayerId: myPlayerId,
-    },
-  });
+  gameStore.syncState(newGameState, newGameState.playerHand, myPlayerId);
 };
 
 /**
@@ -26,7 +16,7 @@ const handlePlayerJoinedImpl: MessageHandler<PlayerJoinedMessage> = (
  *
  * @param message - The player joined message containing the new player and updated game state
  * @param senderId - The ID of the host who broadcast this message
- * @param context - Handler context with game state and dispatch functions
+ * @param context - Handler context with game state and gameStore actions
  */
 export const handlePlayerJoined = createHostToClientHandler(
   handlePlayerJoinedImpl

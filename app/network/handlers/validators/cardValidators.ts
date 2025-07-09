@@ -1,17 +1,16 @@
-import type { HandlerContext, ValidationResult } from '~/types/handlers';
+import type { ValidationFunction, ValidationResult } from '~/types/handlers';
 import type { FarmersHandSwapMessage, PlayCardMessage } from '~/types/messages';
 import { canPlayCardWithOptions, getEffectiveSuit } from '~/utils/gameLogic';
 
 /**
  * Validates that the player has the card they're trying to play
  */
-export const validatePlayerHasCard = (
-  senderId: string,
-  context: HandlerContext,
-  message: PlayCardMessage
+export const validatePlayerHasCard: ValidationFunction<PlayCardMessage> = (
+  { payload: { card } },
+  senderId,
+  { gameStore }
 ): ValidationResult => {
-  const playerHand = context.gameState.hands[senderId];
-  const { card } = message.payload;
+  const playerHand = gameStore.hands[senderId];
 
   if (!playerHand || !playerHand.some(c => c.id === card.id)) {
     return {
@@ -26,24 +25,22 @@ export const validatePlayerHasCard = (
 /**
  * Validates that the card can be legally played according to game rules
  */
-export const validateCardCanBePlayed = (
-  senderId: string,
-  context: HandlerContext,
-  message: PlayCardMessage
+export const validateCardCanBePlayed: ValidationFunction<PlayCardMessage> = (
+  { payload: { card } },
+  senderId,
+  { gameStore }
 ): ValidationResult => {
-  const { gameState } = context;
-  const { card } = message.payload;
-  const playerHand = gameState.hands[senderId];
+  const playerHand = gameStore.hands[senderId];
 
   if (!playerHand) {
     return { isValid: false, reason: 'Player hand not found' };
   }
 
   let effectiveLeadSuit = undefined;
-  if (gameState.currentTrick?.cards[0] && gameState.trump) {
+  if (gameStore.currentTrick?.cards[0] && gameStore.trump) {
     effectiveLeadSuit = getEffectiveSuit(
-      gameState.currentTrick.cards[0].card,
-      gameState.trump
+      gameStore.currentTrick.cards[0].card,
+      gameStore.trump
     );
   }
 
@@ -51,8 +48,8 @@ export const validateCardCanBePlayed = (
     card,
     playerHand,
     effectiveLeadSuit,
-    gameState.trump,
-    gameState.options.allowReneging
+    gameStore.trump,
+    gameStore.options.allowReneging
   );
 
   if (!canPlay) {
@@ -68,13 +65,9 @@ export const validateCardCanBePlayed = (
 /**
  * Validates the swap involves exactly 3 cards
  */
-export const validateSwapCardCount = (
-  senderId: string,
-  context: HandlerContext,
-  message: FarmersHandSwapMessage
-): ValidationResult => {
-  const { cardsToSwap } = message.payload;
-
+export const validateSwapCardCount: ValidationFunction<
+  FarmersHandSwapMessage
+> = ({ payload: { cardsToSwap } }, _senderId, _context): ValidationResult => {
   if (cardsToSwap.length !== 3) {
     return {
       isValid: false,
@@ -88,13 +81,10 @@ export const validateSwapCardCount = (
 /**
  * Validates the player has all the cards they want to swap
  */
-export const validatePlayerHasSwapCards = (
-  senderId: string,
-  context: HandlerContext,
-  message: FarmersHandSwapMessage
-): ValidationResult => {
-  const { cardsToSwap } = message.payload;
-  const playerHand = context.gameState.hands[senderId];
+export const validatePlayerHasSwapCards: ValidationFunction<
+  FarmersHandSwapMessage
+> = ({ payload: { cardsToSwap } }, senderId, context): ValidationResult => {
+  const playerHand = context.gameStore.hands[senderId];
 
   if (!playerHand) {
     return {

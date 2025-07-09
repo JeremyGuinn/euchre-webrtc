@@ -1,15 +1,8 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useReducer,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useSession } from '~/contexts/SessionContext';
 import { GameNetworkService } from '~/services/networkService';
-import { gameReducer } from '~/utils/gameState';
+import { useGameStore } from '~/store/gameStore';
 import { shouldAttemptAutoReconnection } from '~/utils/reconnection';
 
 import type { GameContextType, ReconnectionStatus } from '~/types/gameContext';
@@ -34,27 +27,21 @@ export function useGameProvider() {
     return 'disconnected';
   };
 
-  // Core state
-  const [gameState, dispatch] = useReducer(gameReducer, {
-    id: '',
-    players: [],
-    teamNames: { team0: 'Team 1', team1: 'Team 2' },
-    options: {
-      allowReneging: false,
-      teamSelection: 'predetermined',
-      dealerSelection: 'first_black_jack',
-      screwTheDealer: false,
-      farmersHand: false,
-    },
-    phase: 'lobby',
-    currentDealerId: '',
-    deck: [],
-    hands: {},
-    bids: [],
-    completedTricks: [],
-    scores: { team0: 0, team1: 0 },
-    handScores: { team0: 0, team1: 0 },
-  });
+  // Core state - using Zustand store
+  const gameState = useGameStore();
+
+  // Initialize the game state with default values
+  useEffect(() => {
+    if (!gameState.id) {
+      gameState.updateGameOptions({
+        allowReneging: false,
+        teamSelection: 'predetermined',
+        dealerSelection: 'first_black_jack',
+        screwTheDealer: false,
+        farmersHand: false,
+      });
+    }
+  }, [gameState]);
 
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(
     getInitialConnectionStatus()
@@ -88,7 +75,6 @@ export function useGameProvider() {
     setMyPlayerId,
     setIsHost,
     setConnectionStatus,
-    dispatch,
     setReconnectionStatus
   );
 
@@ -102,9 +88,9 @@ export function useGameProvider() {
   useEffect(() => {
     networkService.configure({
       gameState,
+      gameStore: gameState, // Pass the Zustand store as gameStore
       myPlayerId,
       isHost,
-      dispatch,
       broadcastGameState,
       handleKicked,
       setConnectionStatus,
@@ -123,7 +109,6 @@ export function useGameProvider() {
     gameState,
     myPlayerId,
     isHost,
-    dispatch,
     broadcastGameState,
     handleKicked,
     setConnectionStatus,
@@ -162,13 +147,7 @@ export function useGameProvider() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount - ignore ESLint warning about connectionActions
 
-  const gameActions = useGameActions(
-    gameState,
-    myPlayerId,
-    isHost,
-    dispatch,
-    networkService
-  );
+  const gameActions = useGameActions(myPlayerId, isHost, networkService);
 
   const gameUtils = useGameUtils(gameState, myPlayerId);
 

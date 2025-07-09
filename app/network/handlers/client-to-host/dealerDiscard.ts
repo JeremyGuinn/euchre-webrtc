@@ -1,19 +1,14 @@
-import type { MessageHandler } from '~/types/handlers';
+import type { ClientToHostHandler } from '~/types/handlers';
 import type { DealerDiscardMessage } from '~/types/messages';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
 import { validatePlayerExists, validateSenderIsDealer } from '../validators';
 
-const handleDealerDiscardImpl: MessageHandler<DealerDiscardMessage> = (
+const handleDealerDiscardImpl: ClientToHostHandler<DealerDiscardMessage> = (
   message,
   _senderId,
-  context
+  { gameStore }
 ) => {
-  const { dispatch } = context;
-
-  dispatch({
-    type: 'DEALER_DISCARD',
-    payload: { card: message.payload.card },
-  });
+  gameStore.dealerDiscard(message.payload.card);
 };
 
 /**
@@ -23,7 +18,7 @@ const handleDealerDiscardImpl: MessageHandler<DealerDiscardMessage> = (
  *
  * @param message - The dealer discard message containing the discarded card
  * @param senderId - The ID of the dealer who discarded the card
- * @param context - Handler context with dispatch functions
+ * @param context - Handler context with gameStore actions
  */
 export const handleDealerDiscard = createClientToHostHandler(
   handleDealerDiscardImpl,

@@ -41,7 +41,7 @@ export const validatePermissionForClient = (
   }
 
   // Additional validation: ensure the sender is a known player (basic security)
-  const sender = context.gameState.players.find(
+  const sender = context.gameStore.players.find(
     player => player.id === senderId
   );
 
@@ -71,7 +71,7 @@ export const validateSenderIsHost = (
   context: HandlerContext,
   _message: SetPredeterminedDealerMessage
 ): ValidationResult => {
-  const sender = context.gameState.players.find(p => p.id === senderId);
+  const sender = context.gameStore.players.find(p => p.id === senderId);
 
   if (!sender?.isHost) {
     return {

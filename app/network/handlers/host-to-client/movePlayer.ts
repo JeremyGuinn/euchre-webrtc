@@ -1,33 +1,7 @@
-import type {
-  HandlerContext,
-  MessageHandler,
-  ValidationResult,
-} from '~/types/handlers';
+import type { HostToClientHandler } from '~/types/handlers';
 import type { MovePlayerMessage } from '~/types/messages';
 import { createHostToClientHandler } from '../base/hostToClientHandler';
-
-/**
- * Validates the target player exists
- */
-const validateTargetPlayerExists = (
-  _senderId: string,
-  context: HandlerContext,
-  message: MovePlayerMessage
-): ValidationResult => {
-  const { targetPlayerId } = message.payload;
-  const targetPlayerExists = context.gameState.players.some(
-    player => player.id === targetPlayerId
-  );
-
-  if (!targetPlayerExists) {
-    return {
-      isValid: false,
-      reason: `Target player ${targetPlayerId} not found`,
-    };
-  }
-
-  return { isValid: true };
-};
+import { validateTargetPlayerExists } from '../validators/playerValidators';
 
 /**
  * Handles MOVE_PLAYER messages sent by the host to change a player's position/team.
@@ -35,20 +9,14 @@ const validateTargetPlayerExists = (
  *
  * @param message - The move player message containing the target player ID and new position
  * @param senderId - The ID of the host who moved the player
- * @param context - Handler context with game state and dispatch functions
+ * @param context - Handler context with game state and gameStore actions
  */
-const handleMovePlayerImpl: MessageHandler<MovePlayerMessage> = (
-  message: MovePlayerMessage,
-  _senderId: string,
-  context: HandlerContext
+const handleMovePlayerImpl: HostToClientHandler<MovePlayerMessage> = (
+  { payload: { targetPlayerId, newPosition } },
+  _senderId,
+  { gameStore }
 ) => {
-  const { dispatch } = context;
-  const { targetPlayerId, newPosition } = message.payload;
-
-  dispatch({
-    type: 'MOVE_PLAYER',
-    payload: { playerId: targetPlayerId, newPosition },
-  });
+  gameStore.movePlayer(targetPlayerId, newPosition);
 };
 
 export const handleMovePlayer = createHostToClientHandler(

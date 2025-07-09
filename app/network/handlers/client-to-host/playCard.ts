@@ -1,4 +1,4 @@
-import type { HandlerContext } from '~/types/handlers';
+import type { ClientToHostHandler } from '~/types/handlers';
 import type { PlayCardMessage } from '~/types/messages';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
 import {
@@ -14,17 +14,17 @@ import {
  *
  * @param message - The play card message containing the card being played
  * @param senderId - The ID of the player who played the card
- * @param context - Handler context with game state and dispatch functions
+ * @param context - Handler context with game state and gameStore actions
  */
-const handlePlayCardMessageImpl = (
-  message: PlayCardMessage,
-  senderId: string,
-  context: HandlerContext
+const handlePlayCardMessageImpl: ClientToHostHandler<PlayCardMessage> = (
+  message,
+  senderId,
+  context
 ) => {
-  const { dispatch } = context;
+  const { gameStore } = context;
   const { card } = message.payload;
 
-  dispatch({ type: 'PLAY_CARD', payload: { card, playerId: senderId } });
+  gameStore.playCard(card, senderId);
 };
 
 export const handlePlayCardMessage = createClientToHostHandler(

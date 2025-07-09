@@ -10,11 +10,9 @@ import type { ErrorMessage } from '~/types/messages';
  * @param context - Handler context (not used for error handling currently)
  */
 export const handleError: PeerToPeerHandler<ErrorMessage> = (
-  message,
+  { payload: { message: errorText, code } },
   senderId
 ) => {
-  const { message: errorText, code } = message.payload;
-
   console.error(`Error from ${senderId}:`, errorText, code ? `(${code})` : '');
 
   // You could dispatch an action here to show errors in the UI

@@ -1,57 +1,56 @@
 import { useCallback } from 'react';
 
 import { GameNetworkService } from '~/services/networkService';
-import type { Bid, Card, GameOptions, GameState } from '~/types/game';
-import type { GameAction } from '~/utils/gameState';
+import { useGameStore } from '~/store/gameStore';
+import type { Bid, Card, GameOptions } from '~/types/game';
 import { makeNameUnique } from '~/utils/playerUtils';
 import { createMessageId } from '~/utils/protocol';
 
 export function useGameActions(
-  gameState: GameState,
   myPlayerId: string,
   isHost: boolean,
-  dispatch: React.Dispatch<GameAction>,
   networkService: GameNetworkService
 ) {
+  const gameStore = useGameStore();
   const startGame = useCallback(() => {
     if (!isHost) {
       return;
     }
 
-    dispatch({ type: 'START_GAME' });
-  }, [isHost, dispatch]);
+    gameStore.startGame();
+  }, [isHost, gameStore]);
 
   const selectDealer = useCallback(() => {
     if (!isHost) {
       return;
     }
 
-    dispatch({ type: 'SELECT_DEALER' });
-  }, [isHost, dispatch]);
+    gameStore.selectDealer();
+  }, [isHost, gameStore]);
 
   const dealFirstBlackJackCard = useCallback(() => {
     if (!isHost) {
       return;
     }
-    if (gameState.options.dealerSelection !== 'first_black_jack') {
+    if (gameStore.options.dealerSelection !== 'first_black_jack') {
       return;
     }
-    if (!gameState.firstBlackJackDealing) {
+    if (!gameStore.firstBlackJackDealing) {
       return;
     }
-    if (!gameState.deck) {
+    if (!gameStore.deck) {
       return;
     }
 
     const { currentPlayerIndex, currentCardIndex } =
-      gameState.firstBlackJackDealing;
+      gameStore.firstBlackJackDealing;
 
-    if (currentCardIndex >= gameState.deck.length) {
+    if (currentCardIndex >= gameStore.deck.length) {
       return;
     }
 
-    const currentPlayer = gameState.players[currentPlayerIndex];
-    const card = gameState.deck[currentCardIndex];
+    const currentPlayer = gameStore.players[currentPlayerIndex];
+    const card = gameStore.deck[currentCardIndex];
     const isBlackJack =
       card.value === 'J' && (card.suit === 'spades' || card.suit === 'clubs');
 
@@ -69,16 +68,13 @@ export function useGameActions(
     });
 
     // Update local state
-    dispatch({
-      type: 'DEALER_CARD_DEALT',
-      payload: {
-        playerId: currentPlayer.id,
-        card,
-        cardIndex: currentCardIndex,
-        isBlackJack,
-      },
-    });
-  }, [isHost, gameState, networkService, dispatch]);
+    gameStore.dealerCardDealt(
+      currentPlayer.id,
+      card,
+      currentCardIndex,
+      isBlackJack
+    );
+  }, [isHost, gameStore, networkService]);
 
   const completeBlackJackDealerSelection = useCallback(() => {
     if (!isHost) {
@@ -94,25 +90,23 @@ export function useGameActions(
     });
 
     // Update local state
-    dispatch({
-      type: 'COMPLETE_BLACKJACK_DEALER_SELECTION',
-    });
-  }, [isHost, networkService, dispatch]);
+    gameStore.completeBlackjackDealerSelection();
+  }, [isHost, networkService, gameStore]);
 
   const drawDealerCard = useCallback(
     (cardIndex?: number) => {
-      if (gameState.dealerSelectionCards?.[myPlayerId]) {
+      if (gameStore.dealerSelectionCards?.[myPlayerId]) {
         return;
       }
 
       if (isHost) {
-        if (!gameState.deck) {
+        if (!gameStore.deck) {
           return;
         }
 
-        const availableCards = gameState.deck.filter(
+        const availableCards = gameStore.deck.filter(
           card =>
-            !Object.values(gameState.dealerSelectionCards || {}).some(
+            !Object.values(gameStore.dealerSelectionCards || {}).some(
               drawnCard => drawnCard.id === card.id
             )
         );
@@ -133,10 +127,7 @@ export function useGameActions(
           drawnCard = availableCards[randomIndex];
         }
 
-        dispatch({
-          type: 'DRAW_DEALER_CARD',
-          payload: { playerId: myPlayerId, card: drawnCard },
-        });
+        gameStore.drawDealerCard(myPlayerId, drawnCard);
       } else {
         if (cardIndex === undefined) {
           return;
@@ -150,28 +141,28 @@ export function useGameActions(
         });
       }
     },
-    [gameState, myPlayerId, isHost, dispatch, networkService]
+    [gameStore, myPlayerId, isHost, networkService]
   );
 
   const proceedToDealing = useCallback(() => {
     if (!isHost) return;
 
-    dispatch({ type: 'PROCEED_TO_DEALING' });
-  }, [isHost, dispatch]);
+    gameStore.proceedToDealing();
+  }, [isHost, gameStore]);
 
   const completeDealingAnimation = useCallback(() => {
     if (!isHost) return;
 
     // Brief delay before dealing actual cards
     setTimeout(() => {
-      dispatch({ type: 'DEAL_CARDS' });
+      gameStore.dealCards();
     }, 200);
-  }, [isHost, dispatch]);
+  }, [isHost, gameStore]);
 
   const placeBid = useCallback(
     (suit: Card['suit'] | 'pass', alone?: boolean) => {
-      const myPlayer = gameState.players.find(p => p.id === myPlayerId);
-      if (!myPlayer || gameState.currentPlayerId !== myPlayerId) {
+      const myPlayer = gameStore.players.find(p => p.id === myPlayerId);
+      if (!myPlayer || gameStore.currentPlayerId !== myPlayerId) {
         return;
       }
 
@@ -182,7 +173,7 @@ export function useGameActions(
       };
 
       if (isHost) {
-        dispatch({ type: 'PLACE_BID', payload: { bid } });
+        gameStore.placeBid(bid);
       } else {
         networkService.sendMessage({
           type: 'BID',
@@ -193,26 +184,23 @@ export function useGameActions(
       }
     },
     [
-      gameState.players,
-      gameState.currentPlayerId,
+      gameStore.players,
+      gameStore.currentPlayerId,
       myPlayerId,
       isHost,
-      dispatch,
+      gameStore,
       networkService,
     ]
   );
 
   const playCard = useCallback(
     (card: Card) => {
-      if (gameState.currentPlayerId !== myPlayerId) {
+      if (gameStore.currentPlayerId !== myPlayerId) {
         return;
       }
 
       if (isHost) {
-        dispatch({
-          type: 'PLAY_CARD',
-          payload: { card, playerId: myPlayerId },
-        });
+        gameStore.playCard(card, myPlayerId);
       } else {
         networkService.sendMessage({
           type: 'PLAY_CARD',
@@ -222,7 +210,7 @@ export function useGameActions(
         });
       }
     },
-    [gameState.currentPlayerId, myPlayerId, isHost, dispatch, networkService]
+    [gameStore.currentPlayerId, myPlayerId, isHost, gameStore, networkService]
   );
 
   const renamePlayer = useCallback(
@@ -231,12 +219,9 @@ export function useGameActions(
         return;
       }
 
-      const uniqueName = makeNameUnique(newName, gameState.players, playerId);
+      const uniqueName = makeNameUnique(newName, gameStore.players, playerId);
 
-      dispatch({
-        type: 'RENAME_PLAYER',
-        payload: { playerId, newName: uniqueName },
-      });
+      gameStore.renamePlayer(playerId, uniqueName);
 
       if (playerId === myPlayerId) {
         networkService.sendMessage({
@@ -247,14 +232,14 @@ export function useGameActions(
         });
       }
     },
-    [isHost, myPlayerId, dispatch, networkService, gameState.players]
+    [isHost, myPlayerId, gameStore, networkService]
   );
 
   const renameTeam = useCallback(
     (teamId: 0 | 1, newName: string): void => {
       // Only allow team renaming during specific phases
       const allowedPhases = ['lobby', 'team_summary'];
-      if (!allowedPhases.includes(gameState.phase)) {
+      if (!allowedPhases.includes(gameStore.phase)) {
         return;
       }
 
@@ -264,10 +249,7 @@ export function useGameActions(
         return;
       }
 
-      dispatch({
-        type: 'RENAME_TEAM',
-        payload: { teamId, newName: sanitizedName },
-      });
+      gameStore.renameTeam(teamId, sanitizedName);
 
       networkService.sendMessage({
         type: 'RENAME_TEAM',
@@ -276,7 +258,7 @@ export function useGameActions(
         payload: { teamId, newName: sanitizedName },
       });
     },
-    [dispatch, networkService, gameState]
+    [gameStore, networkService]
   );
 
   const kickPlayer = useCallback(
@@ -285,10 +267,7 @@ export function useGameActions(
         return;
       }
 
-      dispatch({
-        type: 'KICK_PLAYER',
-        payload: { playerId },
-      });
+      gameStore.kickPlayer(playerId);
 
       networkService.sendMessage({
         type: 'KICK_PLAYER',
@@ -297,17 +276,14 @@ export function useGameActions(
         payload: { targetPlayerId: playerId },
       });
     },
-    [isHost, dispatch, networkService]
+    [isHost, gameStore, networkService]
   );
 
   const movePlayer = useCallback(
     (playerId: string, newPosition: 0 | 1 | 2 | 3): void => {
       if (!isHost) return;
 
-      dispatch({
-        type: 'MOVE_PLAYER',
-        payload: { playerId, newPosition },
-      });
+      gameStore.movePlayer(playerId, newPosition);
 
       networkService.sendMessage({
         type: 'MOVE_PLAYER',
@@ -316,18 +292,15 @@ export function useGameActions(
         payload: { targetPlayerId: playerId, newPosition },
       });
     },
-    [isHost, dispatch, networkService]
+    [isHost, gameStore, networkService]
   );
 
   const dealerDiscard = useCallback(
     (card: Card) => {
-      if (myPlayerId !== gameState.currentDealerId) return;
+      if (myPlayerId !== gameStore.currentDealerId) return;
 
       if (isHost) {
-        dispatch({
-          type: 'DEALER_DISCARD',
-          payload: { card },
-        });
+        gameStore.dealerDiscard(card);
       } else {
         networkService.sendMessage({
           type: 'DEALER_DISCARD',
@@ -337,43 +310,37 @@ export function useGameActions(
         });
       }
     },
-    [myPlayerId, gameState.currentDealerId, isHost, dispatch, networkService]
+    [myPlayerId, gameStore.currentDealerId, isHost, gameStore, networkService]
   );
 
   const updateGameOptions = useCallback(
     (options: GameOptions) => {
       if (!isHost) return;
-      if (gameState.phase !== 'lobby') return;
+      if (gameStore.phase !== 'lobby') return;
 
-      dispatch({
-        type: 'UPDATE_GAME_OPTIONS',
-        payload: { options },
-      });
+      gameStore.updateGameOptions(options);
     },
-    [isHost, gameState.phase, dispatch]
+    [isHost, gameStore.phase, gameStore]
   );
 
   const setPredeterminedDealer = useCallback(
     (playerId: string) => {
       if (!isHost) return;
-      if (gameState.phase !== 'lobby') return;
-      if (gameState.options.dealerSelection !== 'predetermined_first_dealer')
+      if (gameStore.phase !== 'lobby') return;
+      if (gameStore.options.dealerSelection !== 'predetermined_first_dealer')
         return;
 
       // Validate the player exists
-      const player = gameState.players.find(p => p.id === playerId);
+      const player = gameStore.players.find(p => p.id === playerId);
       if (!player) return;
 
       // Update the game options with the selected dealer
       const updatedOptions: GameOptions = {
-        ...gameState.options,
+        ...gameStore.options,
         predeterminedFirstDealerId: playerId,
       };
 
-      dispatch({
-        type: 'UPDATE_GAME_OPTIONS',
-        payload: { options: updatedOptions },
-      });
+      gameStore.updateGameOptions(updatedOptions);
 
       // Optionally send a message to all clients about the dealer selection
       if (networkService) {
@@ -387,38 +354,35 @@ export function useGameActions(
     },
     [
       isHost,
-      gameState.phase,
-      gameState.options,
-      gameState.players,
-      dispatch,
+      gameStore.phase,
+      gameStore.options,
+      gameStore.players,
+      gameStore,
       networkService,
     ]
   );
 
   const continueTrick = useCallback(() => {
     if (!isHost) return;
-    if (gameState.phase !== 'trick_complete') return;
+    if (gameStore.phase !== 'trick_complete') return;
 
-    dispatch({ type: 'COMPLETE_TRICK' });
-  }, [isHost, gameState.phase, dispatch]);
+    gameStore.completeTrick();
+  }, [isHost, gameStore.phase, gameStore]);
 
   const completeHand = useCallback(() => {
     if (!isHost) return;
-    if (gameState.phase !== 'hand_complete') return;
+    if (gameStore.phase !== 'hand_complete') return;
 
-    dispatch({ type: 'COMPLETE_HAND' });
-  }, [isHost, gameState.phase, dispatch]);
+    gameStore.completeHand();
+  }, [isHost, gameStore.phase, gameStore]);
 
   const swapFarmersHand = useCallback(
     (cardsToSwap: Card[]) => {
-      const myPlayer = gameState.players.find(p => p.id === myPlayerId);
-      if (!myPlayer || gameState.farmersHandPlayer !== myPlayerId) return;
+      const myPlayer = gameStore.players.find(p => p.id === myPlayerId);
+      if (!myPlayer || gameStore.farmersHandPlayer !== myPlayerId) return;
 
       if (isHost) {
-        dispatch({
-          type: 'FARMERS_HAND_SWAP',
-          payload: { playerId: myPlayerId, cardsToSwap },
-        });
+        gameStore.farmersHandSwap(myPlayerId, cardsToSwap);
       } else {
         networkService.sendMessage({
           type: 'FARMERS_HAND_SWAP',
@@ -429,24 +393,21 @@ export function useGameActions(
       }
     },
     [
-      gameState.players,
-      gameState.farmersHandPlayer,
+      gameStore.players,
+      gameStore.farmersHandPlayer,
       myPlayerId,
       isHost,
-      dispatch,
+      gameStore,
       networkService,
     ]
   );
 
   const declineFarmersHand = useCallback(() => {
-    const myPlayer = gameState.players.find(p => p.id === myPlayerId);
-    if (!myPlayer || gameState.farmersHandPlayer !== myPlayerId) return;
+    const myPlayer = gameStore.players.find(p => p.id === myPlayerId);
+    if (!myPlayer || gameStore.farmersHandPlayer !== myPlayerId) return;
 
     if (isHost) {
-      dispatch({
-        type: 'FARMERS_HAND_DECLINED',
-        payload: { playerId: myPlayerId },
-      });
+      gameStore.farmersHandDeclined(myPlayerId);
     } else {
       networkService.sendMessage({
         type: 'FARMERS_HAND_DECLINE',
@@ -456,11 +417,11 @@ export function useGameActions(
       });
     }
   }, [
-    gameState.players,
-    gameState.farmersHandPlayer,
+    gameStore.players,
+    gameStore.farmersHandPlayer,
     myPlayerId,
     isHost,
-    dispatch,
+    gameStore,
     networkService,
   ]);
 

@@ -1,8 +1,7 @@
 import type { Player } from '~/types/game';
-import type { HandlerContext } from '~/types/handlers';
 import type { JoinRequestMessage } from '~/types/messages';
 
-import { createPublicGameState } from '~/utils/gameState';
+import type { ClientToHostHandler } from '~/types/handlers';
 import { makeNameUnique } from '~/utils/playerUtils';
 import { createMessageId } from '~/utils/protocol';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
@@ -17,70 +16,18 @@ import {
  *
  * @param message - The join request containing player name
  * @param senderId - The ID of the player requesting to join
- * @param context - Handler context with game state and dispatch functions
+ * @param context - Handler context with game state and gameStore actions
  */
-const handleJoinRequestImpl = (
-  message: JoinRequestMessage,
-  senderId: string,
-  context: HandlerContext
+const handleJoinRequestImpl: ClientToHostHandler<JoinRequestMessage> = (
+  { payload: { playerName } },
+  senderId,
+  { gameStore, networkManager }
 ) => {
-  const { gameState, dispatch, networkManager } = context;
-  const { playerName } = message.payload;
+  const uniqueName = makeNameUnique(playerName, gameStore.players);
 
-  // Validate the request
-  try {
-    const capacityResult = validateGameCapacity(senderId, context, message);
-    if (!capacityResult.isValid) {
-      throw new Error(capacityResult.reason);
-    }
-
-    const playerResult = validatePlayerNotAlreadyJoined(
-      senderId,
-      context,
-      message
-    );
-    if (!playerResult.isValid) {
-      throw new Error(playerResult.reason);
-    }
-  } catch (error) {
-    networkManager?.sendMessage(
-      {
-        type: 'ERROR',
-        timestamp: Date.now(),
-        messageId: createMessageId(),
-        payload: {
-          message:
-            error instanceof Error ? error.message : 'Join request failed',
-        },
-      },
-      senderId
-    );
-    return;
-  }
-
-  const uniqueName = makeNameUnique(playerName, gameState.players);
-
-  // Find the first available position (0-3)
-  const occupiedPositions = new Set(gameState.players.map(p => p.position));
-  const availablePosition = ([0, 1, 2, 3] as const).find(
-    pos => !occupiedPositions.has(pos)
-  );
-
-  // This should never happen due to validation, but keep for safety
-  if (availablePosition === undefined) {
-    networkManager?.sendMessage(
-      {
-        type: 'ERROR',
-        timestamp: Date.now(),
-        messageId: createMessageId(),
-        payload: {
-          message: 'Game is full',
-        },
-      },
-      senderId
-    );
-    return;
-  }
+  const occupiedPositions = new Set(gameStore.players.map(p => p.position));
+  const availablePosition =
+    ([0, 1, 2, 3] as const).find(pos => !occupiedPositions.has(pos)) ?? 0;
 
   const newPlayer: Player = {
     id: senderId,
@@ -91,16 +38,7 @@ const handleJoinRequestImpl = (
     teamId: (availablePosition % 2) as 0 | 1,
   };
 
-  dispatch({ type: 'ADD_PLAYER', payload: { player: newPlayer } });
-
-  // Create the updated game state with the new player
-  const updatedGameState = {
-    ...gameState,
-    players: [...gameState.players, newPlayer],
-  };
-
-  // Create public game state for the JOIN_RESPONSE (with the new player's hand if they have one)
-  const publicGameState = createPublicGameState(updatedGameState, senderId);
+  gameStore.addPlayer(newPlayer);
 
   networkManager?.sendMessage(
     {
@@ -109,17 +47,14 @@ const handleJoinRequestImpl = (
       messageId: createMessageId(),
       payload: {
         success: true,
-        gameState: publicGameState,
+        gameState: gameStore.createPublicGameState(senderId),
         player: newPlayer,
       },
     },
     senderId
   );
 
-  // Create public game state for PLAYER_JOINED for all players except the new player
-  const broadcastGameState = createPublicGameState(updatedGameState);
-
-  for (const player of updatedGameState.players) {
+  for (const player of gameStore.players) {
     if (player.id === senderId) continue; // Skip sending to the new player
 
     networkManager?.sendMessage(
@@ -129,7 +64,7 @@ const handleJoinRequestImpl = (
         messageId: createMessageId(),
         payload: {
           player: newPlayer,
-          gameState: broadcastGameState,
+          gameState: gameStore.createPublicGameState(),
         },
       },
       player.id

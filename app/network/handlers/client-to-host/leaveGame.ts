@@ -1,7 +1,6 @@
 import type { Player } from '~/types/game';
-import type { HandlerContext } from '~/types/handlers';
+import type { ClientToHostHandler } from '~/types/handlers';
 import type { LeaveGameMessage } from '~/types/messages';
-import { createPublicGameState } from '~/utils/gameState';
 import { createMessageId } from '~/utils/protocol';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
 
@@ -9,12 +8,15 @@ import { createClientToHostHandler } from '../base/clientToHostHandler';
  * Handle a LEAVE_GAME message from a client
  * This is sent by clients before they disconnect to notify the host
  */
-const handleLeaveGameImpl = (
-  message: LeaveGameMessage,
-  senderId: string,
-  context: HandlerContext
+const handleLeaveGameImpl: ClientToHostHandler<LeaveGameMessage> = (
+  message,
+  senderId,
+  context
 ): void => {
-  const { gameState, dispatch, networkManager } = context;
+  const { gameStore, networkManager } = context;
+
+  // Get current game state from store
+  const gameState = gameStore;
 
   // Find the player who is leaving
   const leavingPlayer = gameState.players.find(
@@ -27,21 +29,10 @@ const handleLeaveGameImpl = (
   }
 
   // Remove the player from the game state
-  dispatch({
-    type: 'REMOVE_PLAYER',
-    payload: { playerId: senderId },
-  });
-
-  // Create the updated game state after removing the player
-  const updatedGameState = {
-    ...gameState,
-    players: gameState.players.filter(
-      (player: Player) => player.id !== senderId
-    ),
-  };
+  gameStore.removePlayer(senderId);
 
   // Create public game state for broadcast
-  const publicGameState = createPublicGameState(updatedGameState);
+  const publicGameState = gameStore.createPublicGameState();
 
   // Notify all remaining players that this player has left
   networkManager.sendMessage({

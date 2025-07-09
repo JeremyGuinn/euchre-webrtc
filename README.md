@@ -148,7 +148,7 @@ The application follows modern React patterns:
 ### Adding New Features
 
 1. **Game Logic**: Add rules to `utils/gameLogic.ts`
-2. **State Management**: Extend reducer in `utils/gameState.ts`
+2. **State Management**: Update `store/gameState.ts` for new actions
 3. **Network Messages**: Define types in `types/messages.ts`
 4. **UI Components**: Create in `components/` directory
 5. **Routes**: Add new pages in `routes/` directory

@@ -1,23 +1,13 @@
-import type { MessageHandler } from '~/types/handlers';
+import type { HostToClientHandler } from '~/types/handlers';
 import type { SelectDealerMessage } from '~/types/messages';
 import { createHostToClientHandler } from '../base/hostToClientHandler';
 
-const handleSelectDealerImpl: MessageHandler<SelectDealerMessage> = (
-  message,
+const handleSelectDealerImpl: HostToClientHandler<SelectDealerMessage> = (
+  { payload: { gameState: newGameState } },
   _senderId,
-  context
+  { gameStore, myPlayerId }
 ) => {
-  const { dispatch, myPlayerId } = context;
-  const { gameState: newGameState } = message.payload;
-
-  dispatch({
-    type: 'SYNC_STATE',
-    payload: {
-      gameState: newGameState,
-      playerHand: newGameState.playerHand,
-      receivingPlayerId: myPlayerId,
-    },
-  });
+  gameStore.syncState(newGameState, newGameState.playerHand, myPlayerId);
 };
 
 /**
@@ -26,7 +16,7 @@ const handleSelectDealerImpl: MessageHandler<SelectDealerMessage> = (
  *
  * @param message - The select dealer message containing the game state
  * @param senderId - The ID of the host who initiated dealer selection
- * @param context - Handler context with dispatch functions
+ * @param context - Handler context with gameStore actions
  */
 export const handleSelectDealer = createHostToClientHandler(
   handleSelectDealerImpl

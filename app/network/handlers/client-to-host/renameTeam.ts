@@ -1,4 +1,4 @@
-import type { HandlerContext } from '~/types/handlers';
+import type { ClientToHostHandler } from '~/types/handlers';
 import type { RenameTeamMessage } from '~/types/messages';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
 import {
@@ -13,22 +13,19 @@ import {
  *
  * @param message - The rename team message containing the team ID and new name
  * @param senderId - The ID of the player who is renaming the team
- * @param context - Handler context with dispatch functions
+ * @param context - Handler context with gameStore actions
  */
-const handleRenameTeamImpl = (
-  message: RenameTeamMessage,
-  senderId: string,
-  context: HandlerContext
+const handleRenameTeamImpl: ClientToHostHandler<RenameTeamMessage> = (
+  message,
+  _senderId,
+  context
 ) => {
-  const { dispatch } = context;
+  const { gameStore } = context;
   const { teamId, newName } = message.payload;
 
   const sanitizedName = newName.trim();
 
-  dispatch({
-    type: 'RENAME_TEAM',
-    payload: { teamId, newName: sanitizedName },
-  });
+  gameStore.renameTeam(teamId, sanitizedName);
 };
 
 export const handleRenameTeam = createClientToHostHandler(

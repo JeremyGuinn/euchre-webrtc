@@ -1,4 +1,4 @@
-import type { HandlerContext } from '~/types/handlers';
+import type { ClientToHostHandler } from '~/types/handlers';
 import type { RenamePlayerMessage } from '~/types/messages';
 import { makeNameUnique } from '~/utils/playerUtils';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
@@ -10,22 +10,22 @@ import { validatePlayerExists } from '../validators';
  *
  * @param message - The rename player message containing the new name
  * @param senderId - The ID of the player who is renaming themselves
- * @param context - Handler context with dispatch functions
+ * @param context - Handler context with gameStore actions
  */
-const handleRenamePlayerImpl = (
-  message: RenamePlayerMessage,
-  senderId: string,
-  context: HandlerContext
+const handleRenamePlayerImpl: ClientToHostHandler<RenamePlayerMessage> = (
+  message,
+  senderId,
+  context
 ) => {
-  const { dispatch, gameState } = context;
+  const { gameStore } = context;
   const { newName } = message.payload;
+
+  // Get current game state from store
+  const gameState = gameStore;
 
   const uniqueName = makeNameUnique(newName, gameState.players, senderId);
 
-  dispatch({
-    type: 'RENAME_PLAYER',
-    payload: { playerId: senderId, newName: uniqueName },
-  });
+  gameStore.renamePlayer(senderId, uniqueName);
 };
 
 export const handleRenamePlayer = createClientToHostHandler(

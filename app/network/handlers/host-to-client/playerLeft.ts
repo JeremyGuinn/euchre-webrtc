@@ -1,23 +1,13 @@
-import type { MessageHandler } from '~/types/handlers';
+import type { HostToClientHandler } from '~/types/handlers';
 import type { PlayerLeftMessage } from '~/types/messages';
 import { createHostToClientHandler } from '../base/hostToClientHandler';
 
-const handlePlayerLeftImpl: MessageHandler<PlayerLeftMessage> = (
-  message,
+const handlePlayerLeftImpl: HostToClientHandler<PlayerLeftMessage> = (
+  { payload: { gameState: newGameState } },
   _senderId,
-  context
+  { gameStore, myPlayerId }
 ) => {
-  const { dispatch, myPlayerId } = context;
-  const { gameState: newGameState } = message.payload;
-
-  dispatch({
-    type: 'SYNC_STATE',
-    payload: {
-      gameState: newGameState,
-      playerHand: newGameState.playerHand,
-      receivingPlayerId: myPlayerId,
-    },
-  });
+  gameStore.syncState(newGameState, newGameState.playerHand, myPlayerId);
 };
 
 /**
@@ -26,6 +16,6 @@ const handlePlayerLeftImpl: MessageHandler<PlayerLeftMessage> = (
  *
  * @param message - The player left message containing the player ID and updated game state
  * @param senderId - The ID of the host who broadcast this message
- * @param context - Handler context with dispatch functions
+ * @param context - Handler context with gameStore actions
  */
 export const handlePlayerLeft = createHostToClientHandler(handlePlayerLeftImpl);
