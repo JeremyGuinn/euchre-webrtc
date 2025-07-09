@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { subscribeWithSelector } from 'zustand/middleware';
+import { persist, subscribeWithSelector } from 'zustand/middleware';
 import type { GameState } from '~/types/game';
 import type {
   BiddingSlice,
@@ -33,34 +33,50 @@ export interface GameStore
     PlayingSlice,
     TeamSlice {}
 
-export const useGameStore = create<GameStore>()(
-  subscribeWithSelector((...a) => ({
-    id: '',
-    players: [],
-    phase: 'lobby',
-    options: {
-      teamSelection: 'predetermined',
-      dealerSelection: 'random_cards',
-      allowReneging: false,
-      screwTheDealer: false,
-      farmersHand: false,
-    },
-    currentDealerId: '',
-    deck: [],
-    hands: {},
-    bids: [],
-    completedTricks: [],
-    scores: { team0: 0, team1: 0 },
-    handScores: { team0: 0, team1: 0 },
-    teamNames: { team0: 'Team 1', team1: 'Team 2' },
+// Default initial state
+const initialGameState: GameState = {
+  id: '',
+  players: [],
+  phase: 'lobby',
+  options: {
+    teamSelection: 'predetermined',
+    dealerSelection: 'random_cards',
+    allowReneging: false,
+    screwTheDealer: false,
+    farmersHand: false,
+  },
+  currentDealerId: '',
+  deck: [],
+  hands: {},
+  bids: [],
+  completedTricks: [],
+  scores: { team0: 0, team1: 0 },
+  handScores: { team0: 0, team1: 0 },
+  teamNames: { team0: 'Team 1', team1: 'Team 2' },
+};
 
-    ...createBiddingSlice(...a),
-    ...createCoreSlice(...a),
-    ...createFarmersHandSlice(...a),
-    ...createGameFlowSlice(...a),
-    ...createOptionsSlice(...a),
-    ...createPlayerSlice(...a),
-    ...createPlayingSlice(...a),
-    ...createTeamSlice(...a),
-  }))
+export const useGameStore = create<GameStore>()(
+  subscribeWithSelector(
+    persist(
+      (...a) => ({
+        ...initialGameState,
+
+        // Combine all slices
+        ...createBiddingSlice(...a),
+        ...createCoreSlice(...a),
+        ...createFarmersHandSlice(...a),
+        ...createGameFlowSlice(...a),
+        ...createOptionsSlice(...a),
+        ...createPlayerSlice(...a),
+        ...createPlayingSlice(...a),
+        ...createTeamSlice(...a),
+      }),
+      {
+        name: 'euchre-game-state',
+        version: 1,
+        // Skip hydration on server side
+        skipHydration: typeof window === 'undefined',
+      }
+    )
+  )
 );
