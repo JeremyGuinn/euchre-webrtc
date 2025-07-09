@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '~/utils/styling/cn';
 
 interface GameContainerProps {
   children: React.ReactNode;
@@ -7,7 +8,12 @@ interface GameContainerProps {
 
 export default function GameContainer({ children, className = '' }: GameContainerProps) {
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-green-800 to-green-600 ${className}`}>
+    <div
+      className={cn(
+        `min-h-screen bg-gradient-to-br from-green-800 to-green-600 select-none`,
+        className
+      )}
+    >
       {children}
     </div>
   );
