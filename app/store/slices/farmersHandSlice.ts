@@ -1,7 +1,7 @@
 import type { StateCreator } from 'zustand';
 import type { Card } from '~/types/game';
-import { performFarmersHandSwap } from '~/utils/gameLogic';
-import { getNextPlayer } from '~/utils/playerUtils';
+import { performFarmersHandSwap } from '~/utils/game/gameLogic';
+import { getNextPlayer } from '~/utils/game/playerUtils';
 import type { GameStore } from '../gameStore';
 
 export interface FarmersHandSlice {

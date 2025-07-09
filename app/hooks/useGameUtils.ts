@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 
 import type { Card, GameState, Player } from '~/types/game';
-import { canPlayCardWithOptions, getEffectiveSuit } from '~/utils/gameLogic';
+import { canPlayCardWithOptions, getEffectiveSuit } from '~/utils/game/gameLogic';
 
 export function useGameUtils(gameState: GameState, myPlayerId: string) {
   const canPlay = useCallback(

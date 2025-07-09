@@ -20,22 +20,6 @@ export const RECONNECTION_CONFIG = {
 } as const;
 
 /**
- * Wraps a promise with a timeout
- */
-export function withTimeout<T>(
-  promise: Promise<T>,
-  timeoutMs: number,
-  timeoutMessage = 'Operation timed out'
-): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs)
-    ),
-  ]);
-}
-
-/**
  * Checks if a session should be considered for automatic reconnection
  */
 export function shouldAttemptAutoReconnection(sessionData: {
@@ -45,13 +29,6 @@ export function shouldAttemptAutoReconnection(sessionData: {
 
   // Only attempt auto-reconnection if less than 5 minutes have passed
   return timeSinceLastConnection < 5 * 60 * 1000;
-}
-
-/**
- * Utility function to create a delay
- */
-export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**

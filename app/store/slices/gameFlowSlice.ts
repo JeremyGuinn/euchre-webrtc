@@ -7,8 +7,8 @@ import {
   isFarmersHand,
   selectDealerAndTeams,
   selectDealerOnly,
-} from '~/utils/gameLogic';
-import { getNextDealer, getNextPlayer, getTeamId } from '~/utils/playerUtils';
+} from '~/utils/game/gameLogic';
+import { getNextDealer, getNextPlayer, getTeamId } from '~/utils/game/playerUtils';
 import type { GameStore } from '../gameStore';
 
 export interface GameFlowSlice {

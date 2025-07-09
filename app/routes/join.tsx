@@ -10,7 +10,7 @@ import LinkButton from '~/components/ui/LinkButton';
 import { Stack } from '~/components/ui/Stack';
 import { useGame } from '~/contexts/GameContext';
 import { useSession } from '~/contexts/SessionContext';
-import { isValidGameCode, normalizeGameCode } from '~/utils/gameCode';
+import { isValidGameCode, normalizeGameCode } from '~/utils/game/gameCode';
 
 import type { Route } from './+types/join';
 

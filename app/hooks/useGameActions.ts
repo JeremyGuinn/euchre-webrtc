@@ -4,7 +4,7 @@ import { createMessageId } from '~/network/protocol';
 import { GameNetworkService } from '~/services/networkService';
 import { useGameStore } from '~/store/gameStore';
 import type { Bid, Card, GameOptions } from '~/types/game';
-import { makeNameUnique } from '~/utils/playerUtils';
+import { makeNameUnique } from '~/utils/game/playerUtils';
 
 export function useGameActions(
   myPlayerId: string,

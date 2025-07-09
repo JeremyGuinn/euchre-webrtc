@@ -9,7 +9,7 @@ import type { GameState } from '~/types/game';
 import type { HandlerContext } from '~/types/handlers';
 import type { GameMessage } from '~/types/messages';
 import { sleep } from '~/utils/async';
-import { gameCodeToHostId, generateGameCode } from '~/utils/gameCode';
+import { gameCodeToHostId, generateGameCode } from '~/utils/game/gameCode';
 
 // Cooldown period to prevent rapid reconnection attempts (5 seconds)
 const RECONNECTION_COOLDOWN_MS = 5000;
@@ -180,7 +180,7 @@ export class GameNetworkService {
                 oldHostId: currentHostId,
               });
 
-              const { generateGameCode, gameCodeToHostId } = await import('~/utils/gameCode');
+              const { generateGameCode, gameCodeToHostId } = await import('~/utils/game/gameCode');
               currentGameCode = generateGameCode();
               currentHostId = gameCodeToHostId(currentGameCode);
 

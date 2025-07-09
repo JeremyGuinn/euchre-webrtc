@@ -1,6 +1,6 @@
 import type { StateCreator } from 'zustand';
 import type { Bid, Card } from '~/types/game';
-import { getNextDealer, getNextPlayerWithAlone } from '~/utils/playerUtils';
+import { getNextDealer, getNextPlayerWithAlone } from '~/utils/game/playerUtils';
 import type { GameStore } from '../gameStore';
 
 export interface BiddingSlice {

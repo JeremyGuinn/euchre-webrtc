@@ -5,8 +5,8 @@ import {
   getEffectiveSuit,
   getExpectedTrickSize,
   getWinningCard,
-} from '~/utils/gameLogic';
-import { getNextDealer, getNextPlayerWithAlone } from '~/utils/playerUtils';
+} from '~/utils/game/gameLogic';
+import { getNextDealer, getNextPlayerWithAlone } from '~/utils/game/playerUtils';
 import type { GameStore } from '../gameStore';
 
 export interface PlayingSlice {

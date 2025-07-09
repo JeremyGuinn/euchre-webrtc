@@ -1,6 +1,6 @@
 import type { ValidationFunction, ValidationResult } from '~/types/handlers';
 import type { FarmersHandSwapMessage, PlayCardMessage } from '~/types/messages';
-import { canPlayCardWithOptions, getEffectiveSuit } from '~/utils/gameLogic';
+import { canPlayCardWithOptions, getEffectiveSuit } from '~/utils/game/gameLogic';
 
 /**
  * Validates that the player has the card they're trying to play

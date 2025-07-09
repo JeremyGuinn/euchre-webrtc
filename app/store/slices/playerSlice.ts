@@ -1,6 +1,6 @@
 import type { StateCreator } from 'zustand';
 import type { Card, Player } from '~/types/game';
-import { getTeamId } from '~/utils/playerUtils';
+import { getTeamId } from '~/utils/game/playerUtils';
 import type { GameStore } from '../gameStore';
 
 export interface PlayerSlice {

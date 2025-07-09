@@ -12,7 +12,7 @@ import { useGame } from '~/contexts/GameContext';
 import { useSession } from '~/contexts/SessionContext';
 import { useReconnectionNavigation } from '~/hooks/useReconnectionNavigation';
 import { shouldAttemptAutoReconnection } from '~/network/reconnection';
-import { isValidGameCode, normalizeGameCode } from '~/utils/gameCode';
+import { isValidGameCode, normalizeGameCode } from '~/utils/game/gameCode';
 
 export function meta() {
   return [

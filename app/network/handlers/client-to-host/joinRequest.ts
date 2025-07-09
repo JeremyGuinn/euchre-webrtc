@@ -3,7 +3,7 @@ import type { JoinRequestMessage } from '~/types/messages';
 
 import { createMessageId } from '~/network/protocol';
 import type { ClientToHostHandler } from '~/types/handlers';
-import { makeNameUnique } from '~/utils/playerUtils';
+import { makeNameUnique } from '~/utils/game/playerUtils';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
 import { validateGameCapacity, validatePlayerNotAlreadyJoined } from '../validators';
 

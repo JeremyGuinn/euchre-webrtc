@@ -1,6 +1,6 @@
 import type { ClientToHostHandler } from '~/types/handlers';
 import type { RenamePlayerMessage } from '~/types/messages';
-import { makeNameUnique } from '~/utils/playerUtils';
+import { makeNameUnique } from '~/utils/game/playerUtils';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
 import { validatePlayerExists } from '../validators';
 

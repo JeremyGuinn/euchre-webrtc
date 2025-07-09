@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '~/utils/cn';
+import { cn } from '~/utils/styling/cn';
 
 export type ButtonVariant = 'primary' | 'success' | 'danger' | 'secondary' | 'text' | 'ghost';
 export type ButtonSize = 'sm' | 'md' | 'lg';
