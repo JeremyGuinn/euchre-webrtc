@@ -1,19 +1,30 @@
+import { useEffect } from 'react';
 import Button from '~/components/ui/Button';
 import { Spinner } from '~/components/ui/Spinner';
+import { useGame } from '~/contexts/GameContext';
+import { useAutoAdvance } from '~/hooks/useAutoAdvance';
 import { useGameUI } from '~/hooks/useGameUI';
 import { getSuitColor, getSuitSymbol } from '~/utils/game/cardUtils';
 import { Card } from '../Card';
 
-interface TrickCompleteOverlayProps {
-  autoAdvanceProgress: number;
-}
-
-export function TrickCompleteOverlay({ autoAdvanceProgress }: TrickCompleteOverlayProps) {
+export function TrickCompleteOverlay() {
+  const { continueTrick } = useGame();
   const { gameState, myPlayer, isHost, handleContinueTrick } = useGameUI();
 
-  if (gameState.phase !== 'trick_complete' || !myPlayer) {
-    return null;
-  }
+  // Auto-advance for trick_complete phase
+  const { trigger, cancel, progress } = useAutoAdvance(continueTrick, {
+    enabled: gameState.phase === 'trick_complete' && isHost,
+    delayMs: 1500, // 1.5 seconds
+  });
+
+  useEffect(() => {
+    // Trigger auto-advance when entering trick_complete phase as host
+    if (gameState.phase === 'trick_complete' && isHost) {
+      trigger();
+    } else {
+      cancel();
+    }
+  }, [gameState.phase, isHost, trigger, cancel]);
 
   const lastTrick = gameState.completedTricks[gameState.completedTricks.length - 1];
   const winner = lastTrick
@@ -35,7 +46,7 @@ export function TrickCompleteOverlay({ autoAdvanceProgress }: TrickCompleteOverl
                 <>
                   <p className='text-lg text-gray-700 mb-3'>
                     <span className='font-semibold text-blue-600'>{winner.name}</span>
-                    {winner.id === myPlayer.id && ' (You)'} won the trick!
+                    {winner.id === myPlayer?.id && ' (You)'} won the trick!
                   </p>
 
                   <div className='flex justify-center mb-4'>
@@ -67,7 +78,7 @@ export function TrickCompleteOverlay({ autoAdvanceProgress }: TrickCompleteOverl
                   <div
                     className='absolute inset-0 bg-white/20 transition-all duration-100 ease-linear'
                     style={{
-                      width: `${autoAdvanceProgress}%`,
+                      width: `${progress}%`,
                       transformOrigin: 'left',
                     }}
                   />

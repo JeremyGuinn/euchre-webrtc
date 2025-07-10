@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
 import { GameHeader } from '~/components/game/GameHeader';
@@ -11,19 +11,8 @@ import { Stack } from '~/components/ui/Stack';
 import { useGame } from '~/contexts/GameContext';
 
 import { useElementHeight } from '~/hooks/useElementHeight';
+import { useGameUI } from '~/hooks/useGameUI';
 import type { Route } from './+types/game';
-
-// Auto-advance configuration
-const AUTO_ADVANCE_CONFIG = {
-  TRICK_COMPLETE_DELAY_MS: 1500,
-  PROGRESS_UPDATE_INTERVAL_MS: 100,
-  get PROGRESS_STEPS() {
-    return this.TRICK_COMPLETE_DELAY_MS / this.PROGRESS_UPDATE_INTERVAL_MS;
-  },
-  get PROGRESS_INCREMENT() {
-    return 100 / this.PROGRESS_STEPS;
-  },
-} as const;
 
 export function meta({ params }: Route.MetaArgs) {
   return [
@@ -34,12 +23,11 @@ export function meta({ params }: Route.MetaArgs) {
 
 export default function Game({ params }: Route.ComponentProps) {
   const { gameCode } = params;
-  const { gameState, isHost, connectionStatus, getMyPlayer, continueTrick } = useGame();
-  const myPlayer = getMyPlayer();
+  const { gameState, connectionStatus } = useGame();
+  const { myPlayer } = useGameUI();
+
   const navigate = useNavigate();
   const headerHeight = useElementHeight('#game-header');
-
-  const [autoAdvanceProgress, setAutoAdvanceProgress] = useState(0);
 
   useEffect(() => {
     // Redirect to lobby if game hasn't started
@@ -47,32 +35,6 @@ export default function Game({ params }: Route.ComponentProps) {
       navigate(`/lobby/${gameCode}`);
     }
   }, [gameState.phase, gameCode, navigate]);
-
-  useEffect(() => {
-    // Auto-advance from trick_complete phase after 3 seconds if host
-    if (gameState.phase === 'trick_complete' && isHost) {
-      setAutoAdvanceProgress(0);
-
-      const progressInterval = setInterval(() => {
-        setAutoAdvanceProgress(prev => {
-          const newProgress = prev + AUTO_ADVANCE_CONFIG.PROGRESS_INCREMENT;
-          return newProgress >= 100 ? 100 : newProgress;
-        });
-      }, AUTO_ADVANCE_CONFIG.PROGRESS_UPDATE_INTERVAL_MS);
-
-      const timer = setTimeout(() => {
-        continueTrick();
-      }, AUTO_ADVANCE_CONFIG.TRICK_COMPLETE_DELAY_MS);
-
-      return () => {
-        clearTimeout(timer);
-        clearInterval(progressInterval);
-        setAutoAdvanceProgress(0);
-      };
-    } else {
-      setAutoAdvanceProgress(0);
-    }
-  }, [gameState.phase, isHost, continueTrick]);
 
   const shouldShowCards = () => {
     return [
@@ -117,7 +79,7 @@ export default function Game({ params }: Route.ComponentProps) {
       )}
 
       {/* Game Phase Manager - handles all overlays and phase-specific UI */}
-      <GamePhaseManager headerHeight={headerHeight} autoAdvanceProgress={autoAdvanceProgress} />
+      <GamePhaseManager headerHeight={headerHeight} />
     </GameContainer>
   );
 }

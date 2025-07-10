@@ -15,10 +15,9 @@ import { useGameStore } from '~/store/gameStore';
 
 interface GamePhaseManagerProps {
   headerHeight: number;
-  autoAdvanceProgress: number;
 }
 
-export function GamePhaseManager({ headerHeight, autoAdvanceProgress }: GamePhaseManagerProps) {
+export function GamePhaseManager({ headerHeight }: GamePhaseManagerProps) {
   const gameState = useGameStore();
   const { isHost, myPlayer } = useGameUI();
   const { selectDealer, isMyTurn } = useGame();
@@ -129,7 +128,7 @@ export function GamePhaseManager({ headerHeight, autoAdvanceProgress }: GamePhas
 
   // Trick Complete - Show winner and continue
   if (gameState.phase === 'trick_complete') {
-    return <TrickCompleteOverlay autoAdvanceProgress={autoAdvanceProgress} />;
+    return <TrickCompleteOverlay />;
   }
 
   // Hand Complete - Show hand results
