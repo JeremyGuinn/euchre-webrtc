@@ -132,7 +132,7 @@ export function GameCompleteOverlay() {
                   size='lg'
                   className='w-full'
                   onClick={() => {
-                    // Reset game for new game - you might want to implement this
+                    gameStore.resetGame();
                     navigate(`/lobby/${gameStore.gameCode}`);
                   }}
                 >

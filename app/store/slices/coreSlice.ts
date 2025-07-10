@@ -4,6 +4,7 @@ import type { GameStore } from '../gameStore';
 
 export interface CoreSlice {
   initGame: (hostId: string, gameId: string, gameCode?: string) => void;
+  resetGame: () => void;
   restoreGameState: (gameState: GameState) => void;
   syncState: (gameState: PublicGameState, playerHand?: Card[], receivingPlayerId?: string) => void;
   setCurrentPlayerPosition: (position: 0 | 1 | 2 | 3) => void;
@@ -43,6 +44,23 @@ export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set,
       scores: { team0: 0, team1: 0 },
       handScores: { team0: 0, team1: 0 },
       teamNames: { team0: 'Team 1', team1: 'Team 2' },
+    });
+  },
+
+  resetGame: () => {
+    // used to reset the game state when starting a new game after finishing one,
+    // it should keep the game code and players intact, but reset game specific state
+    const state = get();
+    set({
+      ...state,
+      phase: 'lobby',
+      currentDealerPosition: 0,
+      deck: [],
+      hands: { 0: [], 1: [], 2: [], 3: [] },
+      bids: [],
+      completedTricks: [],
+      scores: { team0: 0, team1: 0 },
+      handScores: { team0: 0, team1: 0 },
     });
   },
 
