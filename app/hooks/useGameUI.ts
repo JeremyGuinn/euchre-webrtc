@@ -112,6 +112,12 @@ export function useGameUI() {
     );
   }, [gameContext.gameState.players, gameContext.gameState.currentPlayerPosition]);
 
+  const getCurrentDealer = useCallback(() => {
+    return gameContext.gameState.players.find(
+      (p: Player) => p.position === gameContext.gameState.currentDealerPosition
+    );
+  }, [gameContext.gameState.players, gameContext.gameState.currentDealerPosition]);
+
   const getMyHand = useCallback(() => {
     return gameContext.getMyHand();
   }, [gameContext]);
@@ -133,6 +139,7 @@ export function useGameUI() {
     getPlayerAngle,
     getPlayerCircularPosition,
     getCurrentPlayer,
+    getCurrentDealer,
     getMyHand,
 
     // Game state checks

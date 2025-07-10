@@ -8,21 +8,12 @@ import { useGameStore } from '~/store/gameStore';
 
 export function TeamSummaryOverlay() {
   const gameStore = useGameStore();
-  const {
-    myPlayer,
-    isHost,
-    getCardDisplay,
-    isMyPlayer,
-    isCurrentDealer,
-    handleRenameTeam,
-    handleProceedToDealing,
-  } = useGameUI();
+  const { myPlayer, isHost, getCardDisplay, isMyPlayer, isCurrentDealer, getCurrentDealer } =
+    useGameUI();
 
   if (!myPlayer) {
     return null;
   }
-
-  const dealer = gameStore.players.find(p => p.position === gameStore.currentPlayerPosition);
 
   return (
     <div className='absolute inset-0 bg-black/40 z-40'>
@@ -38,8 +29,8 @@ export function TeamSummaryOverlay() {
             <div>
               <h3 className='text-lg font-semibold text-yellow-800 mb-1'>Dealer</h3>
               <p className='text-xl font-bold text-yellow-900'>
-                {dealer?.name || 'Unknown'}
-                {dealer && isMyPlayer(dealer) && ' (You)'}
+                {getCurrentDealer()?.name || 'Unknown'}
+                {getCurrentDealer() && isMyPlayer(getCurrentDealer()!) && ' (You)'}
               </p>
               <p className='text-sm text-yellow-700 mt-1'>
                 The dealer will deal the cards and has the final bidding option
@@ -55,7 +46,7 @@ export function TeamSummaryOverlay() {
                 <EditableTeamName
                   teamId={0}
                   teamName={gameStore.teamNames.team0}
-                  onRename={handleRenameTeam}
+                  onRename={(id, newName) => gameStore.renameTeam(id, newName)}
                   disabled={
                     !isHost && gameStore.players.find(p => p.id === myPlayer.id)?.teamId !== 0
                   }
@@ -107,7 +98,7 @@ export function TeamSummaryOverlay() {
                 <EditableTeamName
                   teamId={1}
                   teamName={gameStore.teamNames.team1}
-                  onRename={handleRenameTeam}
+                  onRename={(id, newName) => gameStore.renameTeam(id, newName)}
                   disabled={
                     !isHost && gameStore.players.find(p => p.id === myPlayer.id)?.teamId !== 1
                   }
@@ -175,7 +166,7 @@ export function TeamSummaryOverlay() {
           {/* Continue Button */}
           <div className='text-center'>
             {isHost ? (
-              <Button onClick={handleProceedToDealing} size='lg' className='px-8'>
+              <Button onClick={() => gameStore.proceedToDealing()} size='lg' className='px-8'>
                 Deal Cards and Start Hand
               </Button>
             ) : (

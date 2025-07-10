@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useGame } from '~/contexts/GameContext';
 import { useGameUI } from '~/hooks/useGameUI';
 import { useGameStore } from '~/store/gameStore';
@@ -26,15 +27,23 @@ export function RandomCardsSelection() {
   const { drawDealerCard } = useGame();
   const { myPlayer, getPlayerPosition } = useGameUI();
 
-  if (!myPlayer) return null;
+  const cardsRemaining = useMemo(() => {
+    return (
+      gameStore.deck.length - (dealerSelectionCards ? Object.keys(dealerSelectionCards).length : 0)
+    );
+  }, [gameStore.deck.length, dealerSelectionCards]);
 
-  const canPickCard = !dealerSelectionCards?.[myPlayer.position];
-  const players = gameStore.players;
+  const canPickCard = useMemo(
+    () => myPlayer && !dealerSelectionCards?.[myPlayer.position],
+    [dealerSelectionCards, myPlayer]
+  );
+
+  if (!myPlayer) return null;
 
   return (
     <>
       {/* Show dealt cards for each player in their positions */}
-      {players.map(player => {
+      {gameStore.players.map(player => {
         const position = getPlayerPosition(player);
         const drawnCard = dealerSelectionCards?.[player.position];
         const hasDrawn = !!drawnCard;
@@ -62,12 +71,12 @@ export function RandomCardsSelection() {
           <div className='relative'>
             <div className='relative w-full h-48 flex items-center justify-center'>
               {/* Create array of face-down cards in spread formation */}
-              {Array.from({ length: 24 }, (_, index) => {
-                const totalCards = 24;
-
+              {Array.from({ length: cardsRemaining }, (_, index) => {
+                // Calculate angle for each card based on its index
+                // Spread cards evenly across the arc
                 // Create an arc from -60 degrees to +60 degrees (120 degree spread)
                 const maxAngle = 60; // degrees
-                const angleStep = totalCards > 1 ? (2 * maxAngle) / (totalCards - 1) : 0;
+                const angleStep = cardsRemaining > 1 ? (2 * maxAngle) / (cardsRemaining - 1) : 0;
                 const angle = -maxAngle + index * angleStep;
 
                 // Position cards along a circular arc
@@ -103,10 +112,13 @@ export function RandomCardsSelection() {
       {/* Status display */}
       <DealerSelectionStatus
         dealerFound={
-          !!(dealerSelectionCards && Object.keys(dealerSelectionCards).length === players.length)
+          !!(
+            dealerSelectionCards &&
+            Object.keys(dealerSelectionCards).length === gameStore.players.length
+          )
         }
         currentStep={dealerSelectionCards ? Object.keys(dealerSelectionCards).length : 0}
-        totalSteps={players.length}
+        totalSteps={gameStore.players.length}
       />
     </>
   );

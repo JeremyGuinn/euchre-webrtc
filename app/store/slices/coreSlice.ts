@@ -100,11 +100,11 @@ export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set,
       ? state.players.find(p => p.id === forPlayerId)
       : undefined;
 
-    const placeholderCards: [Card, Card, Card] = [
-      { id: `placeholder-${0}`, suit: 'spades' as const, value: 'A' as const },
-      { id: `placeholder-${1}`, suit: 'spades' as const, value: 'A' as const },
-      { id: `placeholder-${2}`, suit: 'spades' as const, value: 'A' as const },
-    ];
+    const placeholderCards: Card[] = Array.from({ length: 24 }, (_, index) => ({
+      id: `placeholder-${index}`,
+      suit: 'spades' as const,
+      value: 'A' as const,
+    }));
 
     const publicState: PublicGameState = {
       id: state.id,

@@ -96,10 +96,6 @@ export function GamePhaseManager({ headerHeight }: GamePhaseManagerProps) {
 
   // Dealing Animation
   if (gameState.phase === 'dealing_animation') {
-    if (!gameState.currentDealerPosition) {
-      return null;
-    }
-
     return (
       <div
         className='relative w-full'
@@ -119,10 +115,6 @@ export function GamePhaseManager({ headerHeight }: GamePhaseManagerProps) {
       gameState.phase === 'bidding_round2') &&
     isMyTurn()
   ) {
-    if (!gameState.currentDealerPosition) {
-      return null;
-    }
-
     return <BiddingInterface />;
   }
 
