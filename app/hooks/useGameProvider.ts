@@ -28,12 +28,12 @@ export function useGameProvider() {
   };
 
   // Core state - using Zustand store
-  const gameState = useGameStore();
+  const gameStore = useGameStore();
 
   // Initialize the game state with default values
   useEffect(() => {
-    if (!gameState.id) {
-      gameState.updateGameOptions({
+    if (!gameStore.id) {
+      gameStore.updateGameOptions({
         allowReneging: false,
         teamSelection: 'predetermined',
         dealerSelection: 'first_black_jack',
@@ -42,7 +42,7 @@ export function useGameProvider() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState.id]); // Only depend on gameState.id to avoid infinite loops
+  }, [gameStore.id]); // Only depend on gameState.id to avoid infinite loops
 
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(
     getInitialConnectionStatus()
@@ -57,9 +57,9 @@ export function useGameProvider() {
 
   const networkService = useMemo(() => new GameNetworkService(), []);
 
-  const { broadcastGameState } = useGameStateEffects(gameState, myPlayerId, isHost, networkService);
+  const { broadcastGameState } = useGameStateEffects(gameStore, myPlayerId, isHost, networkService);
 
-  useGameStatePersistence(gameState, isHost, connectionStatus);
+  useGameStatePersistence(gameStore, isHost, connectionStatus);
 
   const connectionActions = useConnectionActions(
     networkService,
@@ -82,8 +82,7 @@ export function useGameProvider() {
   // Configure and update network service with game state and handlers
   useEffect(() => {
     networkService.configure({
-      gameState,
-      gameStore: gameState, // Pass the Zustand store as gameStore
+      gameStore,
       myPlayerId,
       isHost,
       broadcastGameState,
@@ -101,7 +100,8 @@ export function useGameProvider() {
     });
   }, [
     networkService,
-    gameState,
+    gameStore,
+    gameStore.deck,
     myPlayerId,
     isHost,
     broadcastGameState,
@@ -144,10 +144,10 @@ export function useGameProvider() {
 
   const gameActions = useGameActions(myPlayerId, isHost, networkService);
 
-  const gameUtils = useGameUtils(gameState, myPlayerId);
+  const gameUtils = useGameUtils(gameStore, myPlayerId);
 
   const contextValue: GameContextType = {
-    gameState,
+    gameState: gameStore,
     networkManager: networkService.getNetworkManager(),
     myPlayerId,
     isHost,

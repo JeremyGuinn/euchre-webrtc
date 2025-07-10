@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { DealerSelectionAnimation } from '~/components/game/dealer-selection/DealerSelectionAnimation';
 import { DealingAnimation } from '~/components/game/DealingAnimation';
 import { BiddingInterface } from '~/components/game/interfaces/BiddingInterface';
@@ -10,62 +9,19 @@ import { TeamSummaryOverlay } from '~/components/game/overlays/TeamSummaryOverla
 import { TrickCompleteOverlay } from '~/components/game/overlays/TrickCompleteOverlay';
 import Button from '~/components/ui/Button';
 import { Center } from '~/components/ui/Center';
+import { useGame } from '~/contexts/GameContext';
+import { useGameUI } from '~/hooks/useGameUI';
 import { useGameStore } from '~/store/gameStore';
-import type { Card as CardType, GameState, Player } from '~/types/game';
-import { getPlayerIdFromPosition } from '~/utils/game/playerUtils';
 
 interface GamePhaseManagerProps {
-  gameState: GameState;
-  myPlayer: Player;
-  myHand: CardType[];
-  isHost: boolean;
-  isMyTurn: () => boolean;
   headerHeight: number;
   autoAdvanceProgress: number;
-  gameCode: string;
-  suitSymbols: Record<string, string>;
-  suitColors: Record<string, string>;
-  onBid: (suit: CardType['suit'] | 'pass', alone?: boolean) => void;
-  onSelectDealer: () => void;
-  onDrawDealerCard: (cardIndex: number) => void;
-  onProceedToDealing: () => void;
-  onCompleteDealingAnimation: () => void;
-  onContinueTrick: () => void;
-  onCompleteHand: () => void;
-  onSwapFarmersHand: (cards: CardType[]) => void;
-  onDeclineFarmersHand: () => void;
-  onRenameTeam: (teamId: 0 | 1, newName: string) => void;
-  onLeaveGame: () => void;
 }
 
-export function GamePhaseManager({
-  gameState,
-  myPlayer,
-  myHand,
-  isHost,
-  isMyTurn,
-  headerHeight,
-  autoAdvanceProgress,
-  gameCode,
-  suitSymbols,
-  suitColors,
-  onBid,
-  onSelectDealer,
-  onDrawDealerCard,
-  onProceedToDealing,
-  onCompleteDealingAnimation,
-  onContinueTrick,
-  onCompleteHand,
-  onSwapFarmersHand,
-  onDeclineFarmersHand,
-  onRenameTeam,
-  onLeaveGame,
-}: GamePhaseManagerProps) {
-  const gameStore = useGameStore();
-  const currentDealerId = useMemo(
-    () => getPlayerIdFromPosition(gameState.currentDealerPosition, gameState.players),
-    [gameState.currentDealerPosition, gameState.players]
-  );
+export function GamePhaseManager({ headerHeight, autoAdvanceProgress }: GamePhaseManagerProps) {
+  const gameState = useGameStore();
+  const { isHost, myPlayer } = useGameUI();
+  const { selectDealer, isMyTurn } = useGame();
 
   // Dealer Selection Animation
   if (gameState.phase === 'dealer_selection') {
@@ -106,7 +62,7 @@ export function GamePhaseManager({
               )}
 
             {isHost ? (
-              <Button onClick={onSelectDealer} size='lg'>
+              <Button onClick={() => selectDealer()} size='lg'>
                 {gameState.options.dealerSelection === 'random_cards'
                   ? 'Start Card Drawing'
                   : gameState.options.dealerSelection === 'first_black_jack'
@@ -128,15 +84,7 @@ export function GamePhaseManager({
             top: `${headerHeight}px`,
           }}
         >
-          <DealerSelectionAnimation
-            players={gameState.players}
-            myPlayer={myPlayer}
-            isVisible={true}
-            deck={gameState.deck}
-            method={gameState.options.dealerSelection}
-            dealerSelectionCards={gameState.dealerSelectionCards}
-            onCardPicked={onDrawDealerCard}
-          />
+          <DealerSelectionAnimation />
         </div>
       );
     }
@@ -144,22 +92,12 @@ export function GamePhaseManager({
 
   // Team Summary - Show dealer and team assignments
   if (gameState.phase === 'team_summary') {
-    return (
-      <TeamSummaryOverlay
-        gameState={gameState}
-        suitSymbols={suitSymbols}
-        suitColors={suitColors}
-        myPlayer={myPlayer}
-        isHost={isHost}
-        onRenameTeam={onRenameTeam}
-        onProceedToDealing={onProceedToDealing}
-      />
-    );
+    return <TeamSummaryOverlay />;
   }
 
   // Dealing Animation
   if (gameState.phase === 'dealing_animation') {
-    if (!currentDealerId) {
+    if (!gameState.currentDealerPosition) {
       return null;
     }
 
@@ -171,13 +109,7 @@ export function GamePhaseManager({
           top: `${headerHeight}px`,
         }}
       >
-        <DealingAnimation
-          players={gameState.players}
-          myPlayer={myPlayer}
-          isVisible={true}
-          currentDealerId={currentDealerId}
-          onComplete={onCompleteDealingAnimation}
-        />
+        <DealingAnimation />
       </div>
     );
   }
@@ -188,90 +120,35 @@ export function GamePhaseManager({
       gameState.phase === 'bidding_round2') &&
     isMyTurn()
   ) {
-    if (!currentDealerId) {
+    if (!gameState.currentDealerPosition) {
       return null;
     }
 
-    return (
-      <BiddingInterface
-        phase={gameState.phase as 'bidding_round1' | 'bidding_round2'}
-        kitty={gameState.kitty}
-        isDealer={currentDealerId === myPlayer.id}
-        isDealerTeammate={(() => {
-          const dealer = gameState.players.find(p => p.id === currentDealerId);
-          return dealer ? dealer.teamId === myPlayer.teamId && dealer.id !== myPlayer.id : false;
-        })()}
-        turnedDownSuit={gameState.turnedDownSuit}
-        suitSymbols={suitSymbols}
-        suitColors={suitColors}
-        _screwTheDealer={gameState.options.screwTheDealer}
-        isDealerScrewed={gameStore.isDealerScrewed()}
-        onBid={onBid}
-      />
-    );
+    return <BiddingInterface />;
   }
 
   // Trick Complete - Show winner and continue
   if (gameState.phase === 'trick_complete') {
-    return (
-      <TrickCompleteOverlay
-        gameState={gameState}
-        myPlayer={myPlayer}
-        isHost={isHost}
-        autoAdvanceProgress={autoAdvanceProgress}
-        suitSymbols={suitSymbols}
-        suitColors={suitColors}
-        onContinueTrick={onContinueTrick}
-      />
-    );
+    return <TrickCompleteOverlay autoAdvanceProgress={autoAdvanceProgress} />;
   }
 
   // Hand Complete - Show hand results
   if (gameState.phase === 'hand_complete') {
-    return (
-      <HandCompleteOverlay
-        gameState={gameState}
-        myPlayer={myPlayer}
-        isHost={isHost}
-        suitSymbols={suitSymbols}
-        suitColors={suitColors}
-        onCompleteHand={onCompleteHand}
-      />
-    );
+    return <HandCompleteOverlay />;
   }
 
   // Farmer's Hand Interface - Allow player to swap cards
   if (gameState.phase === 'farmers_hand_swap') {
-    if (gameState.farmersHandPosition === myPlayer.position) {
-      return (
-        <FarmersHandInterface
-          hand={myHand}
-          onSwap={onSwapFarmersHand}
-          onDecline={onDeclineFarmersHand}
-        />
-      );
+    if (gameState.farmersHandPosition === myPlayer?.position) {
+      return <FarmersHandInterface />;
     } else if (gameState.farmersHandPosition) {
-      return (
-        <FarmersHandWaiting
-          farmersHandPlayer={
-            gameState.players.find(p => p.position === gameState.farmersHandPosition)!
-          }
-        />
-      );
+      return <FarmersHandWaiting />;
     }
   }
 
   // Game Complete - Show final results
   if (gameState.phase === 'game_complete') {
-    return (
-      <GameCompleteOverlay
-        gameState={gameState}
-        myPlayer={myPlayer}
-        isHost={isHost}
-        gameCode={gameCode}
-        onLeaveGame={onLeaveGame}
-      />
-    );
+    return <GameCompleteOverlay />;
   }
 
   return null;

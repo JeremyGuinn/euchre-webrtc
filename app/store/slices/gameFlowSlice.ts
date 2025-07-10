@@ -36,13 +36,11 @@ export const createGameFlowSlice: StateCreator<GameStore, [], [], GameFlowSlice>
     }
 
     if (options.dealerSelection === 'predetermined_first_dealer') {
-      const predeterminedDealerPosition = options.predeterminedFirstDealerPosition;
-
-      if (predeterminedDealerPosition === undefined) {
+      if (options.predeterminedFirstDealerId === undefined) {
         return;
       }
 
-      const dealer = players.find(p => p.position === predeterminedDealerPosition);
+      const dealer = players.find(p => p.id === options.predeterminedFirstDealerId);
       if (!dealer) {
         return;
       }
@@ -58,6 +56,13 @@ export const createGameFlowSlice: StateCreator<GameStore, [], [], GameFlowSlice>
           teamId: getTeamId(newPosition),
         };
       });
+
+      const predeterminedDealerPosition = arrangedPlayers.find(
+        p => p.id === options.predeterminedFirstDealerId
+      )?.position;
+      if (predeterminedDealerPosition === undefined) {
+        return;
+      }
 
       set({
         players: arrangedPlayers,
@@ -75,19 +80,17 @@ export const createGameFlowSlice: StateCreator<GameStore, [], [], GameFlowSlice>
     const { options } = get();
 
     if (options.dealerSelection === 'predetermined_first_dealer') {
-      const predeterminedDealerPosition = options.predeterminedFirstDealerPosition;
-
-      if (predeterminedDealerPosition === undefined) {
+      if (options.predeterminedFirstDealerId === undefined) {
         return;
       }
 
-      const dealer = get().players.find(p => p.position === predeterminedDealerPosition);
+      const dealer = get().players.find(p => p.id === options.predeterminedFirstDealerId);
       if (!dealer) {
         return;
       }
 
       set({
-        currentDealerPosition: predeterminedDealerPosition,
+        currentDealerPosition: dealer.position,
         phase: 'team_summary',
         deck: createDeck(),
       });

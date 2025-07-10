@@ -1,39 +1,12 @@
-import type { Card, Player } from '~/types/game';
+import { useGame } from '~/contexts/GameContext';
+import { useGameUI } from '~/hooks/useGameUI';
+import { useGameStore } from '~/store/gameStore';
 import { CardBack } from '../Card';
 import DealerSelectionStatus from './DealerSelectionStatus';
 import PlayerDealingArea from './PlayerDealingArea';
 
-interface RandomCardsSelectionProps {
-  players: Player[];
-  myPlayer: Player;
-  isVisible: boolean;
-  dealerSelectionCards?: Record<string, Card>;
-  onCardPicked?: (cardIndex: number) => void;
-}
-
-export function RandomCardsSelection({
-  players,
-  myPlayer,
-  isVisible,
-  dealerSelectionCards,
-  onCardPicked,
-}: RandomCardsSelectionProps) {
-  const getPlayerPosition = (player: Player, myPosition: number) => {
-    const relativePosition = (player.position - myPosition + 4) % 4;
-    switch (relativePosition) {
-      case 0:
-        return 'bottom';
-      case 1:
-        return 'left';
-      case 2:
-        return 'top';
-      case 3:
-        return 'right';
-      default:
-        return 'bottom';
-    }
-  };
-
+export function RandomCardsSelection() {
+  const { dealerSelectionCards } = useGameStore();
   const getPositionClasses = (position: string) => {
     switch (position) {
       case 'bottom':
@@ -49,16 +22,21 @@ export function RandomCardsSelection({
     }
   };
 
-  if (!isVisible) return null;
+  const gameStore = useGameStore();
+  const { drawDealerCard } = useGame();
+  const { myPlayer, getPlayerPosition } = useGameUI();
 
-  const canPickCard = !dealerSelectionCards?.[myPlayer.id];
+  if (!myPlayer) return null;
+
+  const canPickCard = !dealerSelectionCards?.[myPlayer.position];
+  const players = gameStore.players;
 
   return (
     <>
       {/* Show dealt cards for each player in their positions */}
       {players.map(player => {
-        const position = getPlayerPosition(player, myPlayer.position);
-        const drawnCard = dealerSelectionCards?.[player.id];
+        const position = getPlayerPosition(player);
+        const drawnCard = dealerSelectionCards?.[player.position];
         const hasDrawn = !!drawnCard;
         const isMyTurn = player.id === myPlayer.id && !hasDrawn;
 
@@ -101,7 +79,7 @@ export function RandomCardsSelection({
                 return (
                   <button
                     key={index}
-                    onClick={() => onCardPicked?.(index)}
+                    onClick={() => drawDealerCard(index)}
                     className='absolute transition-all duration-200 hover:scale-110 hover:-translate-y-4 hover:z-30 cursor-pointer'
                     style={{
                       transform: `translate(${x}px, ${y}px) rotate(${angle}deg)`,
@@ -124,13 +102,11 @@ export function RandomCardsSelection({
 
       {/* Status display */}
       <DealerSelectionStatus
-        method='random_cards'
         dealerFound={
           !!(dealerSelectionCards && Object.keys(dealerSelectionCards).length === players.length)
         }
         currentStep={dealerSelectionCards ? Object.keys(dealerSelectionCards).length : 0}
         totalSteps={players.length}
-        currentPlayerName={canPickCard ? myPlayer.name : undefined}
       />
     </>
   );

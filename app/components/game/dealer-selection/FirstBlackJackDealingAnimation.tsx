@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 
+import { useGameUI } from '~/hooks/useGameUI';
+import { useGameStore } from '~/store/gameStore';
 import type { Card, Player } from '~/types/game';
 import { CardBack } from '../Card';
 
 interface FirstBlackJackDealingAnimationProps {
-  players: Player[];
-  myPlayer: Player;
   isVisible: boolean;
   currentCard: Card | null;
   targetPlayerId: string | null;
@@ -18,13 +18,14 @@ interface AnimatingCard {
 }
 
 export function FirstBlackJackDealingAnimation({
-  players,
-  myPlayer,
   isVisible,
   currentCard,
   targetPlayerId,
   onAnimationComplete,
 }: FirstBlackJackDealingAnimationProps) {
+  const { players } = useGameStore();
+  const { myPlayer } = useGameUI();
+
   const [animatingCard, setAnimatingCard] = useState<AnimatingCard | null>(null);
 
   // Start animation when a new card is being dealt
@@ -72,11 +73,14 @@ export function FirstBlackJackDealingAnimation({
     }
   };
 
-  const getCardTargetPosition = (playerId: string): { x: number; y: number; rotation: number } => {
+  const getCardTargetPosition = (
+    playerId: string,
+    myPosition: number
+  ): { x: number; y: number; rotation: number } => {
     const player = players.find(p => p.id === playerId);
     if (!player) return { x: 0, y: 0, rotation: 0 };
 
-    const position = getPlayerPosition(player, myPlayer.position);
+    const position = getPlayerPosition(player, myPosition);
 
     // Try to get the actual DOM position of the player's card container
     const cardContainer = document.getElementById(`blackjack-player-cards-${player.id}`);
@@ -132,9 +136,9 @@ export function FirstBlackJackDealingAnimation({
     return { x, y, rotation };
   };
 
-  if (!isVisible || !animatingCard || !targetPlayerId) return null;
+  if (!isVisible || !animatingCard || !targetPlayerId || !myPlayer) return null;
 
-  const targetPos = getCardTargetPosition(targetPlayerId);
+  const targetPos = getCardTargetPosition(targetPlayerId, myPlayer.position);
 
   return (
     <div className='absolute inset-0 z-40 pointer-events-none'>

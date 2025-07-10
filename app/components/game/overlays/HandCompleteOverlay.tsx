@@ -1,26 +1,13 @@
 import Button from '~/components/ui/Button';
 import { Center } from '~/components/ui/Center';
 import { Spinner } from '~/components/ui/Spinner';
-import type { GameState, Player } from '~/types/game';
+import { useGameUI } from '~/hooks/useGameUI';
+import { getSuitColor, getSuitSymbol } from '~/utils/game/cardUtils';
 
-interface HandCompleteOverlayProps {
-  gameState: GameState;
-  myPlayer: Player;
-  isHost: boolean;
-  suitSymbols: Record<string, string>;
-  suitColors: Record<string, string>;
-  onCompleteHand: () => void;
-}
+export function HandCompleteOverlay() {
+  const { gameState, myPlayer, isHost, handleCompleteHand } = useGameUI();
 
-export function HandCompleteOverlay({
-  gameState,
-  myPlayer,
-  isHost,
-  suitSymbols,
-  suitColors,
-  onCompleteHand,
-}: HandCompleteOverlayProps) {
-  if (gameState.phase !== 'hand_complete') {
+  if (gameState.phase !== 'hand_complete' || !myPlayer) {
     return null;
   }
 
@@ -58,8 +45,8 @@ export function HandCompleteOverlay({
                 <Center className='space-x-4 mb-2'>
                   <span className='text-sm text-gray-600'>Trump:</span>
                   {gameState.trump && (
-                    <span className={`text-xl ${suitColors[gameState.trump]}`}>
-                      {suitSymbols[gameState.trump]} {gameState.trump}
+                    <span className={`text-xl ${getSuitColor(gameState.trump)}`}>
+                      {getSuitSymbol(gameState.trump)} {gameState.trump}
                     </span>
                   )}
                 </Center>
@@ -154,7 +141,7 @@ export function HandCompleteOverlay({
             </div>
 
             {isHost ? (
-              <Button onClick={onCompleteHand} size='lg' className='w-full'>
+              <Button onClick={handleCompleteHand} size='lg' className='w-full'>
                 {gameState.scores.team0 >= 10 || gameState.scores.team1 >= 10
                   ? 'End Game'
                   : 'Start Next Hand'}

@@ -64,6 +64,7 @@ export function useGameStateEffects(
         completedTricks: state.completedTricks,
         scores: state.scores,
         handScores: state.handScores,
+        dealerSelectionCards: state.dealerSelectionCards,
       }),
       () => broadcastGameState()
     );

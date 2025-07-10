@@ -1,39 +1,28 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Button from '~/components/ui/Button';
+import { useGame } from '~/contexts/GameContext';
+import { useGameUI } from '~/hooks/useGameUI';
+import { useGameStore } from '~/store/gameStore';
 import type { Card as CardType } from '~/types/game';
-
-interface BiddingInterfaceProps {
-  phase: 'bidding_round1' | 'bidding_round2';
-  kitty?: CardType;
-  turnedDownSuit?: CardType['suit'];
-  suitSymbols: Record<string, string>;
-  suitColors: Record<string, string>;
-  isDealer: boolean;
-  isDealerTeammate: boolean; // True when dealer is the player's teammate
-  _screwTheDealer: boolean; // Not used directly, but kept for completeness
-  isDealerScrewed: boolean; // True when dealer must call trump (can't pass)
-  onBid: (suit: CardType['suit'] | 'pass', alone?: boolean) => void;
-}
+import { getSuitColor, getSuitSymbol } from '~/utils/game/cardUtils';
 
 const SUITS: CardType['suit'][] = ['spades', 'hearts', 'diamonds', 'clubs'];
 
-export function BiddingInterface({
-  phase,
-  kitty,
-  turnedDownSuit,
-  suitSymbols,
-  suitColors,
-  isDealer,
-  isDealerTeammate,
-  _screwTheDealer,
-  isDealerScrewed,
-  onBid,
-}: BiddingInterfaceProps) {
+export function BiddingInterface() {
+  const { placeBid } = useGame();
+  const { phase, kitty, players, currentDealerPosition, turnedDownSuit, isDealerScrewed } =
+    useGameStore();
+  const { myPlayer } = useGameUI();
   const [selectedSuit, setSelectedSuit] = useState<CardType['suit'] | null>(null);
 
-  const handleBid = (suit: CardType['suit'] | 'pass', alone = false) => {
-    onBid(suit, alone);
-  };
+  const isDealerTeammate = useMemo(() => {
+    const dealer = players.find(p => p.position === currentDealerPosition);
+    return dealer ? dealer.teamId === myPlayer?.teamId && dealer.id !== myPlayer?.id : false;
+  }, [players, currentDealerPosition, myPlayer]);
+
+  const isDealer = useMemo(() => {
+    return myPlayer?.position === currentDealerPosition;
+  }, [myPlayer, currentDealerPosition]);
 
   const handleSuitSelection = (suit: CardType['suit']) => {
     // Both rounds: show alone prompt after suit selection
@@ -42,7 +31,7 @@ export function BiddingInterface({
 
   const handleAloneChoice = (alone: boolean) => {
     if (selectedSuit) {
-      handleBid(selectedSuit, alone);
+      placeBid(selectedSuit, alone);
     }
   };
 
@@ -57,7 +46,7 @@ export function BiddingInterface({
           <h3 className='text-sm font-bold text-gray-800 mb-2'>
             {phase === 'bidding_round1'
               ? 'Order It Up?'
-              : isDealerScrewed
+              : isDealerScrewed()
                 ? 'Must Call Trump!'
                 : 'Call Trump?'}
           </h3>
@@ -65,13 +54,13 @@ export function BiddingInterface({
           {phase === 'bidding_round1' && kitty && (
             <div className='text-xs text-gray-600 mb-3'>
               Kitty card:{' '}
-              <span className={`font-medium ${suitColors[kitty.suit]}`}>
-                {suitSymbols[kitty.suit]} {kitty.value}
+              <span className={`font-medium ${getSuitColor(kitty.suit)}`}>
+                {getSuitSymbol(kitty.suit)} {kitty.value}
               </span>
             </div>
           )}
 
-          {isDealerScrewed && (
+          {isDealerScrewed() && (
             <div className='text-xs text-red-600 font-medium mb-3 bg-red-50 p-2 rounded'>
               ⚠️ Screw the Dealer: You must call trump!
             </div>
@@ -86,8 +75,8 @@ export function BiddingInterface({
                   <div className='text-center mb-3'>
                     <p className='text-xs text-gray-600'>
                       {isDealerTeammate ? 'Assisting with:' : 'Ordering up:'}
-                      <span className={`font-medium pl-1 ${suitColors[selectedSuit]}`}>
-                        {suitSymbols[selectedSuit]} {selectedSuit}
+                      <span className={`font-medium pl-1 ${getSuitColor(selectedSuit)}`}>
+                        {getSuitSymbol(selectedSuit)} {selectedSuit}
                       </span>
                     </p>
                   </div>
@@ -135,7 +124,7 @@ export function BiddingInterface({
                   <Button
                     variant='secondary'
                     size='sm'
-                    onClick={() => handleBid('pass')}
+                    onClick={() => placeBid('pass')}
                     className='w-full px-3 py-1 text-xs'
                   >
                     {/* Dealer sees "turn it down" instead of pass */}
@@ -149,8 +138,8 @@ export function BiddingInterface({
             <div className='space-y-2'>
               <div className='text-center mb-3'>
                 <p className='text-xs text-gray-600 mb-1'>You selected:</p>
-                <div className={`text-lg font-bold ${suitColors[selectedSuit]}`}>
-                  {suitSymbols[selectedSuit]} {selectedSuit}
+                <div className={`text-lg font-bold ${getSuitColor(selectedSuit)}`}>
+                  {getSuitSymbol(selectedSuit)} {selectedSuit}
                 </div>
               </div>
 
@@ -191,8 +180,8 @@ export function BiddingInterface({
                 <div className='mb-2'>
                   <p className='text-xs text-gray-600'>
                     Turned down:{' '}
-                    <span className={`font-medium ${suitColors[turnedDownSuit]}`}>
-                      {suitSymbols[turnedDownSuit]} {turnedDownSuit}
+                    <span className={`font-medium ${getSuitColor(turnedDownSuit)}`}>
+                      {getSuitSymbol(turnedDownSuit)} {turnedDownSuit}
                     </span>
                   </p>
                 </div>
@@ -207,7 +196,7 @@ export function BiddingInterface({
                     onClick={() => handleSuitSelection(suit)}
                     className='flex flex-col items-center justify-center px-2 py-1 text-xs h-12'
                   >
-                    <span className={`text-sm ${suitColors[suit]}`}>{suitSymbols[suit]}</span>
+                    <span className={`text-sm ${getSuitColor(suit)}`}>{getSuitSymbol(suit)}</span>
                     <span className='text-xs capitalize'>{suit}</span>
                   </Button>
                 ))}
@@ -216,11 +205,11 @@ export function BiddingInterface({
               <Button
                 variant='secondary'
                 size='sm'
-                onClick={() => handleBid('pass')}
+                onClick={() => placeBid('pass')}
                 className='w-full px-3 py-1 text-xs mt-2'
-                disabled={isDealerScrewed}
+                disabled={isDealerScrewed()}
               >
-                {isDealerScrewed ? 'Must call trump' : 'Pass'}
+                {isDealerScrewed() ? 'Must call trump' : 'Pass'}
               </Button>
             </div>
           )}

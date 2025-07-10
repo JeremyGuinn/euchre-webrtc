@@ -1,28 +1,17 @@
 import Button from '~/components/ui/Button';
 import { Spinner } from '~/components/ui/Spinner';
-import type { GameState, Player } from '~/types/game';
+import { useGameUI } from '~/hooks/useGameUI';
+import { getSuitColor, getSuitSymbol } from '~/utils/game/cardUtils';
 import { Card } from '../Card';
 
 interface TrickCompleteOverlayProps {
-  gameState: GameState;
-  myPlayer: Player;
-  isHost: boolean;
   autoAdvanceProgress: number;
-  suitSymbols: Record<string, string>;
-  suitColors: Record<string, string>;
-  onContinueTrick: () => void;
 }
 
-export function TrickCompleteOverlay({
-  gameState,
-  myPlayer,
-  isHost,
-  autoAdvanceProgress,
-  suitSymbols,
-  suitColors,
-  onContinueTrick,
-}: TrickCompleteOverlayProps) {
-  if (gameState.phase !== 'trick_complete') {
+export function TrickCompleteOverlay({ autoAdvanceProgress }: TrickCompleteOverlayProps) {
+  const { gameState, myPlayer, isHost, handleContinueTrick } = useGameUI();
+
+  if (gameState.phase !== 'trick_complete' || !myPlayer) {
     return null;
   }
 
@@ -55,8 +44,8 @@ export function TrickCompleteOverlay({
 
                   <p className='text-sm text-gray-600 mb-2'>
                     Winning card:{' '}
-                    <span className={`font-medium ${suitColors[winningCard.card.suit]}`}>
-                      {suitSymbols[winningCard.card.suit]} {winningCard.card.value}
+                    <span className={`font-medium ${getSuitColor(winningCard.card.suit)}`}>
+                      {getSuitSymbol(winningCard.card.suit)} {winningCard.card.value}
                     </span>
                   </p>
 
@@ -70,7 +59,7 @@ export function TrickCompleteOverlay({
             {isHost ? (
               <div className='relative'>
                 <Button
-                  onClick={onContinueTrick}
+                  onClick={handleContinueTrick}
                   size='lg'
                   className='w-full relative overflow-hidden'
                 >

@@ -3,28 +3,26 @@ import Button from '~/components/ui/Button';
 import { Center } from '~/components/ui/Center';
 import { Spinner } from '~/components/ui/Spinner';
 import { Stack } from '~/components/ui/Stack';
-import type { GameState, Player } from '~/types/game';
+import { useGameUI } from '~/hooks/useGameUI';
+import { useGameStore } from '~/store/gameStore';
 
-interface TeamSummaryOverlayProps {
-  gameState: GameState;
-  suitSymbols: Record<string, string>;
-  suitColors: Record<string, string>;
-  myPlayer: Player;
-  isHost: boolean;
-  onRenameTeam: (teamId: 0 | 1, newName: string) => void;
-  onProceedToDealing: () => void;
-}
+export function TeamSummaryOverlay() {
+  const gameStore = useGameStore();
+  const {
+    myPlayer,
+    isHost,
+    getCardDisplay,
+    isMyPlayer,
+    isCurrentDealer,
+    handleRenameTeam,
+    handleProceedToDealing,
+  } = useGameUI();
 
-export function TeamSummaryOverlay({
-  gameState,
-  myPlayer,
-  isHost,
-  suitSymbols,
-  suitColors,
-  onRenameTeam,
-  onProceedToDealing,
-}: TeamSummaryOverlayProps) {
-  const dealer = gameState.players.find(p => p.position === gameState.currentPlayerPosition);
+  if (!myPlayer) {
+    return null;
+  }
+
+  const dealer = gameStore.players.find(p => p.position === gameStore.currentPlayerPosition);
 
   return (
     <div className='absolute inset-0 bg-black/40 z-40'>
@@ -41,7 +39,7 @@ export function TeamSummaryOverlay({
               <h3 className='text-lg font-semibold text-yellow-800 mb-1'>Dealer</h3>
               <p className='text-xl font-bold text-yellow-900'>
                 {dealer?.name || 'Unknown'}
-                {dealer?.id === myPlayer.id && ' (You)'}
+                {dealer && isMyPlayer(dealer) && ' (You)'}
               </p>
               <p className='text-sm text-yellow-700 mt-1'>
                 The dealer will deal the cards and has the final bidding option
@@ -56,16 +54,16 @@ export function TeamSummaryOverlay({
               <div className='text-lg text-blue-800 mb-3 text-center'>
                 <EditableTeamName
                   teamId={0}
-                  teamName={gameState.teamNames.team0}
-                  onRename={onRenameTeam}
+                  teamName={gameStore.teamNames.team0}
+                  onRename={handleRenameTeam}
                   disabled={
-                    !isHost && gameState.players.find(p => p.id === myPlayer.id)?.teamId !== 0
+                    !isHost && gameStore.players.find(p => p.id === myPlayer.id)?.teamId !== 0
                   }
                   className='text-blue-800'
                 />
               </div>
               <Stack spacing='2'>
-                {gameState.players
+                {gameStore.players
                   .filter(p => p.teamId === 0)
                   .sort((a, b) => a.position - b.position)
                   .map(player => (
@@ -73,22 +71,28 @@ export function TeamSummaryOverlay({
                       key={player.id}
                       className={`
                         p-2 rounded-md text-center font-medium
-                        ${player.id === myPlayer.id ? 'bg-blue-200 text-blue-900' : 'bg-white text-blue-800'}
-                        ${player.position === gameState.currentDealerPosition ? 'ring-2 ring-yellow-400' : ''}
+                        ${isMyPlayer(player) ? 'bg-blue-200 text-blue-900' : 'bg-white text-blue-800'}
+                        ${isCurrentDealer(player) ? 'ring-2 ring-yellow-400' : ''}
                       `}
                     >
                       {player.name}
-                      {player.id === myPlayer.id && ' (You)'}
-                      {player.position === gameState.currentDealerPosition && ' 🃏'}
+                      {isMyPlayer(player) && ' (You)'}
+                      {isCurrentDealer(player) && ' 🃏'}
                       {/* Show the randomly selected card */}
-                      {gameState.dealerSelectionCards?.[player.position] && (
+                      {gameStore.dealerSelectionCards?.[player.position] && (
                         <div className='text-sm text-gray-500'>
                           Drawn card:{' '}
                           <span
-                            className={`font-medium ${suitColors[gameState.dealerSelectionCards[player.position]!.suit]}`}
+                            className={`font-medium ${
+                              getCardDisplay(gameStore.dealerSelectionCards[player.position]!)
+                                .colorClass
+                            }`}
                           >
-                            {suitSymbols[gameState.dealerSelectionCards[player.position]!.suit]}{' '}
-                            {gameState.dealerSelectionCards[player.position]!.value}
+                            {
+                              getCardDisplay(gameStore.dealerSelectionCards[player.position]!)
+                                .symbol
+                            }{' '}
+                            {gameStore.dealerSelectionCards[player.position]!.value}
                           </span>
                         </div>
                       )}
@@ -102,16 +106,16 @@ export function TeamSummaryOverlay({
               <div className='text-lg text-red-800 mb-3 text-center'>
                 <EditableTeamName
                   teamId={1}
-                  teamName={gameState.teamNames.team1}
-                  onRename={onRenameTeam}
+                  teamName={gameStore.teamNames.team1}
+                  onRename={handleRenameTeam}
                   disabled={
-                    !isHost && gameState.players.find(p => p.id === myPlayer.id)?.teamId !== 1
+                    !isHost && gameStore.players.find(p => p.id === myPlayer.id)?.teamId !== 1
                   }
                   className='text-red-800'
                 />
               </div>
               <Stack spacing='2'>
-                {gameState.players
+                {gameStore.players
                   .filter(p => p.teamId === 1)
                   .sort((a, b) => a.position - b.position)
                   .map(player => (
@@ -119,21 +123,27 @@ export function TeamSummaryOverlay({
                       key={player.id}
                       className={`
                         p-2 rounded-md text-center font-medium
-                        ${player.id === myPlayer.id ? 'bg-red-200 text-red-900' : 'bg-white text-red-800'}
-                        ${player.position === gameState.currentDealerPosition ? 'ring-2 ring-yellow-400' : ''}
+                        ${isMyPlayer(player) ? 'bg-red-200 text-red-900' : 'bg-white text-red-800'}
+                        ${isCurrentDealer(player) ? 'ring-2 ring-yellow-400' : ''}
                       `}
                     >
                       {player.name}
-                      {player.id === myPlayer.id && ' (You)'}
-                      {player.position === gameState.currentDealerPosition && ' 🃏'}
-                      {gameState.dealerSelectionCards && (
+                      {isMyPlayer(player) && ' (You)'}
+                      {isCurrentDealer(player) && ' 🃏'}
+                      {gameStore.dealerSelectionCards && (
                         <div className='text-sm text-gray-500'>
                           Drawn card:{' '}
                           <span
-                            className={`font-medium ${suitColors[gameState.dealerSelectionCards[player.position]!.suit]}`}
+                            className={`font-medium ${
+                              getCardDisplay(gameStore.dealerSelectionCards[player.position]!)
+                                .colorClass
+                            }`}
                           >
-                            {suitSymbols[gameState.dealerSelectionCards[player.position]!.suit]}{' '}
-                            {gameState.dealerSelectionCards[player.position]!.value}
+                            {
+                              getCardDisplay(gameStore.dealerSelectionCards[player.position]!)
+                                .symbol
+                            }{' '}
+                            {gameStore.dealerSelectionCards[player.position]!.value}
                           </span>
                         </div>
                       )}
@@ -144,7 +154,7 @@ export function TeamSummaryOverlay({
           </div>
 
           {/* Team assignment explanation */}
-          {gameState.options.teamSelection === 'random_cards' && (
+          {gameStore.options.teamSelection === 'random_cards' && (
             <div className='text-center mb-6 p-3 bg-gray-50 rounded-lg'>
               <p className='text-sm text-gray-600'>
                 <span className='font-medium'>Random Teams:</span> Teams were determined by the
@@ -153,7 +163,7 @@ export function TeamSummaryOverlay({
             </div>
           )}
 
-          {gameState.options.teamSelection === 'predetermined' && (
+          {gameStore.options.teamSelection === 'predetermined' && (
             <div className='text-center mb-6 p-3 bg-gray-50 rounded-lg'>
               <p className='text-sm text-gray-600'>
                 <span className='font-medium'>Predetermined Teams:</span> Teams are set by seating
@@ -165,7 +175,7 @@ export function TeamSummaryOverlay({
           {/* Continue Button */}
           <div className='text-center'>
             {isHost ? (
-              <Button onClick={onProceedToDealing} size='lg' className='px-8'>
+              <Button onClick={handleProceedToDealing} size='lg' className='px-8'>
                 Deal Cards and Start Hand
               </Button>
             ) : (

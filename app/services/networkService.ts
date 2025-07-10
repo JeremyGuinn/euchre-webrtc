@@ -5,7 +5,6 @@ import { createMessageId } from '~/network/protocol';
 import { RECONNECTION_CONFIG, isPeerJSIdConflictError } from '~/network/reconnection';
 import { createScopedLogger } from '~/services/loggingService';
 import type { GameStore } from '~/store/gameStore';
-import type { GameState } from '~/types/game';
 import type { HandlerContext } from '~/types/handlers';
 import type { GameMessage } from '~/types/messages';
 import { sleep } from '~/utils/async';
@@ -15,7 +14,6 @@ import { gameCodeToHostId, generateGameCode } from '~/utils/game/gameCode';
 const RECONNECTION_COOLDOWN_MS = 5000;
 
 export interface GameNetworkServiceConfig {
-  gameState: GameState;
   gameStore: GameStore;
   myPlayerId: string;
   isHost: boolean;
@@ -440,8 +438,8 @@ export class GameNetworkService {
     this.logger.debug('Configuring network service', {
       myPlayerId: config.myPlayerId,
       isHost: config.isHost,
-      gamePhase: config.gameState.phase,
-      playerCount: config.gameState.players.length,
+      gamePhase: config.gameStore.phase,
+      playerCount: config.gameStore.players.length,
     });
 
     this.config = config;
@@ -466,7 +464,7 @@ export class GameNetworkService {
     this.logger.debug('Network service configuration updated', {
       myPlayerId: this.config.myPlayerId,
       isHost: this.config.isHost,
-      gamePhase: this.config.gameState.phase,
+      gamePhase: this.config.gameStore.phase,
     });
   }
 
@@ -538,7 +536,7 @@ export class GameNetworkService {
       messageType: message.type,
       messageId: message.messageId,
       senderId,
-      gamePhase: this.config.gameState.phase,
+      gamePhase: this.config.gameStore.phase,
       myPlayerId: this.config.myPlayerId,
       isHost: this.config.isHost,
     });
@@ -588,7 +586,7 @@ export class GameNetworkService {
       peerId,
       connected,
       isHost: this.config.isHost,
-      gamePhase: this.config.gameState.phase,
+      gamePhase: this.config.gameStore.phase,
     });
 
     this.config.gameStore.updatePlayerConnection(peerId, connected);
@@ -605,7 +603,7 @@ export class GameNetworkService {
   private handleHostDisconnection(peerId: string) {
     if (!this.config) return;
 
-    const hostPlayer = this.config.gameState.players.find(p => p.isHost);
+    const hostPlayer = this.config.gameStore.players.find(p => p.isHost);
     if (hostPlayer && hostPlayer.id === peerId) {
       this.logger.warn('Host disconnected, evaluating reconnection', {
         hostPlayerId: peerId,
@@ -648,9 +646,9 @@ export class GameNetworkService {
         'hand_complete',
       ];
 
-      if (validReconnectionPhases.includes(this.config.gameState.phase)) {
+      if (validReconnectionPhases.includes(this.config.gameStore.phase)) {
         this.logger.info('Starting host reconnection polling', {
-          gamePhase: this.config.gameState.phase,
+          gamePhase: this.config.gameStore.phase,
           hostPlayerId: peerId,
         });
 
@@ -676,7 +674,7 @@ export class GameNetworkService {
           });
       } else {
         this.logger.warn('Cannot reconnect in current game phase', {
-          gamePhase: this.config.gameState.phase,
+          gamePhase: this.config.gameStore.phase,
           validPhases: validReconnectionPhases,
         });
         this.config.setConnectionStatus('disconnected');

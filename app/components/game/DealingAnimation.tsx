@@ -1,15 +1,10 @@
 import { useEffect, useState } from 'react';
 
+import { useGame } from '~/contexts/GameContext';
+import { useGameUI } from '~/hooks/useGameUI';
+import { useGameStore } from '~/store/gameStore';
 import type { Player } from '~/types/game';
 import { CardBack } from './Card';
-
-interface DealingAnimationProps {
-  players: Player[];
-  myPlayer: Player;
-  isVisible: boolean;
-  currentDealerId: string;
-  onComplete: () => void;
-}
 
 interface DealingStep {
   playerId: string;
@@ -24,21 +19,17 @@ interface AnimatingCard {
   isAnimating: boolean;
 }
 
-export function DealingAnimation({
-  players,
-  myPlayer,
-  isVisible,
-  currentDealerId,
-  onComplete,
-}: DealingAnimationProps) {
+export function DealingAnimation() {
+  const { players, currentDealerPosition } = useGameStore();
+  const { myPlayer } = useGameUI();
+  const { completeDealingAnimation } = useGame();
+
   const [dealingSteps, setDealingSteps] = useState<DealingStep[]>([]);
   const [currentStep, setCurrentStep] = useState(-1);
   const [animatingCards, setAnimatingCards] = useState<AnimatingCard[]>([]);
 
   // Calculate dealing pattern (Euchre: 3-2 pattern starting from dealer)
   useEffect(() => {
-    if (!isVisible) return;
-
     // Find the dealer (player at position 0)
     const dealer = players.find(p => p.position === 0);
     if (!dealer) return;
@@ -82,11 +73,11 @@ export function DealingAnimation({
 
     setDealingSteps(steps);
     setCurrentStep(-1);
-  }, [players, isVisible]);
+  }, [players]);
 
   // Execute dealing animation
   useEffect(() => {
-    if (dealingSteps.length === 0 || !isVisible) return;
+    if (dealingSteps.length === 0) return;
 
     // Start the animation sequence
     const timer = setTimeout(() => {
@@ -94,7 +85,7 @@ export function DealingAnimation({
     }, 250); // Initial delay before starting
 
     return () => clearTimeout(timer);
-  }, [dealingSteps, isVisible]);
+  }, [dealingSteps]);
 
   // Handle each dealing step
   useEffect(() => {
@@ -131,7 +122,7 @@ export function DealingAnimation({
         if (currentStep + 1 >= dealingSteps.length) {
           // If last step, trigger completion callback
           setTimeout(() => {
-            onComplete();
+            completeDealingAnimation();
           }, 300); // Short delay before calling onComplete
         }
       }
@@ -141,7 +132,7 @@ export function DealingAnimation({
       clearTimeout(startAnimationTimer);
       clearTimeout(cleanupTimer);
     };
-  }, [currentStep, dealingSteps, onComplete]);
+  }, [completeDealingAnimation, currentStep, dealingSteps]);
 
   const getPlayerPosition = (player: Player, myPosition: number) => {
     const relativePosition = (player.position - myPosition + 4) % 4;
@@ -204,7 +195,7 @@ export function DealingAnimation({
     return { x, y, rotation };
   };
 
-  if (!isVisible) return null;
+  if (!myPlayer) return null;
 
   return (
     <div className='relative z-30 pointer-events-none h-full'>
@@ -277,8 +268,8 @@ export function DealingAnimation({
               className={`text-center flex flex-col items-center gap-2 ${position === 'top' ? 'flex-col-reverse' : ''}`}
             >
               <div className='inline-block px-3 py-1 rounded-lg text-sm font-medium mb-2 bg-white/20 text-white'>
-                {player.name} {player.id === myPlayer.id && '(You)'}
-                {player.id === currentDealerId && '(Dealer)'}
+                {player.name} {player.position === myPlayer.position && '(You)'}
+                {player.position === currentDealerPosition && '(Dealer)'}
               </div>
 
               {/* Show card backs for dealt cards */}

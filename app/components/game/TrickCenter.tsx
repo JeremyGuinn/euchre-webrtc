@@ -1,14 +1,13 @@
 import { Card, CardBack } from '~/components/game/Card';
 import { Center } from '~/components/ui/Center';
-import type { GameState, Player } from '~/types/game';
+import { useGameUI } from '~/hooks/useGameUI';
 
-interface TrickCenterProps {
-  gameState: GameState;
-  myPlayer: Player;
-  getPlayerPosition: (player: Player, myPosition: number) => string;
-}
+export function TrickCenter() {
+  const { gameState, myPlayer, getPlayerCircularPosition } = useGameUI();
 
-export function TrickCenter({ gameState, myPlayer, getPlayerPosition }: TrickCenterProps) {
+  if (!myPlayer) {
+    return null;
+  }
   return (
     <Center className='absolute inset-0'>
       <div className='w-64 h-64 bg-green-700 rounded-full border-4 border-yellow-600 relative'>
@@ -18,31 +17,9 @@ export function TrickCenter({ gameState, myPlayer, getPlayerPosition }: TrickCen
             const player = gameState.players.find(p => p.position === playedCard.playerPosition);
             if (!player) return null;
 
-            // Get the relative position of the player who played this card
-            const playerPosition = getPlayerPosition(player, myPlayer.position);
-
-            // Map player position to angle for card placement
-            let angle;
-            switch (playerPosition) {
-              case 'bottom':
-                angle = 180;
-                break; // 6 o'clock
-              case 'left':
-                angle = 270;
-                break; // 9 o'clock
-              case 'top':
-                angle = 0;
-                break; // 12 o'clock
-              case 'right':
-                angle = 90;
-                break; // 3 o'clock
-              default:
-                angle = 180;
-            }
-
+            // Get circular position coordinates for the player who played this card
             const radius = 80;
-            const x = Math.cos(((angle - 90) * Math.PI) / 180) * radius; // -90 to adjust for 0° being top
-            const y = Math.sin(((angle - 90) * Math.PI) / 180) * radius;
+            const { x, y } = getPlayerCircularPosition(player, radius);
 
             return (
               <div

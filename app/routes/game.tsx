@@ -9,8 +9,8 @@ import { Center } from '~/components/ui/Center';
 import { Spinner } from '~/components/ui/Spinner';
 import { Stack } from '~/components/ui/Stack';
 import { useGame } from '~/contexts/GameContext';
-import type { Card as CardType } from '~/types/game';
 
+import { useElementHeight } from '~/hooks/useElementHeight';
 import type { Route } from './+types/game';
 
 // Auto-advance configuration
@@ -32,56 +32,14 @@ export function meta({ params }: Route.MetaArgs) {
   ];
 }
 
-const suitSymbols = {
-  spades: '♠',
-  hearts: '♥',
-  diamonds: '♦',
-  clubs: '♣',
-};
-
-const suitColors = {
-  spades: 'text-black',
-  hearts: 'text-red-600',
-  diamonds: 'text-red-600',
-  clubs: 'text-black',
-};
-
 export default function Game({ params }: Route.ComponentProps) {
-  const navigate = useNavigate();
-  const {
-    gameState,
-    isHost,
-    connectionStatus,
-    getMyPlayer,
-    getMyHand,
-    isMyTurn,
-    isSittingOut,
-    canPlay,
-    playCard,
-    placeBid,
-    drawDealerCard,
-    proceedToDealing,
-    completeDealingAnimation,
-    selectDealer,
-    continueTrick,
-    completeHand,
-    dealerDiscard,
-    swapFarmersHand,
-    declineFarmersHand,
-    renameTeam,
-    leaveGame,
-    kickPlayer,
-  } = useGame();
   const { gameCode } = params;
+  const { gameState, isHost, connectionStatus, getMyPlayer, continueTrick } = useGame();
+  const myPlayer = getMyPlayer();
+  const navigate = useNavigate();
+  const headerHeight = useElementHeight('#game-header');
 
   const [autoAdvanceProgress, setAutoAdvanceProgress] = useState(0);
-
-  const myPlayer = getMyPlayer();
-  const myHand = getMyHand();
-  const currentPlayer =
-    gameState.currentPlayerPosition !== undefined
-      ? gameState.players.find(p => p.position === gameState.currentPlayerPosition)
-      : undefined;
 
   useEffect(() => {
     // Redirect to lobby if game hasn't started
@@ -116,51 +74,14 @@ export default function Game({ params }: Route.ComponentProps) {
     }
   }, [gameState.phase, isHost, continueTrick]);
 
-  const [headerHeight, setHeaderHeight] = useState(0);
-
-  useEffect(() => {
-    const headerElement = document.getElementById('game-header');
-    if (!headerElement) return;
-
-    const resizeObserver = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        setHeaderHeight(entry.target.clientHeight);
-      }
-    });
-
-    resizeObserver.observe(headerElement);
-    setHeaderHeight(headerElement.clientHeight);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
-
-  const handleCardClick = (card: CardType) => {
-    if (!isMyTurn() || gameState.phase !== 'playing') return;
-
-    if (!canPlay(card)) {
-      // Show error feedback
-      return;
-    }
-
-    playCard(card);
-  };
-
-  const handleBid = (suit: CardType['suit'] | 'pass', alone: boolean = false) => {
-    placeBid(suit, alone);
-  };
-
-  const handleLeaveGame = () => leaveGame();
-
   const shouldShowCards = () => {
-    return (
-      gameState.phase === 'bidding_round1' ||
-      gameState.phase === 'bidding_round2' ||
-      gameState.phase === 'dealer_discard' ||
-      gameState.phase === 'playing' ||
-      gameState.phase === 'trick_complete'
-    );
+    return [
+      'bidding_round1',
+      'bidding_round2',
+      'dealer_discard',
+      'playing',
+      'trick_complete',
+    ].includes(gameState.phase);
   };
 
   if (!myPlayer) {
@@ -181,30 +102,11 @@ export default function Game({ params }: Route.ComponentProps) {
   return (
     <GameContainer className='relative overflow-hidden'>
       {/* Header */}
-      <GameHeader
-        gameState={gameState}
-        suitSymbols={suitSymbols}
-        suitColors={suitColors}
-        onLeaveGame={handleLeaveGame}
-      />
+      <GameHeader />
 
       {/* Game Table */}
       {shouldShowCards() && (
-        <GameTable
-          gameState={gameState}
-          myPlayer={myPlayer}
-          myHand={myHand}
-          currentPlayer={currentPlayer}
-          headerHeight={headerHeight}
-          shouldShowCards={shouldShowCards()}
-          isSittingOut={isSittingOut}
-          canPlay={canPlay}
-          isMyTurn={isMyTurn}
-          onCardClick={handleCardClick}
-          onDealerDiscard={dealerDiscard}
-          isHost={isHost}
-          onKickPlayer={kickPlayer}
-        />
+        <GameTable headerHeight={headerHeight} shouldShowCards={shouldShowCards()} />
       )}
 
       {/* Connection status indicator */}
@@ -215,29 +117,7 @@ export default function Game({ params }: Route.ComponentProps) {
       )}
 
       {/* Game Phase Manager - handles all overlays and phase-specific UI */}
-      <GamePhaseManager
-        gameState={gameState}
-        myPlayer={myPlayer}
-        myHand={myHand}
-        isHost={isHost}
-        isMyTurn={isMyTurn}
-        headerHeight={headerHeight}
-        autoAdvanceProgress={autoAdvanceProgress}
-        gameCode={gameCode}
-        suitSymbols={suitSymbols}
-        suitColors={suitColors}
-        onBid={handleBid}
-        onSelectDealer={selectDealer}
-        onDrawDealerCard={drawDealerCard}
-        onProceedToDealing={proceedToDealing}
-        onCompleteDealingAnimation={completeDealingAnimation}
-        onContinueTrick={continueTrick}
-        onCompleteHand={completeHand}
-        onSwapFarmersHand={swapFarmersHand}
-        onDeclineFarmersHand={declineFarmersHand}
-        onRenameTeam={renameTeam}
-        onLeaveGame={handleLeaveGame}
-      />
+      <GamePhaseManager headerHeight={headerHeight} autoAdvanceProgress={autoAdvanceProgress} />
     </GameContainer>
   );
 }

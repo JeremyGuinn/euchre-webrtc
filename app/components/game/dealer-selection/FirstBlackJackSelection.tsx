@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useGame } from '~/contexts/GameContext';
+import { useGameUI } from '~/hooks/useGameUI';
+import { useGameStore } from '~/store/gameStore';
 import type { Card, Player } from '~/types/game';
 import { getPlayerIdFromPosition } from '~/utils/game/playerUtils';
 import CardDeck from './CardDeck';
@@ -7,19 +9,9 @@ import DealerSelectionStatus from './DealerSelectionStatus';
 import { FirstBlackJackDealingAnimation } from './FirstBlackJackDealingAnimation';
 import PlayerDealingArea from './PlayerDealingArea';
 
-interface FirstBlackJackSelectionProps {
-  players: Player[];
-  myPlayer: Player;
-  isVisible: boolean;
-  deck: Card[];
-}
-
-export function FirstBlackJackSelection({
-  players,
-  myPlayer,
-  isVisible,
-  deck: _deck,
-}: FirstBlackJackSelectionProps) {
+export function FirstBlackJackSelection() {
+  const { players } = useGameStore();
+  const { myPlayer } = useGameUI();
   const { gameState, isHost, dealFirstBlackJackCard, completeBlackJackDealerSelection } = useGame();
 
   // Animation state
@@ -50,7 +42,7 @@ export function FirstBlackJackSelection({
 
   // Detect when a new card is being dealt and trigger animation
   useEffect(() => {
-    if (!lastDealtCard || !isVisible) return;
+    if (!lastDealtCard) return;
 
     const playerId = getPlayerIdFromPosition(lastDealtCard.playerPosition, players);
     if (!playerId) return; // Ensure we have a valid player ID
@@ -61,7 +53,7 @@ export function FirstBlackJackSelection({
       playerId,
     });
     setIsAnimating(true);
-  }, [dealtCardsCount, lastDealtCard, isVisible, players]); // Use dealtCardsCount to trigger on new cards
+  }, [dealtCardsCount, lastDealtCard, players]); // Use dealtCardsCount to trigger on new cards
 
   // Handle animation completion
   const handleAnimationComplete = () => {
@@ -165,14 +157,14 @@ export function FirstBlackJackSelection({
 
   // Reset completed animations when component becomes visible
   useEffect(() => {
-    if (isVisible && !dealingComplete) {
+    if (!dealingComplete) {
       setCompletedAnimations(new Set());
     }
-  }, [isVisible, dealingComplete]);
+  }, [dealingComplete]);
 
   // Auto-deal cards with timing (only on host)
   useEffect(() => {
-    if (!isVisible || dealingComplete || !isHost) return;
+    if (dealingComplete || !isHost) return;
     if (!dealingState) return;
 
     // Stop dealing if a black jack has been found
@@ -186,9 +178,9 @@ export function FirstBlackJackSelection({
     }, initialDelay + 400); // Faster dealing - twice as fast as before
 
     return () => clearTimeout(timer);
-  }, [isVisible, dealingComplete, isHost, dealingState, currentCardIndex, dealFirstBlackJackCard]);
+  }, [dealingComplete, isHost, dealingState, currentCardIndex, dealFirstBlackJackCard]);
 
-  if (!isVisible) return null;
+  if (!myPlayer) return null; // Ensure myPlayer is defined before rendering
 
   return (
     <>
@@ -201,8 +193,6 @@ export function FirstBlackJackSelection({
 
       {/* Dealing Animation */}
       <FirstBlackJackDealingAnimation
-        players={players}
-        myPlayer={myPlayer}
         isVisible={isAnimating}
         currentCard={pendingDeal?.card || null}
         targetPlayerId={pendingDeal?.playerId || null}
@@ -237,15 +227,9 @@ export function FirstBlackJackSelection({
       {/* Central status message */}
       <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
         <DealerSelectionStatus
-          method='first_black_jack'
           dealerFound={dealingComplete || !!dealingState?.blackJackFound}
           currentStep={currentCardIndex}
           totalSteps={gameState.deck?.length ?? 52}
-          currentPlayerName={
-            dealingState?.blackJackFound
-              ? players.find(p => p.position === dealingState.blackJackFound?.playerPosition)?.name
-              : players[currentPlayerIndex]?.name
-          }
         />
       </div>
     </>

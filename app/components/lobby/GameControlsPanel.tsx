@@ -1,12 +1,11 @@
 import Button from '~/components/ui/Button';
 import Panel from '~/components/ui/Panel';
-import type { GameOptions } from '~/types/game';
+import { useGameStore } from '~/store/gameStore';
 
 interface GameControlsPanelProps {
   connectedPlayersCount: number;
   isHost: boolean;
   canStartGame: boolean;
-  gameOptions: GameOptions;
   onStartGame: () => void;
 }
 
@@ -14,9 +13,9 @@ export default function GameControlsPanel({
   connectedPlayersCount,
   isHost,
   canStartGame,
-  gameOptions,
   onStartGame,
 }: GameControlsPanelProps) {
+  const gameStore = useGameStore();
   const playersNeeded = 4 - connectedPlayersCount;
 
   const handleStartGame = () => {
@@ -39,8 +38,8 @@ export default function GameControlsPanel({
         ) : isHost ? (
           <div>
             {connectedPlayersCount === 4 &&
-            gameOptions.dealerSelection === 'predetermined_first_dealer' &&
-            gameOptions.predeterminedFirstDealerPosition === undefined ? (
+            gameStore.options.dealerSelection === 'predetermined_first_dealer' &&
+            gameStore.options.predeterminedFirstDealerId === undefined ? (
               <div>
                 <p className='text-yellow-600 font-medium mb-4'>
                   Please select a first dealer before starting the game.

@@ -323,7 +323,7 @@ export function useGameActions(
 
       gameStore.updateGameOptions(options);
     },
-    [isHost, gameStore.phase, gameStore]
+    [isHost, gameStore]
   );
 
   const setPredeterminedDealer = useCallback(
@@ -339,7 +339,7 @@ export function useGameActions(
       // Update the game options with the selected dealer position
       const updatedOptions: GameOptions = {
         ...gameStore.options,
-        predeterminedFirstDealerPosition: player.position,
+        predeterminedFirstDealerId: player.id,
       };
 
       gameStore.updateGameOptions(updatedOptions);
@@ -354,7 +354,7 @@ export function useGameActions(
         });
       }
     },
-    [isHost, gameStore.phase, gameStore.options, gameStore.players, gameStore, networkService]
+    [gameStore, isHost, networkService]
   );
 
   const continueTrick = useCallback(() => {
@@ -362,14 +362,14 @@ export function useGameActions(
     if (gameStore.phase !== 'trick_complete') return;
 
     gameStore.completeTrick();
-  }, [isHost, gameStore.phase, gameStore]);
+  }, [isHost, gameStore]);
 
   const completeHand = useCallback(() => {
     if (!isHost) return;
     if (gameStore.phase !== 'hand_complete') return;
 
     gameStore.completeHand();
-  }, [isHost, gameStore.phase, gameStore]);
+  }, [isHost, gameStore]);
 
   const swapFarmersHand = useCallback(
     (cardsToSwap: Card[]) => {

@@ -1,21 +1,21 @@
-import type { GameState, Player } from '~/types/game';
+import { useMemo } from 'react';
+import { useGameUI } from '~/hooks/useGameUI';
+import { useGameStore } from '~/store/gameStore';
 
-interface CurrentTurnIndicatorProps {
-  gameState: GameState;
-  myPlayer: Player;
-  currentPlayer?: Player;
-}
+export function CurrentTurnIndicator() {
+  const gameStore = useGameStore();
+  const { myPlayer } = useGameUI();
 
-export function CurrentTurnIndicator({
-  gameState,
-  myPlayer,
-  currentPlayer,
-}: CurrentTurnIndicatorProps) {
+  const currentPlayer = useMemo(() => {
+    return gameStore.players.find(player => player.position === gameStore.currentPlayerPosition);
+  }, [gameStore.players, gameStore.currentPlayerPosition]);
+
   if (
     !currentPlayer ||
-    gameState.phase === 'dealing_animation' ||
-    gameState.phase === 'dealer_selection' ||
-    gameState.phase === 'team_summary'
+    !myPlayer ||
+    gameStore.phase === 'dealing_animation' ||
+    gameStore.phase === 'dealer_selection' ||
+    gameStore.phase === 'team_summary'
   ) {
     return null;
   }
@@ -27,11 +27,11 @@ export function CurrentTurnIndicator({
       <div className='bg-black/70 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg border border-white/20'>
         {isMyTurn ? (
           <>
-            {gameState.phase === 'dealer_discard' && (
+            {gameStore.phase === 'dealer_discard' && (
               <>
                 <span className='font-medium text-yellow-400'>
                   {/* If they were ordered up add text */}
-                  {gameState.maker?.playerPosition !== myPlayer.position
+                  {gameStore.maker?.playerPosition !== myPlayer.position
                     ? 'You were ordered up!'
                     : 'You took it up!'}
                 </span>
@@ -39,12 +39,12 @@ export function CurrentTurnIndicator({
               </>
             )}
             <span className='font-medium text-yellow-400'>
-              {gameState.phase === 'dealer_discard' ? `Choose a card to discard.` : 'Your turn!'}
+              {gameStore.phase === 'dealer_discard' ? `Choose a card to discard.` : 'Your turn!'}
             </span>
           </>
         ) : (
           <span>
-            {gameState.phase === 'dealer_discard'
+            {gameStore.phase === 'dealer_discard'
               ? `Waiting for ${currentPlayer.name} to discard...`
               : `Waiting for ${currentPlayer.name}...`}
           </span>

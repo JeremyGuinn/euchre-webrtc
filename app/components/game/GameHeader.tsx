@@ -1,35 +1,34 @@
 import Button from '~/components/ui/Button';
-import type { GameState } from '~/types/game';
+import { useGame } from '~/contexts/GameContext';
+import { useGameStore } from '~/store/gameStore';
+import { getSuitColor, getSuitSymbol } from '~/utils/game/cardUtils';
 
-interface GameHeaderProps {
-  gameState: GameState;
-  suitSymbols: Record<string, string>;
-  suitColors: Record<string, string>;
-  onLeaveGame: () => void;
-}
+export function GameHeader() {
+  const gameStore = useGameStore();
+  const { leaveGame } = useGame();
 
-export function GameHeader({ gameState, suitSymbols, suitColors, onLeaveGame }: GameHeaderProps) {
   return (
     <div className='absolute top-0 left-0 right-0 bg-black/20 p-4 z-10' id='game-header'>
       <div className='flex justify-between items-center text-white'>
         <div className='flex items-center space-x-6'>
           <h1 className='text-xl font-bold'>Euchre Game</h1>
 
-          {gameState.trump && (
+          {gameStore.trump && (
             <div className='flex items-center space-x-1'>
               <span className='text-sm'>Trump:</span>
-              <span className={`text-lg ${suitColors[gameState.trump]}`}>
-                {suitSymbols[gameState.trump]}
+              <span className={`text-2xl ${getSuitColor(gameStore.trump)}`}>
+                {getSuitSymbol(gameStore.trump)}
               </span>
+              <span className='text-sm'>{gameStore.trump}</span>
             </div>
           )}
         </div>
         <div className='flex items-center space-x-4'>
           <div className='text-sm'>
-            {gameState.teamNames.team0}: {gameState.scores.team0} | {gameState.teamNames.team1}:{' '}
-            {gameState.scores.team1}
+            {gameStore.teamNames.team0}: {gameStore.scores.team0} | {gameStore.teamNames.team1}:{' '}
+            {gameStore.scores.team1}
           </div>
-          <Button variant='danger' size='sm' onClick={onLeaveGame}>
+          <Button variant='danger' size='sm' onClick={() => leaveGame()}>
             Leave
           </Button>
         </div>

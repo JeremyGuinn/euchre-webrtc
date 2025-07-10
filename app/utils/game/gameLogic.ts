@@ -221,18 +221,23 @@ export function getDealerSelectionRank(card: Card): number {
  */
 export function selectDealerAndTeams(
   players: Player[],
-  drawnCards: Record<string, Card>
+  drawnCards: Partial<Record<0 | 1 | 2 | 3, Card>>
 ): {
   dealer: Player;
   arrangedPlayers: Player[];
 } {
   // Sort players by their drawn card rank (lowest first)
   const playersWithCards = players
-    .map(player => ({
-      player,
-      card: drawnCards[player.id],
-      rank: getDealerSelectionRank(drawnCards[player.id]),
-    }))
+    .map(player => {
+      const card = drawnCards[player.position];
+      if (!card) return null;
+      return {
+        player,
+        card,
+        rank: getDealerSelectionRank(card),
+      };
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null) // Only include players who have drawn cards
     .sort((a, b) => {
       // If ranks are equal, maintain current order (arbitrary but consistent)
       if (a.rank === b.rank) {
@@ -299,18 +304,23 @@ export function selectDealerAndTeams(
  */
 export function selectDealerOnly(
   players: Player[],
-  drawnCards: Record<string, Card>
+  drawnCards: Partial<Record<0 | 1 | 2 | 3, Card>>
 ): {
   dealer: Player;
   arrangedPlayers: Player[];
 } {
   // Sort players by their drawn card rank (lowest first) to find dealer
   const playersWithCards = players
-    .map(player => ({
-      player,
-      card: drawnCards[player.id],
-      rank: getDealerSelectionRank(drawnCards[player.id]),
-    }))
+    .map(player => {
+      const card = drawnCards[player.position];
+      if (!card) return null;
+      return {
+        player,
+        card,
+        rank: getDealerSelectionRank(card),
+      };
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null) // Only include players who have drawn cards
     .sort((a, b) => {
       if (a.rank === b.rank) {
         return a.card.id.localeCompare(b.card.id);

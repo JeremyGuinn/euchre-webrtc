@@ -2,26 +2,16 @@ import { useState } from 'react';
 import { Card } from '~/components/game/Card';
 import Button from '~/components/ui/Button';
 import Panel from '~/components/ui/Panel';
+import { useGame } from '~/contexts/GameContext';
 import type { Card as CardType } from '~/types/game';
 
-interface FarmersHandInterfaceProps {
-  hand: CardType[];
-  onSwap: (cardsToSwap: CardType[]) => void;
-  onDecline: () => void;
-  disabled?: boolean;
-}
-
-export function FarmersHandInterface({
-  hand,
-  onSwap,
-  onDecline,
-  disabled = false,
-}: FarmersHandInterfaceProps) {
+export function FarmersHandInterface() {
   const [selectedCards, setSelectedCards] = useState<CardType[]>([]);
+  const { swapFarmersHand, declineFarmersHand, getMyHand } = useGame();
+
+  const hand = getMyHand();
 
   const handleCardClick = (card: CardType) => {
-    if (disabled) return;
-
     setSelectedCards(prev => {
       const isSelected = prev.some(c => c.id === card.id);
       if (isSelected) {
@@ -37,7 +27,7 @@ export function FarmersHandInterface({
 
   const handleSwap = () => {
     if (selectedCards.length === 3) {
-      onSwap(selectedCards);
+      swapFarmersHand(selectedCards);
     }
   };
 
@@ -68,9 +58,8 @@ export function FarmersHandInterface({
                   isCardSelected(card)
                     ? 'ring-4 ring-blue-500 ring-offset-2 transform -translate-y-2'
                     : 'hover:transform hover:-translate-y-1'
-                } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                }`}
                 onClick={() => handleCardClick(card)}
-                disabled={disabled}
               >
                 <Card card={card} size='medium' />
               </button>
@@ -82,14 +71,14 @@ export function FarmersHandInterface({
         </div>
 
         <div className='flex justify-center space-x-4'>
-          <Button variant='secondary' onClick={onDecline} disabled={disabled} className='px-6 py-2'>
+          <Button variant='secondary' onClick={() => declineFarmersHand()} className='px-6 py-2'>
             Keep Current Hand
           </Button>
 
           <Button
             variant='primary'
             onClick={handleSwap}
-            disabled={disabled || selectedCards.length !== 3}
+            disabled={selectedCards.length !== 3}
             className='px-6 py-2'
           >
             Swap Cards
