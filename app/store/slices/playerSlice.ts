@@ -8,7 +8,6 @@ export interface PlayerSlice {
   setMyPlayerId: (playerId: string) => void;
   removePlayer: (playerId: string) => void;
   updatePlayerConnection: (playerId: string, isConnected: boolean) => void;
-  reconnectPlayer: (oldPlayerId: string, newPlayerId: string, playerName: string) => void;
   renamePlayer: (playerId: string, newName: string) => void;
   kickPlayer: (playerId: string) => void;
   movePlayer: (playerId: string, newPosition: 0 | 1 | 2 | 3) => void;
@@ -59,27 +58,6 @@ export const createPlayerSlice: StateCreator<GameStore, [], [], PlayerSlice> = (
     set(state => ({
       players: state.players.map(p => (p.id === playerId ? { ...p, isConnected } : p)),
     }));
-  },
-
-  reconnectPlayer: (oldPlayerId: string, newPlayerId: string, playerName: string) => {
-    const state = get();
-
-    const playerToReconnect = state.players.find(p => p.id === oldPlayerId);
-    if (!playerToReconnect) {
-      return;
-    }
-
-    // Simple player data update - all game state uses positions now
-    const updatedPlayer: Player = {
-      ...playerToReconnect,
-      id: newPlayerId,
-      name: playerName,
-      isConnected: true,
-    };
-
-    set({
-      players: state.players.map(p => (p.id === oldPlayerId ? updatedPlayer : p)),
-    });
   },
 
   renamePlayer: (playerId: string, newName: string) => {

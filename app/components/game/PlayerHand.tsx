@@ -8,7 +8,7 @@ interface PlayerHandProps {
   player: Player;
   myPlayer: Player;
   myHand: CardType[];
-  isSittingOut: () => boolean;
+  isSittingOut: boolean;
   canPlay: (card: CardType) => boolean;
   isMyTurn: () => boolean;
   onCardClick: (card: CardType) => void;
@@ -61,14 +61,14 @@ export function PlayerHand({
                   }
                 }}
                 disabled={
-                  isSittingOut() ||
+                  isSittingOut ||
                   (isInDealerDiscardPhase
                     ? !canDiscard
                     : !isMyTurn() || phase !== 'playing' || !canPlay(card))
                 }
                 className={`
                   ${
-                    isSittingOut()
+                    isSittingOut
                       ? 'opacity-30 grayscale'
                       : !canPlay(card) && isMyTurn() && phase === 'playing'
                         ? 'opacity-50'
@@ -91,7 +91,7 @@ export function PlayerHand({
               )}
 
               {/* Sitting out overlay */}
-              {isSittingOut() && (
+              {isSittingOut && (
                 <div className='absolute inset-0 bg-gray-900/40 rounded-lg flex items-center justify-center pointer-events-none'>
                   <div className='bg-gray-700 text-white text-xs font-bold px-2 py-1 rounded shadow-lg'>
                     SITTING OUT

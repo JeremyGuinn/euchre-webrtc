@@ -12,8 +12,7 @@ import PlayerDealingArea from './PlayerDealingArea';
 export function FirstBlackJackSelection() {
   const { players } = useGameStore();
   const myPlayer = useGameStore(select.myPlayer);
-
-  const { gameState, isHost, dealFirstBlackJackCard, completeBlackJackDealerSelection } = useGame();
+  const { gameState, dealFirstBlackJackCard, completeBlackJackDealerSelection } = useGame();
 
   // Animation state
   const [pendingDeal, setPendingDeal] = useState<{
@@ -70,7 +69,7 @@ export function FirstBlackJackSelection() {
         pendingDeal.card.value === 'J' &&
         (pendingDeal.card.suit === 'spades' || pendingDeal.card.suit === 'clubs');
 
-      if (isBlackJack && isHost) {
+      if (isBlackJack && myPlayer?.isHost) {
         // Add a small delay to let the animation fully settle before transitioning
         setTimeout(() => {
           completeBlackJackDealerSelection();
@@ -150,7 +149,7 @@ export function FirstBlackJackSelection() {
 
   // Auto-deal cards with timing (only on host)
   useEffect(() => {
-    if (dealingComplete || !isHost) return;
+    if (dealingComplete || !myPlayer?.isHost) return;
     if (!dealingState) return;
 
     // Stop dealing if a black jack has been found
@@ -164,7 +163,7 @@ export function FirstBlackJackSelection() {
     }, initialDelay + 400); // Faster dealing - twice as fast as before
 
     return () => clearTimeout(timer);
-  }, [dealingComplete, isHost, dealingState, currentCardIndex, dealFirstBlackJackCard]);
+  }, [dealingComplete, myPlayer?.isHost, dealingState, currentCardIndex, dealFirstBlackJackCard]);
 
   if (!myPlayer) return null; // Ensure myPlayer is defined before rendering
 

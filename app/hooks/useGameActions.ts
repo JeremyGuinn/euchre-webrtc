@@ -3,17 +3,16 @@ import { useCallback } from 'react';
 import { createMessageId } from '~/network/protocol';
 import { GameNetworkService } from '~/services/networkService';
 import { useGameStore } from '~/store/gameStore';
+import { select } from '~/store/selectors/players';
 import type { Bid, Card, GameOptions } from '~/types/game';
 import { getPositionFromPlayerId, makeNameUnique } from '~/utils/game/playerUtils';
 
-export function useGameActions(
-  myPlayerId: string | undefined,
-  isHost: boolean,
-  networkService: GameNetworkService
-) {
+export function useGameActions(networkService: GameNetworkService) {
   const gameStore = useGameStore();
+  const myPlayer = useGameStore(select.myPlayer);
+
   const startGame = useCallback(() => {
-    if (!isHost) {
+    if (!myPlayer?.isHost) {
       return;
     }
 
@@ -21,7 +20,7 @@ export function useGameActions(
 
     // Broadcast the game start to all clients
     gameStore.players.forEach(player => {
-      if (player.id !== myPlayerId) {
+      if (player.id !== gameStore.myPlayerId) {
         const personalizedState = gameStore.createPublicGameState(player.id);
 
         networkService.sendMessage(
@@ -35,18 +34,18 @@ export function useGameActions(
         );
       }
     });
-  }, [isHost, gameStore, networkService, myPlayerId]);
+  }, [myPlayer?.isHost, gameStore, networkService]);
 
   const selectDealer = useCallback(() => {
-    if (!isHost) {
+    if (!myPlayer?.isHost) {
       return;
     }
 
     gameStore.selectDealer();
-  }, [isHost, gameStore]);
+  }, [myPlayer?.isHost, gameStore]);
 
   const dealFirstBlackJackCard = useCallback(() => {
-    if (!isHost) {
+    if (!myPlayer?.isHost) {
       return;
     }
     if (gameStore.options.dealerSelection !== 'first_black_jack') {
@@ -84,10 +83,10 @@ export function useGameActions(
 
     // Update local state
     gameStore.dealerCardDealt(currentPlayer.id, card, currentCardIndex, isBlackJack);
-  }, [isHost, gameStore, networkService]);
+  }, [myPlayer?.isHost, gameStore, networkService]);
 
   const completeBlackJackDealerSelection = useCallback(() => {
-    if (!isHost) {
+    if (!myPlayer?.isHost) {
       return;
     }
 
@@ -101,16 +100,16 @@ export function useGameActions(
 
     // Update local state
     gameStore.completeBlackjackDealerSelection();
-  }, [isHost, networkService, gameStore]);
+  }, [myPlayer?.isHost, networkService, gameStore]);
 
   const drawDealerCard = useCallback(
     (cardIndex?: number) => {
-      const myPosition = getPositionFromPlayerId(myPlayerId, gameStore.players);
+      const myPosition = getPositionFromPlayerId(gameStore.myPlayerId, gameStore.players);
       if (myPosition === undefined || gameStore.dealerSelectionCards?.[myPosition]) {
         return;
       }
 
-      if (isHost) {
+      if (myPlayer?.isHost) {
         if (!gameStore.deck) {
           return;
         }
@@ -134,7 +133,7 @@ export function useGameActions(
           drawnCard = availableCards[randomIndex];
         }
 
-        if (myPlayerId) gameStore.drawDealerCard(myPlayerId, drawnCard);
+        if (myPlayer?.id) gameStore.drawDealerCard(myPlayer.id, drawnCard);
       } else {
         if (cardIndex === undefined) {
           return;
@@ -148,28 +147,28 @@ export function useGameActions(
         });
       }
     },
-    [gameStore, myPlayerId, isHost, networkService]
+    [gameStore, myPlayer?.id, myPlayer?.isHost, networkService]
   );
 
   const proceedToDealing = useCallback(() => {
-    if (!isHost) return;
+    if (!myPlayer?.isHost) return;
 
     gameStore.proceedToDealing();
-  }, [isHost, gameStore]);
+  }, [myPlayer?.isHost, gameStore]);
 
   const completeDealingAnimation = useCallback(() => {
-    if (!isHost) return;
+    if (!myPlayer?.isHost) return;
 
     // Brief delay before dealing actual cards
     setTimeout(() => {
       gameStore.dealCards();
     }, 200);
-  }, [isHost, gameStore]);
+  }, [myPlayer?.isHost, gameStore]);
 
   const placeBid = useCallback(
     (suit: Card['suit'] | 'pass', alone?: boolean) => {
-      const myPlayer = gameStore.players.find(p => p.id === myPlayerId);
-      const myPosition = getPositionFromPlayerId(myPlayerId, gameStore.players);
+      const myPlayer = gameStore.players.find(p => p.id === gameStore.myPlayerId);
+      const myPosition = getPositionFromPlayerId(gameStore.myPlayerId, gameStore.players);
       if (!myPlayer || myPosition === undefined || gameStore.currentPlayerPosition !== myPosition) {
         return;
       }
@@ -180,7 +179,7 @@ export function useGameActions(
         alone,
       };
 
-      if (isHost) {
+      if (myPlayer?.isHost) {
         gameStore.placeBid(bid);
       } else {
         networkService.sendMessage({
@@ -191,17 +190,17 @@ export function useGameActions(
         });
       }
     },
-    [myPlayerId, isHost, gameStore, networkService]
+    [gameStore, networkService]
   );
 
   const playCard = useCallback(
     (card: Card) => {
-      const myPosition = getPositionFromPlayerId(myPlayerId, gameStore.players);
+      const myPosition = getPositionFromPlayerId(gameStore.myPlayerId, gameStore.players);
       if (myPosition === undefined || gameStore.currentPlayerPosition !== myPosition) {
         return;
       }
 
-      if (isHost) {
+      if (myPlayer?.isHost) {
         gameStore.playCard(card, myPosition);
       } else {
         networkService.sendMessage({
@@ -212,12 +211,12 @@ export function useGameActions(
         });
       }
     },
-    [myPlayerId, isHost, gameStore, networkService]
+    [gameStore, myPlayer?.isHost, networkService]
   );
 
   const renamePlayer = useCallback(
     (playerId: string, newName: string): void => {
-      if (!isHost && playerId !== myPlayerId) {
+      if (!myPlayer?.isHost && playerId !== gameStore.myPlayerId) {
         return;
       }
 
@@ -225,7 +224,7 @@ export function useGameActions(
 
       gameStore.renamePlayer(playerId, uniqueName);
 
-      if (playerId === myPlayerId) {
+      if (playerId === gameStore.myPlayerId) {
         networkService.sendMessage({
           type: 'RENAME_PLAYER',
           timestamp: Date.now(),
@@ -234,7 +233,7 @@ export function useGameActions(
         });
       }
     },
-    [isHost, myPlayerId, gameStore, networkService]
+    [myPlayer, gameStore, networkService]
   );
 
   const renameTeam = useCallback(
@@ -265,7 +264,7 @@ export function useGameActions(
 
   const kickPlayer = useCallback(
     (playerId: string): void => {
-      if (!isHost) {
+      if (!myPlayer?.isHost) {
         return;
       }
 
@@ -278,12 +277,12 @@ export function useGameActions(
         payload: { targetPlayerId: playerId },
       });
     },
-    [isHost, gameStore, networkService]
+    [myPlayer?.isHost, gameStore, networkService]
   );
 
   const movePlayer = useCallback(
     (playerId: string, newPosition: 0 | 1 | 2 | 3): void => {
-      if (!isHost) return;
+      if (!myPlayer?.isHost) return;
 
       gameStore.movePlayer(playerId, newPosition);
 
@@ -294,15 +293,15 @@ export function useGameActions(
         payload: { targetPlayerId: playerId, newPosition },
       });
     },
-    [isHost, gameStore, networkService]
+    [myPlayer?.isHost, gameStore, networkService]
   );
 
   const dealerDiscard = useCallback(
     (card: Card) => {
-      const myPosition = getPositionFromPlayerId(myPlayerId, gameStore.players);
+      const myPosition = getPositionFromPlayerId(gameStore.myPlayerId, gameStore.players);
       if (myPosition === undefined || myPosition !== gameStore.currentDealerPosition) return;
 
-      if (isHost) {
+      if (myPlayer?.isHost) {
         gameStore.dealerDiscard(card);
       } else {
         networkService.sendMessage({
@@ -313,22 +312,22 @@ export function useGameActions(
         });
       }
     },
-    [myPlayerId, isHost, gameStore, networkService]
+    [myPlayer, gameStore, networkService]
   );
 
   const updateGameOptions = useCallback(
     (options: GameOptions) => {
-      if (!isHost) return;
+      if (!myPlayer?.isHost) return;
       if (gameStore.phase !== 'lobby') return;
 
       gameStore.updateGameOptions(options);
     },
-    [isHost, gameStore]
+    [myPlayer?.isHost, gameStore]
   );
 
   const setPredeterminedDealer = useCallback(
     (playerId: string) => {
-      if (!isHost) return;
+      if (!myPlayer?.isHost) return;
       if (gameStore.phase !== 'lobby') return;
       if (gameStore.options.dealerSelection !== 'predetermined_first_dealer') return;
 
@@ -354,31 +353,31 @@ export function useGameActions(
         });
       }
     },
-    [gameStore, isHost, networkService]
+    [gameStore, myPlayer?.isHost, networkService]
   );
 
   const continueTrick = useCallback(() => {
-    if (!isHost) return;
+    if (!myPlayer?.isHost) return;
     if (gameStore.phase !== 'trick_complete') return;
 
     gameStore.completeTrick();
-  }, [isHost, gameStore]);
+  }, [myPlayer?.isHost, gameStore]);
 
   const completeHand = useCallback(() => {
-    if (!isHost) return;
+    if (!myPlayer?.isHost) return;
     if (gameStore.phase !== 'hand_complete') return;
 
     gameStore.completeHand();
-  }, [isHost, gameStore]);
+  }, [myPlayer?.isHost, gameStore]);
 
   const swapFarmersHand = useCallback(
     (cardsToSwap: Card[]) => {
-      const myPlayer = gameStore.players.find(p => p.id === myPlayerId);
-      const myPosition = getPositionFromPlayerId(myPlayerId, gameStore.players);
+      const myPlayer = gameStore.players.find(p => p.id === gameStore.myPlayerId);
+      const myPosition = getPositionFromPlayerId(gameStore.myPlayerId, gameStore.players);
       if (!myPlayer || myPosition === undefined || gameStore.farmersHandPosition !== myPosition)
         return;
 
-      if (isHost) {
+      if (myPlayer?.isHost) {
         gameStore.farmersHandSwap(myPosition, cardsToSwap);
       } else {
         networkService.sendMessage({
@@ -389,16 +388,16 @@ export function useGameActions(
         });
       }
     },
-    [myPlayerId, isHost, gameStore, networkService]
+    [gameStore, networkService]
   );
 
   const declineFarmersHand = useCallback(() => {
-    const myPlayer = gameStore.players.find(p => p.id === myPlayerId);
-    const myPosition = getPositionFromPlayerId(myPlayerId, gameStore.players);
+    const myPlayer = gameStore.players.find(p => p.id === gameStore.myPlayerId);
+    const myPosition = getPositionFromPlayerId(gameStore.myPlayerId, gameStore.players);
     if (!myPlayer || myPosition === undefined || gameStore.farmersHandPosition !== myPosition)
       return;
 
-    if (isHost) {
+    if (myPlayer?.isHost) {
       gameStore.farmersHandDeclined(myPosition);
     } else {
       networkService.sendMessage({
@@ -408,7 +407,7 @@ export function useGameActions(
         payload: {},
       });
     }
-  }, [myPlayerId, isHost, gameStore, networkService]);
+  }, [gameStore, networkService]);
 
   return {
     startGame,

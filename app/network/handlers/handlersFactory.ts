@@ -8,7 +8,6 @@ import {
   handleJoinRequest,
   handleLeaveGame,
   handlePlayCardMessage,
-  handleReconnectRequest,
   handleRenamePlayer,
   handleRenameTeam,
   handleSetPredeterminedDealer,
@@ -35,7 +34,6 @@ import { handleError, handleHeartbeat } from './peer-to-peer';
 export const createMessageHandlers = (): MessageHandlers => ({
   // Connection management
   JOIN_REQUEST: handleJoinRequest,
-  RECONNECT_REQUEST: handleReconnectRequest,
   LEAVE_GAME: handleLeaveGame,
   JOIN_RESPONSE: handleJoinResponse,
   PLAYER_JOINED: handlePlayerJoined,

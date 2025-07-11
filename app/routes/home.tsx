@@ -1,17 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
 
 import NotificationBanner from '~/components/feedback/NotificationBanner';
-import ReconnectionScreen from '~/components/feedback/ReconnectionScreen';
 import Input from '~/components/forms/Input';
 import PageContainer from '~/components/layout/PageContainer';
 import ButtonDivider from '~/components/ui/ButtonDivider';
 import LinkButton from '~/components/ui/LinkButton';
 import { Stack } from '~/components/ui/Stack';
-import { useGame } from '~/contexts/GameContext';
-import { useSession } from '~/contexts/SessionContext';
-import { useReconnectionNavigation } from '~/hooks/useReconnectionNavigation';
-import { shouldAttemptAutoReconnection } from '~/network/reconnection';
 import { isValidGameCode, normalizeGameCode } from '~/utils/game/gameCode';
 
 export function meta() {
@@ -29,27 +24,6 @@ export default function Home() {
   const [gameCode, setGameCode] = useState('');
   const location = useLocation();
   const [kickMessage, setKickMessage] = useState<string | null>(null);
-  const { reconnectionStatus, leaveGame } = useGame();
-  const { sessionData } = useSession();
-
-  // Handle automatic reconnection and navigation
-  useReconnectionNavigation();
-
-  // Helper function to determine if we should show reconnection screen
-  const shouldShowReconnectionScreen = useMemo(() => {
-    // Also show if we have retry status active
-    if (reconnectionStatus.isReconnecting) {
-      return true;
-    }
-
-    // Show if we have a valid session that should trigger auto-reconnection
-    // This catches cases where the component renders before connection status is set
-    if (sessionData && shouldAttemptAutoReconnection(sessionData)) {
-      return true;
-    }
-
-    return false;
-  }, [reconnectionStatus, sessionData]);
 
   // Check for kick message from navigation state
   useEffect(() => {
@@ -62,23 +36,6 @@ export default function Home() {
       return () => clearTimeout(timer);
     }
   }, [location.state]);
-
-  // Handler for cancelling reconnection
-  const handleCancelReconnection = () => {
-    leaveGame('manual');
-  };
-
-  // Show reconnection screen if we're reconnecting to prevent flash of home page content
-  if (shouldShowReconnectionScreen) {
-    return (
-      <PageContainer>
-        <ReconnectionScreen
-          reconnectionStatus={reconnectionStatus}
-          onCancel={handleCancelReconnection}
-        />
-      </PageContainer>
-    );
-  }
 
   return (
     <PageContainer>

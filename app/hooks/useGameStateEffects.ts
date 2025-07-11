@@ -1,51 +1,52 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
 import { createMessageId } from '~/network/protocol';
 import { GameNetworkService } from '~/services/networkService';
-import type { GameStore } from '~/store/gameStore';
 import { useGameStore } from '~/store/gameStore';
+import { select } from '~/store/selectors/players';
 import type { Player } from '~/types/game';
 
-export function useGameStateEffects(
-  gameStore: GameStore,
-  isHost: boolean,
-  networkService: GameNetworkService
-) {
-  const stateRef = useRef({
-    gameStore,
-    networkService,
-  });
+export function useGameStateEffects(networkService: GameNetworkService) {
+  const { createPublicGameState } = useGameStore();
+  const players = useGameStore(state => state.players);
+  const myPlayerId = useGameStore(state => state.myPlayerId);
+  const id = useGameStore(state => state.id);
+  const isHost = useGameStore(state => select.myPlayer(state)?.isHost);
+  const updateGameOptions = useGameStore(state => state.updateGameOptions);
 
-  // Update the ref when props change
+  // Initialize the game state with default values
   useEffect(() => {
-    stateRef.current = {
-      gameStore,
-      networkService,
-    };
-  }, [gameStore, networkService]);
-
-  const broadcastGameState = useCallback(() => {
-    const { gameStore: currentGameStore, networkService: currentNetworkService } = stateRef.current;
-
-    currentGameStore.players.forEach((player: Player) => {
-      if (player.id !== currentGameStore.myPlayerId) {
-        const personalizedState = currentGameStore.createPublicGameState(player.id);
-
-        currentNetworkService.sendMessage(
-          {
-            type: 'GAME_STATE_UPDATE',
-            timestamp: Date.now(),
-            messageId: createMessageId(),
-            payload: { gameState: personalizedState },
-          },
-          player.id
-        );
-      }
-    });
-  }, []);
+    if (!id) {
+      updateGameOptions({
+        allowReneging: false,
+        teamSelection: 'predetermined',
+        dealerSelection: 'first_black_jack',
+        screwTheDealer: false,
+        farmersHand: false,
+      });
+    }
+  }, [id, updateGameOptions]);
 
   useEffect(() => {
     if (!isHost) return;
+
+    const broadcastGameState = () => {
+      players.forEach((player: Player) => {
+        if (player.id !== myPlayerId) {
+          const personalizedState = createPublicGameState(player.id);
+
+          networkService.sendMessage(
+            {
+              type: 'GAME_STATE_UPDATE',
+              timestamp: Date.now(),
+              messageId: createMessageId(),
+              payload: { gameState: personalizedState },
+            },
+            player.id
+          );
+        }
+      });
+    };
 
     const unsubscribe = useGameStore.subscribe(
       state => ({
@@ -63,9 +64,5 @@ export function useGameStateEffects(
     );
 
     return unsubscribe;
-  }, [isHost, broadcastGameState]);
-
-  return {
-    broadcastGameState,
-  };
+  }, [createPublicGameState, isHost, myPlayerId, players, networkService]);
 }

@@ -5,6 +5,7 @@ import type { GameStore } from '../gameStore';
 export interface CoreSlice {
   initGame: (hostId: string, gameId: string, gameCode?: string) => void;
   resetGame: () => void;
+  setIsHost: (isHost: boolean) => void;
   restoreGameState: (gameState: GameState) => void;
   syncState: (gameState: PublicGameState, playerHand?: Card[], receivingPlayerId?: string) => void;
   setCurrentPlayerPosition: (position: 0 | 1 | 2 | 3) => void;
@@ -62,6 +63,15 @@ export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set,
       scores: { team0: 0, team1: 0 },
       handScores: { team0: 0, team1: 0 },
     });
+  },
+
+  setIsHost: (isHost: boolean) => {
+    const state = get();
+    const updatedPlayers = state.players.map(player =>
+      player.id === state.myPlayerId ? { ...player, isHost } : player
+    );
+
+    set({ players: updatedPlayers });
   },
 
   restoreGameState: (gameState: GameState) => {

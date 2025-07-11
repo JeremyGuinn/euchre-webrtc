@@ -26,8 +26,13 @@ export function GamePhaseManager({ headerHeight }: GamePhaseManagerProps) {
     kitty,
     farmersHandPosition,
   } = useGameStore();
-  const { selectDealer, isMyTurn } = useGame();
+  const { selectDealer } = useGame();
   const myPlayer = useGameStore(select.myPlayer);
+  const currentPlayerPosition = useGameStore(state => state.currentPlayerPosition);
+
+  const isMyTurn = () => {
+    return myPlayer?.position === currentPlayerPosition;
+  };
 
   // Dealer Selection Animation
   if (phase === 'dealer_selection') {

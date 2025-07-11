@@ -47,7 +47,7 @@ export default function PlayerDealingArea({
         className={`text-center flex flex-col items-center gap-2 ${position === 'top' ? 'flex-col-reverse' : ''}`}
       >
         <div
-          className={`inline-block px-3 py-1 rounded-lg text-sm font-medium transition-all duration-300 ${getPlayerLabelClass()}`}
+          className={`inline-block text-nowrap px-3 py-1 rounded-lg text-sm font-medium transition-all duration-300 ${getPlayerLabelClass()}`}
         >
           {player.name} {player.id === myPlayer.id && '(You)'}
           {isWinner && ' - DEALER!'}

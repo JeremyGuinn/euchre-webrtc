@@ -4,12 +4,7 @@ import { createScopedLogger } from '~/services/loggingService';
 import type { GameMessage } from '~/types/messages';
 import { decodeMessage, encodeMessage, isRecentMessage, ProtocolError } from './protocol';
 
-export type ConnectionStatus =
-  | 'disconnected'
-  | 'connecting'
-  | 'reconnecting'
-  | 'connected'
-  | 'error';
+export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 
 export interface PeerConnection {
   id: string;

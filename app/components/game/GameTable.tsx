@@ -12,10 +12,12 @@ interface GameTableProps {
 }
 
 export function GameTable({ headerHeight, shouldShowCards }: GameTableProps) {
-  const { kickPlayer, canPlay, playCard, dealerDiscard, isSittingOut } = useGame();
+  const { kickPlayer, playCard, dealerDiscard } = useGame();
   const { players, currentPlayerPosition, maker, phase } = useGameStore();
   const myPlayer = useGameStore(select.myPlayer);
   const myHand = useGameStore(select.myHand);
+  const canPlay = useGameStore(select.canPlay);
+  const isSittingOut = useGameStore(select.isSittingOut);
 
   if (!myPlayer) return null;
 

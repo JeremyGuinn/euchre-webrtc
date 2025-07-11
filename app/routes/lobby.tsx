@@ -13,6 +13,8 @@ import { Stack } from '~/components/ui/Stack';
 import { useGame } from '~/contexts/GameContext';
 
 import PageContainer from '~/components/layout/PageContainer';
+import { useGameStore } from '~/store/gameStore';
+import { select } from '~/store/selectors/players';
 import type { Route } from './+types/lobby';
 
 export function meta({ params }: Route.MetaArgs) {
@@ -28,11 +30,8 @@ export function meta({ params }: Route.MetaArgs) {
 export default function Lobby({ params }: Route.ComponentProps) {
   const navigate = useNavigate();
   const {
-    gameState,
-    isHost,
-    startGame,
     connectionStatus,
-    getMyPlayer,
+    startGame,
     leaveGame,
     renamePlayer,
     renameTeam,
@@ -43,29 +42,29 @@ export default function Lobby({ params }: Route.ComponentProps) {
   } = useGame();
   const { gameCode } = params;
 
+  const gameStore = useGameStore();
+  const myPlayer = useGameStore(select.myPlayer);
+  const connectedPlayers = useGameStore(state => state.players.filter(p => p.isConnected));
+
   const [draggedPlayer, setDraggedPlayer] = useState<string | null>(null);
-
-  const myPlayer = getMyPlayer();
-
-  const connectedPlayers = gameState.players.filter(p => p.isConnected);
 
   // Check if all requirements are met to start the game
   const canStartGame = useMemo(() => {
-    if (!isHost || connectedPlayers.length !== 4) {
+    if (!myPlayer?.isHost || connectedPlayers.length !== 4) {
       return false;
     }
 
     // If predetermined dealer is selected, ensure a dealer is chosen
-    if (gameState.options.dealerSelection === 'predetermined_first_dealer') {
-      return gameState.options.predeterminedFirstDealerId !== undefined;
+    if (gameStore.options.dealerSelection === 'predetermined_first_dealer') {
+      return gameStore.options.predeterminedFirstDealerId !== undefined;
     }
 
     return true;
   }, [
-    isHost,
+    myPlayer?.isHost,
     connectedPlayers.length,
-    gameState.options.dealerSelection,
-    gameState.options.predeterminedFirstDealerId,
+    gameStore.options.dealerSelection,
+    gameStore.options.predeterminedFirstDealerId,
   ]);
 
   useEffect(() => {
@@ -76,10 +75,10 @@ export default function Lobby({ params }: Route.ComponentProps) {
 
   useEffect(() => {
     // Redirect to game if it has started
-    if (gameState.phase !== 'lobby') {
+    if (gameStore.phase !== 'lobby') {
       navigate(`/game/${gameCode}`);
     }
-  }, [gameState.phase, gameCode, navigate, gameState.players.length]);
+  }, [gameStore.phase, gameCode, navigate, gameStore.players.length]);
 
   const handleStartGame = () => startGame();
   const handleLeaveGame = () => leaveGame();
@@ -88,13 +87,10 @@ export default function Lobby({ params }: Route.ComponentProps) {
   const handleDragOver = (e: React.DragEvent) => e.preventDefault();
   const handleRenamePlayer = (playerId: string, newName: string) => renamePlayer(playerId, newName);
 
-  const handleMovePlayer = (playerId: string, newPosition: 0 | 1 | 2 | 3) =>
-    movePlayer(playerId, newPosition);
-
   const handleDrop = (e: React.DragEvent, position: 0 | 1 | 2 | 3) => {
     e.preventDefault();
-    if (draggedPlayer && isHost) {
-      handleMovePlayer(draggedPlayer, position);
+    if (draggedPlayer && myPlayer?.isHost) {
+      movePlayer(draggedPlayer, position);
       setDraggedPlayer(null);
     }
   };
@@ -122,9 +118,9 @@ export default function Lobby({ params }: Route.ComponentProps) {
           {/* Left Column - Players (takes up 2/3 on large screens) */}
           <Stack spacing='6' className='lg:col-span-2'>
             <PlayersSection
-              gameState={gameState}
+              gameState={gameStore}
               myPlayer={myPlayer}
-              isHost={isHost}
+              isHost={myPlayer?.isHost || false}
               connectedPlayers={connectedPlayers}
               onRenamePlayer={handleRenamePlayer}
               onKickPlayer={handleKickPlayer}
@@ -135,30 +131,30 @@ export default function Lobby({ params }: Route.ComponentProps) {
             />
 
             <GameOptionsPanel
-              options={gameState.options}
+              options={gameStore.options}
               onOptionsChange={updateGameOptions}
-              isHost={isHost}
-              disabled={gameState.phase !== 'lobby'}
+              isHost={myPlayer?.isHost || false}
+              disabled={gameStore.phase !== 'lobby'}
             />
 
-            {gameState.options.dealerSelection === 'predetermined_first_dealer' && (
+            {gameStore.options.dealerSelection === 'predetermined_first_dealer' && (
               <PredeterminedDealerSelector
-                players={gameState.players.filter(p => p.isConnected)}
+                players={gameStore.players.filter(p => p.isConnected)}
                 selectedDealerId={
-                  gameState.options.predeterminedFirstDealerId !== undefined
-                    ? gameState.players.find(
-                        p => p.id === gameState.options.predeterminedFirstDealerId
+                  gameStore.options.predeterminedFirstDealerId !== undefined
+                    ? gameStore.players.find(
+                        p => p.id === gameStore.options.predeterminedFirstDealerId
                       )?.id
                     : undefined
                 }
                 onDealerSelect={setPredeterminedDealer}
-                isHost={isHost}
+                isHost={myPlayer?.isHost || false}
               />
             )}
 
             <GameControlsPanel
               connectedPlayersCount={connectedPlayers.length}
-              isHost={isHost}
+              isHost={myPlayer?.isHost || false}
               canStartGame={canStartGame}
               onStartGame={handleStartGame}
             />

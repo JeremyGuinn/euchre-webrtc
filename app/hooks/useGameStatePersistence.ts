@@ -1,57 +1,76 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { GameStatePersistenceService } from '~/services/gameStatePersistenceService';
-import type { GameState } from '~/types/game';
+import { useGameStore } from '~/store/gameStore';
+import { select } from '~/store/selectors/players';
 
 /**
  * Hook that automatically saves game state to localStorage for hosts
  * This enables host reconnection with full game state restoration
  */
-export function useGameStatePersistence(
-  gameState: GameState,
-  isHost: boolean,
-  connectionStatus: string
-) {
+export function useGameStatePersistence(connectionStatus: string) {
   const lastSavedRef = useRef<string>('');
 
-  const isConnected = useMemo(() => {
-    return connectionStatus === 'connected' || connectionStatus === 'reconnecting';
-  }, [connectionStatus]);
+  const gameStore = useGameStore();
+  const {
+    id,
+    phase,
+    players,
+    currentPlayerPosition,
+    currentDealerPosition,
+    bids,
+    completedTricks,
+    scores,
+    hands,
+  } = gameStore;
+  const isHost = useGameStore(state => select.myPlayer(state)?.isHost);
 
   useEffect(() => {
+    const isConnected = () => connectionStatus === 'connected';
+
     // Only save for hosts when connected and game has an ID
-    if (!isHost || !isConnected || !gameState.id) {
+    if (!isHost || !isConnected() || !id) {
       return;
     }
 
     // Avoid unnecessary saves by comparing serialized state
     const currentStateString = JSON.stringify({
       // Only include the essential parts for comparison to avoid over-saving
-      phase: gameState.phase,
-      players: gameState.players.map(p => ({
+      phase: phase,
+      players: players.map(p => ({
         id: p.id,
         isConnected: p.isConnected,
       })),
-      currentPlayerPosition: gameState.currentPlayerPosition,
-      currentDealerPosition: gameState.currentDealerPosition,
-      hands: Object.keys(gameState.hands),
-      bids: gameState.bids.length,
-      completedTricks: gameState.completedTricks.length,
-      scores: gameState.scores,
+      currentPlayerPosition: currentPlayerPosition,
+      currentDealerPosition: currentDealerPosition,
+      hands: Object.keys(hands),
+      bids: bids.length,
+      completedTricks: completedTricks.length,
+      scores: scores,
     });
 
     if (currentStateString !== lastSavedRef.current) {
       lastSavedRef.current = currentStateString;
 
       // Save the full game state
-      GameStatePersistenceService.saveGameState(gameState.id, gameState);
+      GameStatePersistenceService.saveGameState(id, gameStore);
     }
-  }, [gameState, isHost, isConnected]);
 
-  // Cleanup on unmount
-  useEffect(() => {
     return () => {
       // Clean up old game states when component unmounts
       GameStatePersistenceService.cleanup();
     };
-  }, []);
+  }, [
+    isHost,
+    id,
+    phase,
+    players,
+    currentPlayerPosition,
+    currentDealerPosition,
+    hands,
+    bids.length,
+    completedTricks.length,
+    scores,
+    gameStore,
+    connectionStatus,
+  ]);
 }

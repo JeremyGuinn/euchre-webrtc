@@ -14,10 +14,6 @@ const statusConfig = {
     color: 'text-yellow-600',
     label: 'connecting',
   },
-  reconnecting: {
-    color: 'text-orange-600',
-    label: 'reconnecting',
-  },
   disconnected: {
     color: 'text-gray-600',
     label: 'disconnected',

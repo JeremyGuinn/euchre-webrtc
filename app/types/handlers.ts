@@ -28,17 +28,11 @@ export interface HandlerContext {
   /** Network manager instance for sending messages to other players */
   networkManager: NetworkManager;
 
-  /** Function to broadcast the current game state to all connected players */
-  broadcastGameState: () => void;
-
   /** Callback triggered when this player is kicked from the game */
   handleKicked: (message: string) => void;
 
   /** Function to update the connection status in the UI */
   setConnectionStatus: (status: ConnectionStatus) => void;
-
-  /** Function to update whether this client is the host */
-  setIsHost: (isHost: boolean) => void;
 
   /** Session management functions */
   sessionManager: {

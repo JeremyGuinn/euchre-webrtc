@@ -1,24 +1,14 @@
 import type { ConnectionStatus, NetworkManager } from '~/network/networkManager';
-import type { Card, GameOptions, GameState, Player } from './game';
-
-export interface ReconnectionStatus {
-  isReconnecting: boolean;
-  attempt: number;
-  maxRetries: number;
-  reason?: string;
-}
+import type { Card, GameOptions, GameState } from './game';
 
 export interface GameContextType {
   gameState: GameState;
   networkManager: NetworkManager | null;
   myPlayerId: string | undefined;
-  isHost: boolean;
   connectionStatus: ConnectionStatus;
-  reconnectionStatus: ReconnectionStatus;
 
   hostGame: () => Promise<string>;
   joinGame: (gameCode: string, playerName: string) => Promise<void>;
-  attemptReconnection: () => Promise<boolean>;
   startGame: () => void;
   selectDealer: () => void;
   drawDealerCard: (cardIndex?: number) => void;
@@ -42,12 +32,6 @@ export interface GameContextType {
   movePlayer: (playerId: string, newPosition: 0 | 1 | 2 | 3) => void;
   updateGameOptions: (options: GameOptions) => void;
   setPredeterminedDealer: (playerId: string) => void;
-
-  canPlay: (card: Card) => boolean;
-  isMyTurn: () => boolean;
-  isSittingOut: () => boolean;
-  getMyPlayer: () => Player | undefined;
-  getMyHand: () => Card[];
 }
 
 export interface GameProviderProps {

@@ -13,7 +13,7 @@ interface PlayerPositionProps {
   position: Position;
   isCurrentPlayer: boolean;
   isPlayerSittingOut: boolean;
-  isSittingOut: () => boolean;
+  isSittingOut: boolean;
   canPlay: (card: CardType) => boolean;
   isMyTurn: () => boolean;
   onCardClick: (card: CardType) => void;
