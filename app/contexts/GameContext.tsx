@@ -1,11 +1,10 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useConnectionActions } from '~/hooks/useConnectionActions';
 import { useGameActions } from '~/hooks/useGameActions';
-
 import { useGameStateEffects } from '~/hooks/useGameStateEffects';
 import { useGameStatePersistence } from '~/hooks/useGameStatePersistence';
+import { useNetworkService } from '~/hooks/useNetworkService';
 import type { ConnectionStatus } from '~/network/networkManager';
-import { GameNetworkService } from '~/services/networkService';
 import { useGameStore } from '~/store/gameStore';
 import type { GameContextType, GameProviderProps } from '~/types/gameContext';
 import { useSession } from './SessionContext';
@@ -13,7 +12,7 @@ import { useSession } from './SessionContext';
 const GameContext = createContext<GameContextType | null>(null);
 
 function useGameProvider() {
-  const networkService = useMemo(() => new GameNetworkService(), []);
+  const networkService = useNetworkService();
   const sessionManager = useSession();
   const gameActions = useGameActions(networkService);
   const gameStore = useGameStore();

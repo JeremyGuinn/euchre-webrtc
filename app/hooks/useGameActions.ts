@@ -1,13 +1,13 @@
 import { useCallback } from 'react';
 
 import { createMessageId } from '~/network/protocol';
-import { GameNetworkService } from '~/services/networkService';
 import { useGameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
 import type { Bid, Card, GameOptions, PositionIndex, TeamIndex } from '~/types/game';
+import type { NetworkService } from '~/types/networkService';
 import { getPositionFromPlayerId, makeNameUnique } from '~/utils/game/playerUtils';
 
-export function useGameActions(networkService: GameNetworkService) {
+export function useGameActions(networkService: NetworkService) {
   const gameStore = useGameStore();
   const myPlayer = useGameStore(select.myPlayer);
 

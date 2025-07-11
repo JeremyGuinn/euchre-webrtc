@@ -1,14 +1,14 @@
 import Panel from '~/components/ui/Panel';
 import { Stack } from '~/components/ui/Stack';
-import type { GameState, Player } from '~/types/game';
+import type { Player } from '~/types/game';
 
+import { useGameStore } from '~/store/gameStore';
 import type { PositionIndex, TeamIndex } from '~/types/game';
 import HostControlsInfo from './HostControlsInfo';
 import RandomPlayersPanel from './RandomPlayersPanel';
 import { TeamPlayersPanel } from './TeamPlayersPanel';
 
 interface PlayersSectionProps {
-  gameState: GameState;
   myPlayer?: Player;
   isHost: boolean;
   connectedPlayers: Player[];
@@ -21,7 +21,6 @@ interface PlayersSectionProps {
 }
 
 export default function PlayersSection({
-  gameState,
   myPlayer,
   isHost,
   connectedPlayers,
@@ -32,6 +31,10 @@ export default function PlayersSection({
   onDragOver,
   onDrop,
 }: PlayersSectionProps) {
+  const players = useGameStore(state => state.players);
+  const options = useGameStore(state => state.options);
+  const teamNames = useGameStore(state => state.teamNames);
+
   return (
     <Panel variant='compact'>
       <h2 className='text-xl font-semibold text-gray-800 mb-4'>
@@ -39,10 +42,10 @@ export default function PlayersSection({
       </h2>
 
       <Stack spacing='3'>
-        {gameState.options?.teamSelection === 'predetermined' ? (
+        {options?.teamSelection === 'predetermined' ? (
           <TeamPlayersPanel
-            players={gameState.players}
-            teamNames={gameState.teamNames}
+            players={players}
+            teamNames={teamNames}
             myPlayerId={myPlayer?.id}
             isHost={isHost}
             onRenamePlayer={onRenamePlayer}
@@ -54,7 +57,7 @@ export default function PlayersSection({
           />
         ) : (
           <RandomPlayersPanel
-            players={gameState.players}
+            players={players}
             myPlayerId={myPlayer?.id}
             isHost={isHost}
             onRenamePlayer={onRenamePlayer}

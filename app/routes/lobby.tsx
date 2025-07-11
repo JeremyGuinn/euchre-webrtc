@@ -45,7 +45,11 @@ export default function Lobby({ params }: Route.ComponentProps) {
 
   const gameStore = useGameStore();
   const myPlayer = useGameStore(select.myPlayer);
-  const connectedPlayers = useGameStore(state => state.players.filter(p => p.isConnected));
+
+  const connectedPlayers = useMemo(
+    () => gameStore.players.filter(p => p.isConnected),
+    [gameStore.players]
+  );
 
   const [draggedPlayer, setDraggedPlayer] = useState<string | null>(null);
 
@@ -119,7 +123,6 @@ export default function Lobby({ params }: Route.ComponentProps) {
           {/* Left Column - Players (takes up 2/3 on large screens) */}
           <Stack spacing='6' className='lg:col-span-2'>
             <PlayersSection
-              gameState={gameStore}
               myPlayer={myPlayer}
               isHost={myPlayer?.isHost || false}
               connectedPlayers={connectedPlayers}

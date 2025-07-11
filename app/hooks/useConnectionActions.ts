@@ -5,12 +5,12 @@ import { type SessionContextType } from '~/contexts/SessionContext';
 import { useLogger } from '~/hooks/useLogger';
 import type { ConnectionStatus } from '~/network/networkManager';
 import { GameStatePersistenceService } from '~/services/gameStatePersistenceService';
-import { GameNetworkService } from '~/services/networkService';
 import { useGameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
+import type { NetworkService } from '~/types/networkService';
 
 export function useConnectionActions(
-  networkService: GameNetworkService,
+  networkService: NetworkService,
   connectionStatus: ConnectionStatus,
   sessionManager: SessionContextType,
   setConnectionStatus: (status: ConnectionStatus) => void

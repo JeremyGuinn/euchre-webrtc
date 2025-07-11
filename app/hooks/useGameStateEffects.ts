@@ -1,12 +1,12 @@
 import { useEffect } from 'react';
 
 import { createMessageId } from '~/network/protocol';
-import { GameNetworkService } from '~/services/networkService';
 import { useGameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
 import type { Player } from '~/types/game';
+import type { NetworkService } from '~/types/networkService';
 
-export function useGameStateEffects(networkService: GameNetworkService) {
+export function useGameStateEffects(networkService: NetworkService) {
   const { createPublicGameState } = useGameStore();
   const players = useGameStore(state => state.players);
   const myPlayerId = useGameStore(state => state.myPlayerId);
@@ -25,7 +25,8 @@ export function useGameStateEffects(networkService: GameNetworkService) {
         farmersHand: false,
       });
     }
-  }, [id, updateGameOptions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]); // Only depend on gameState.id to avoid infinite loops
 
   useEffect(() => {
     if (!isHost) return;
