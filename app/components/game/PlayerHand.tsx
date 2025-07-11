@@ -1,13 +1,13 @@
 import { useState } from 'react';
 
 import { Card, CardBack } from '~/components/game/Card';
-import type { Card as CardType, GameState, Player } from '~/types/game';
+import { useGameStore } from '~/store/gameStore';
+import type { Card as CardType, Player } from '~/types/game';
 
 interface PlayerHandProps {
   player: Player;
   myPlayer: Player;
   myHand: CardType[];
-  gameState: GameState;
   isSittingOut: () => boolean;
   canPlay: (card: CardType) => boolean;
   isMyTurn: () => boolean;
@@ -20,7 +20,6 @@ export function PlayerHand({
   player,
   myPlayer,
   myHand,
-  gameState,
   isSittingOut,
   canPlay,
   isMyTurn,
@@ -28,6 +27,7 @@ export function PlayerHand({
   onDealerDiscard,
   shouldShowCards,
 }: PlayerHandProps) {
+  const { phase, currentDealerPosition, kitty, completedTricks, currentTrick } = useGameStore();
   const [hoveredDiscardCard, setHoveredDiscardCard] = useState<CardType | null>(null);
 
   if (player.id === myPlayer.id) {
@@ -36,10 +36,8 @@ export function PlayerHand({
       <div className='flex space-x-1'>
         {myHand.map(card => {
           const isInDealerDiscardPhase =
-            gameState.phase === 'dealer_discard' &&
-            myPlayer.position === gameState.currentDealerPosition;
-          const isKittyCard =
-            isInDealerDiscardPhase && gameState.kitty && card.id === gameState.kitty.id;
+            phase === 'dealer_discard' && myPlayer.position === currentDealerPosition;
+          const isKittyCard = isInDealerDiscardPhase && kitty && card.id === kitty.id;
           const canDiscard = isInDealerDiscardPhase && !isKittyCard;
           const isHovered = isInDealerDiscardPhase && hoveredDiscardCard?.id === card.id;
 
@@ -66,13 +64,13 @@ export function PlayerHand({
                   isSittingOut() ||
                   (isInDealerDiscardPhase
                     ? !canDiscard
-                    : !isMyTurn() || gameState.phase !== 'playing' || !canPlay(card))
+                    : !isMyTurn() || phase !== 'playing' || !canPlay(card))
                 }
                 className={`
                   ${
                     isSittingOut()
                       ? 'opacity-30 grayscale'
-                      : !canPlay(card) && isMyTurn() && gameState.phase === 'playing'
+                      : !canPlay(card) && isMyTurn() && phase === 'playing'
                         ? 'opacity-50'
                         : ''
                   }
@@ -115,16 +113,16 @@ export function PlayerHand({
     let cardsRemaining = 5; // Start with 5 cards per hand
 
     // Count cards played in completed tricks
-    if (gameState.completedTricks) {
-      const cardsPlayedInCompletedTricks = gameState.completedTricks
+    if (completedTricks) {
+      const cardsPlayedInCompletedTricks = completedTricks
         .flatMap(trick => trick.cards)
         .filter(playedCard => playedCard.playerPosition === player.position).length;
       cardsRemaining -= cardsPlayedInCompletedTricks;
     }
 
     // Count cards played in current trick
-    if (gameState.currentTrick) {
-      const cardsPlayedInCurrentTrick = gameState.currentTrick.cards.filter(
+    if (currentTrick) {
+      const cardsPlayedInCurrentTrick = currentTrick.cards.filter(
         playedCard => playedCard.playerPosition === player.position
       ).length;
       cardsRemaining -= cardsPlayedInCurrentTrick;

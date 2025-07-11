@@ -17,7 +17,7 @@ import type { ConnectionStatus, NetworkManager } from '~/network/networkManager'
  */
 export interface HandlerContext {
   /** The ID of the current player/client */
-  myPlayerId: string;
+  myPlayerId?: string;
 
   /** Whether this client is the host of the game */
   isHost: boolean;
@@ -36,9 +36,6 @@ export interface HandlerContext {
 
   /** Function to update the connection status in the UI */
   setConnectionStatus: (status: ConnectionStatus) => void;
-
-  /** Function to update the current player's ID */
-  setMyPlayerId: (id: string) => void;
 
   /** Function to update whether this client is the host */
   setIsHost: (isHost: boolean) => void;

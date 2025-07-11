@@ -1,35 +1,25 @@
 import Button from '~/components/ui/Button';
 import { Center } from '~/components/ui/Center';
 import { Spinner } from '~/components/ui/Spinner';
-import { useGameUI } from '~/hooks/useGameUI';
+import { useGame } from '~/contexts/GameContext';
+import { useGameStore } from '~/store/gameStore';
+import { select as playerSelectors } from '~/store/selectors/players';
+import { select as teamSelectors } from '~/store/selectors/teams';
 import { getSuitColor, getSuitSymbol } from '~/utils/game/cardUtils';
 
 export function HandCompleteOverlay() {
-  const { gameState, myPlayer, isHost, handleCompleteHand } = useGameUI();
+  const { completeHand } = useGame();
+  const { handScores, maker, phase, trump, teamNames, scores } = useGameStore();
+  const myPlayer = useGameStore(playerSelectors.myPlayer);
+  const currentMakerPlayer = useGameStore(playerSelectors.currentMakerPlayer);
+  const team0Score = useGameStore(teamSelectors.teamScore(0));
+  const team1Score = useGameStore(teamSelectors.teamScore(1));
 
-  if (gameState.phase !== 'hand_complete' || !myPlayer) {
+  if (phase !== 'hand_complete') {
     return null;
   }
 
-  const maker = gameState.maker;
-  const makerPlayer = maker
-    ? gameState.players.find(p => p.position === maker.playerPosition)
-    : null;
-  const makerTeam = maker?.teamId;
-  const handScores = gameState.handScores;
-
-  // Count tricks won by each team
-  const team0Tricks = gameState.completedTricks.filter(trick => {
-    const winner = gameState.players.find(p => p.position === trick.winnerPosition);
-    return winner?.teamId === 0;
-  }).length;
-
-  const team1Tricks = gameState.completedTricks.filter(trick => {
-    const winner = gameState.players.find(p => p.position === trick.winnerPosition);
-    return winner?.teamId === 1;
-  }).length;
-
-  const makerTeamTricks = makerTeam === 0 ? team0Tricks : team1Tricks;
+  const makerTeamTricks = maker?.teamId === 0 ? team0Score : team1Score;
   const madeBid = makerTeamTricks >= 3;
 
   return (
@@ -44,16 +34,16 @@ export function HandCompleteOverlay() {
               <div className='mb-6 p-4 bg-gray-50 rounded-lg'>
                 <Center className='space-x-4 mb-2'>
                   <span className='text-sm text-gray-600'>Trump:</span>
-                  {gameState.trump && (
-                    <span className={`text-xl ${getSuitColor(gameState.trump)}`}>
-                      {getSuitSymbol(gameState.trump)} {gameState.trump}
+                  {trump && (
+                    <span className={`text-xl ${getSuitColor(trump)}`}>
+                      {getSuitSymbol(trump)} {trump}
                     </span>
                   )}
                 </Center>
-                {makerPlayer && (
+                {currentMakerPlayer && (
                   <p className='text-sm text-gray-700'>
-                    <span className='font-medium'>{makerPlayer.name}</span>
-                    {makerPlayer.id === myPlayer.id && ' (You)'} called trump
+                    <span className='font-medium'>{currentMakerPlayer.name}</span>
+                    {currentMakerPlayer.id === myPlayer?.id && ' (You)'} called trump
                     {maker?.alone && ' and went alone'}
                   </p>
                 )}
@@ -63,18 +53,18 @@ export function HandCompleteOverlay() {
               <div className='grid grid-cols-2 gap-4 mb-6'>
                 <div
                   className={`p-4 rounded-lg ${
-                    makerTeam === 0 ? 'bg-blue-100 border-2 border-blue-300' : 'bg-gray-100'
+                    maker?.teamId === 0 ? 'bg-blue-100 border-2 border-blue-300' : 'bg-gray-100'
                   }`}
                 >
-                  <h3 className='font-semibold text-gray-800 mb-1'>{gameState.teamNames.team0}</h3>
-                  <div className='text-2xl font-bold text-blue-600'>{team0Tricks}</div>
+                  <h3 className='font-semibold text-gray-800 mb-1'>{teamNames.team0}</h3>
+                  <div className='text-2xl font-bold text-blue-600'>{team0Score}</div>
                   <div className='text-xs text-gray-600'>tricks won</div>
                 </div>
                 <div
-                  className={`p-4 rounded-lg ${makerTeam === 1 ? 'bg-red-100 border-2 border-red-300' : 'bg-gray-100'}`}
+                  className={`p-4 rounded-lg ${maker?.teamId === 1 ? 'bg-red-100 border-2 border-red-300' : 'bg-gray-100'}`}
                 >
-                  <h3 className='font-semibold text-gray-800 mb-1'>{gameState.teamNames.team1}</h3>
-                  <div className='text-2xl font-bold text-red-600'>{team1Tricks}</div>
+                  <h3 className='font-semibold text-gray-800 mb-1'>{teamNames.team1}</h3>
+                  <div className='text-2xl font-bold text-red-600'>{team1Score}</div>
                   <div className='text-xs text-gray-600'>tricks won</div>
                 </div>
               </div>
@@ -87,9 +77,8 @@ export function HandCompleteOverlay() {
                       {makerTeamTricks === 5 ? 'Sweep!' : 'Bid Made!'}
                     </p>
                     <p className='text-sm text-gray-700'>
-                      {gameState.teamNames[`team${makerTeam!}` as 'team0' | 'team1'] ||
-                        `Team ${makerTeam! + 1}`}{' '}
-                      made their bid with {makerTeamTricks} trick
+                      {teamNames[`team${maker?.teamId}` as 'team0' | 'team1']} made their bid with{' '}
+                      {makerTeamTricks} trick
                       {makerTeamTricks !== 1 ? 's' : ''}
                       {makerTeamTricks === 5 && maker?.alone && ' (going alone)'}
                     </p>
@@ -98,9 +87,8 @@ export function HandCompleteOverlay() {
                   <div>
                     <p className='text-lg font-semibold text-red-700 mb-2'>Euchred!</p>
                     <p className='text-sm text-gray-700'>
-                      {gameState.teamNames[`team${makerTeam!}` as 'team0' | 'team1'] ||
-                        `Team ${makerTeam! + 1}`}{' '}
-                      only won {makerTeamTricks} trick
+                      {teamNames[`team${maker?.teamId}` as 'team0' | 'team1']} only won{' '}
+                      {makerTeamTricks} trick
                       {makerTeamTricks !== 1 ? 's' : ''} - other team gets 2 points
                     </p>
                   </div>
@@ -115,7 +103,7 @@ export function HandCompleteOverlay() {
                   >
                     +{handScores.team0}
                   </div>
-                  <div className='text-sm text-gray-600'>{gameState.teamNames.team0} Points</div>
+                  <div className='text-sm text-gray-600'>{teamNames.team0} Points</div>
                 </div>
                 <div className='text-center'>
                   <div
@@ -123,28 +111,26 @@ export function HandCompleteOverlay() {
                   >
                     +{handScores.team1}
                   </div>
-                  <div className='text-sm text-gray-600'>{gameState.teamNames.team1} Points</div>
+                  <div className='text-sm text-gray-600'>{teamNames.team1} Points</div>
                 </div>
               </div>
 
               {/* Total Scores */}
               <div className='grid grid-cols-2 gap-4 mb-6'>
                 <div className='text-center p-3 bg-blue-50 rounded-lg'>
-                  <div className='text-2xl font-bold text-blue-600'>{gameState.scores.team0}</div>
-                  <div className='text-sm text-gray-600'>{gameState.teamNames.team0} Total</div>
+                  <div className='text-2xl font-bold text-blue-600'>{scores.team0}</div>
+                  <div className='text-sm text-gray-600'>{teamNames.team0} Total</div>
                 </div>
                 <div className='text-center p-3 bg-red-50 rounded-lg'>
-                  <div className='text-2xl font-bold text-red-600'>{gameState.scores.team1}</div>
-                  <div className='text-sm text-gray-600'>{gameState.teamNames.team1} Total</div>
+                  <div className='text-2xl font-bold text-red-600'>{scores.team1}</div>
+                  <div className='text-sm text-gray-600'>{teamNames.team1} Total</div>
                 </div>
               </div>
             </div>
 
-            {isHost ? (
-              <Button onClick={handleCompleteHand} size='lg' className='w-full'>
-                {gameState.scores.team0 >= 10 || gameState.scores.team1 >= 10
-                  ? 'End Game'
-                  : 'Start Next Hand'}
+            {myPlayer?.isHost ? (
+              <Button onClick={() => completeHand()} size='lg' className='w-full'>
+                {scores.team0 >= 10 || scores.team1 >= 10 ? 'End Game' : 'Start Next Hand'}
               </Button>
             ) : (
               <div className='text-gray-600'>

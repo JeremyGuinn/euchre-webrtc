@@ -36,6 +36,7 @@ export interface GameStore
 // Default initial state
 const initialGameState: GameState = {
   id: '',
+  myPlayerId: '',
   players: [],
   phase: 'lobby',
   options: {

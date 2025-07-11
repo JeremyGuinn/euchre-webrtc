@@ -11,7 +11,7 @@ export interface ReconnectionStatus {
 export interface GameContextType {
   gameState: GameState;
   networkManager: NetworkManager | null;
-  myPlayerId: string;
+  myPlayerId: string | undefined;
   isHost: boolean;
   connectionStatus: ConnectionStatus;
   reconnectionStatus: ReconnectionStatus;

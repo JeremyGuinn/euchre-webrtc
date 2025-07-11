@@ -4,7 +4,7 @@ import { useGameStore } from '~/store/gameStore';
 import { getSuitColor, getSuitSymbol } from '~/utils/game/cardUtils';
 
 export function GameHeader() {
-  const gameStore = useGameStore();
+  const { trump, teamNames, scores } = useGameStore();
   const { leaveGame } = useGame();
 
   return (
@@ -13,20 +13,17 @@ export function GameHeader() {
         <div className='flex items-center space-x-6'>
           <h1 className='text-xl font-bold'>Euchre Game</h1>
 
-          {gameStore.trump && (
+          {trump && (
             <div className='flex items-center space-x-1'>
               <span className='text-sm'>Trump:</span>
-              <span className={`text-2xl ${getSuitColor(gameStore.trump)}`}>
-                {getSuitSymbol(gameStore.trump)}
-              </span>
-              <span className='text-sm'>{gameStore.trump}</span>
+              <span className={`text-2xl ${getSuitColor(trump)}`}>{getSuitSymbol(trump)}</span>
+              <span className='text-sm'>{trump}</span>
             </div>
           )}
         </div>
         <div className='flex items-center space-x-4'>
           <div className='text-sm'>
-            {gameStore.teamNames.team0}: {gameStore.scores.team0} | {gameStore.teamNames.team1}:{' '}
-            {gameStore.scores.team1}
+            {teamNames.team0}: {scores.team0} | {teamNames.team1}: {scores.team1}
           </div>
           <Button variant='danger' size='sm' onClick={() => leaveGame()}>
             Leave

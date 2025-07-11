@@ -3,33 +3,27 @@ import Button from '~/components/ui/Button';
 import { Spinner } from '~/components/ui/Spinner';
 import { useGame } from '~/contexts/GameContext';
 import { useAutoAdvance } from '~/hooks/useAutoAdvance';
-import { useGameUI } from '~/hooks/useGameUI';
+import { useGameStore } from '~/store/gameStore';
+import { select } from '~/store/selectors/players';
 import { getSuitColor, getSuitSymbol } from '~/utils/game/cardUtils';
 import { Card } from '../Card';
 
 export function TrickCompleteOverlay() {
   const { continueTrick } = useGame();
-  const { gameState, myPlayer, isHost, handleContinueTrick } = useGameUI();
+  const { phase, completedTricks, players } = useGameStore();
+  const myPlayer = useGameStore(select.myPlayer);
 
-  // Auto-advance for trick_complete phase
   const { trigger, cancel, progress } = useAutoAdvance(continueTrick, {
-    enabled: gameState.phase === 'trick_complete' && isHost,
-    delayMs: 1500, // 1.5 seconds
+    delayMs: 1500,
   });
 
-  useEffect(() => {
-    // Trigger auto-advance when entering trick_complete phase as host
-    if (gameState.phase === 'trick_complete' && isHost) {
-      trigger();
-    } else {
-      cancel();
-    }
-  }, [gameState.phase, isHost, trigger, cancel]);
+  useEffect(
+    () => (phase === 'trick_complete' && myPlayer?.isHost ? trigger() : cancel()),
+    [phase, myPlayer, trigger, cancel]
+  );
 
-  const lastTrick = gameState.completedTricks[gameState.completedTricks.length - 1];
-  const winner = lastTrick
-    ? gameState.players.find(p => p.position === lastTrick.winnerPosition)
-    : null;
+  const lastTrick = completedTricks[completedTricks.length - 1];
+  const winner = lastTrick ? players.find(p => p.position === lastTrick.winnerPosition) : null;
   const winningCard = lastTrick?.cards.find(
     playedCard => playedCard.playerPosition === lastTrick.winnerPosition
   );
@@ -61,16 +55,16 @@ export function TrickCompleteOverlay() {
                   </p>
 
                   <div className='text-xs text-gray-500'>
-                    Tricks completed: {gameState.completedTricks.length} / 5
+                    Tricks completed: {completedTricks.length} / 5
                   </div>
                 </>
               )}
             </div>
 
-            {isHost ? (
+            {myPlayer?.isHost ? (
               <div className='relative'>
                 <Button
-                  onClick={handleContinueTrick}
+                  onClick={continueTrick}
                   size='lg'
                   className='w-full relative overflow-hidden'
                 >

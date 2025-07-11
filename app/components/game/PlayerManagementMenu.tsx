@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import Button from '~/components/ui/Button';
-import type { GameState, Player } from '~/types/game';
+import { useGameStore } from '~/store/gameStore';
+import type { Player } from '~/types/game';
 
 interface PlayerManagementMenuProps {
   player: Player;
-  gameState: GameState;
   isMyPlayer: boolean;
   isHost: boolean;
   onKickPlayer: (playerId: string) => void;
@@ -13,12 +13,12 @@ interface PlayerManagementMenuProps {
 
 export function PlayerManagementMenu({
   player,
-  gameState,
   isMyPlayer,
   isHost,
   onKickPlayer,
   onClose,
 }: PlayerManagementMenuProps) {
+  const { phase } = useGameStore();
   const [showConfirmKick, setShowConfirmKick] = useState(false);
 
   const handleKickPlayer = () => {
@@ -41,7 +41,7 @@ export function PlayerManagementMenu({
 
   // Check if kicking is allowed in current game phase
   const criticalPhases = ['playing', 'trick_complete'];
-  const isCriticalPhase = criticalPhases.includes(gameState.phase);
+  const isCriticalPhase = criticalPhases.includes(phase);
 
   return (
     <div className='bg-white rounded-lg shadow-lg border p-2 min-w-[200px]'>

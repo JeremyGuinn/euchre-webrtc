@@ -15,12 +15,10 @@ const RECONNECTION_COOLDOWN_MS = 5000;
 
 export interface GameNetworkServiceConfig {
   gameStore: GameStore;
-  myPlayerId: string;
   isHost: boolean;
   broadcastGameState: () => void;
   handleKicked: (message: string) => void;
   setConnectionStatus: (status: ConnectionStatus) => void;
-  setMyPlayerId: (id: string) => void;
   setIsHost: (isHost: boolean) => void;
   pollForHostReconnection?: () => Promise<boolean>;
   sessionManager?: {
@@ -436,7 +434,6 @@ export class GameNetworkService {
    */
   configure(config: GameNetworkServiceConfig) {
     this.logger.debug('Configuring network service', {
-      myPlayerId: config.myPlayerId,
       isHost: config.isHost,
       gamePhase: config.gameStore.phase,
       playerCount: config.gameStore.players.length,
@@ -462,7 +459,7 @@ export class GameNetworkService {
 
     this.config = { ...this.config, ...updates };
     this.logger.debug('Network service configuration updated', {
-      myPlayerId: this.config.myPlayerId,
+      myPlayerId: this.config.gameStore.myPlayerId,
       isHost: this.config.isHost,
       gamePhase: this.config.gameStore.phase,
     });
@@ -537,19 +534,18 @@ export class GameNetworkService {
       messageId: message.messageId,
       senderId,
       gamePhase: this.config.gameStore.phase,
-      myPlayerId: this.config.myPlayerId,
+      myPlayerId: this.config.gameStore.myPlayerId,
       isHost: this.config.isHost,
     });
 
     const context: HandlerContext = {
-      myPlayerId: this.config.myPlayerId,
+      myPlayerId: this.config.gameStore.myPlayerId,
       isHost: this.config.isHost,
       gameStore: this.config.gameStore,
       networkManager: this.networkManager,
       broadcastGameState: this.config.broadcastGameState,
       handleKicked: this.config.handleKicked,
       setConnectionStatus: this.config.setConnectionStatus,
-      setMyPlayerId: this.config.setMyPlayerId,
       setIsHost: this.config.setIsHost,
       sessionManager: this.config.sessionManager || {
         saveSession: () => console.warn('SessionManager not available in handler context'),

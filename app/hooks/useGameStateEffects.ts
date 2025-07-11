@@ -8,13 +8,11 @@ import type { Player } from '~/types/game';
 
 export function useGameStateEffects(
   gameStore: GameStore,
-  myPlayerId: string,
   isHost: boolean,
   networkService: GameNetworkService
 ) {
   const stateRef = useRef({
     gameStore,
-    myPlayerId,
     networkService,
   });
 
@@ -22,20 +20,15 @@ export function useGameStateEffects(
   useEffect(() => {
     stateRef.current = {
       gameStore,
-      myPlayerId,
       networkService,
     };
-  }, [gameStore, myPlayerId, networkService]);
+  }, [gameStore, networkService]);
 
   const broadcastGameState = useCallback(() => {
-    const {
-      gameStore: currentGameStore,
-      myPlayerId: currentMyPlayerId,
-      networkService: currentNetworkService,
-    } = stateRef.current;
+    const { gameStore: currentGameStore, networkService: currentNetworkService } = stateRef.current;
 
     currentGameStore.players.forEach((player: Player) => {
-      if (player.id !== currentMyPlayerId) {
+      if (player.id !== currentGameStore.myPlayerId) {
         const personalizedState = currentGameStore.createPublicGameState(player.id);
 
         currentNetworkService.sendMessage(

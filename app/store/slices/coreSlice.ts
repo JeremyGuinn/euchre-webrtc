@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand';
-import type { Card, GameState, PublicGameState } from '~/types/game';
+import type { Card, GameState, Player, PublicGameState } from '~/types/game';
 import type { GameStore } from '../gameStore';
 
 export interface CoreSlice {
@@ -15,19 +15,19 @@ export interface CoreSlice {
 
 export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set, get) => ({
   initGame: (hostId: string, gameId: string, gameCode?: string) => {
+    const player: Player = {
+      id: hostId,
+      name: 'Host',
+      isHost: true,
+      isConnected: true,
+      position: 0,
+      teamId: 0,
+    };
+
     set({
       id: gameId,
       gameCode,
-      players: [
-        {
-          id: hostId,
-          name: 'Host',
-          isHost: true,
-          isConnected: true,
-          position: 0,
-          teamId: 0,
-        },
-      ],
+      players: [player],
       phase: 'lobby',
       options: {
         teamSelection: 'predetermined',

@@ -1,18 +1,11 @@
-import { useGameUI } from '~/hooks/useGameUI';
 import { useGameStore } from '~/store/gameStore';
 import { FirstBlackJackSelection } from './FirstBlackJackSelection';
 import { RandomCardsSelection } from './RandomCardsSelection';
 
 export function DealerSelectionAnimation() {
   const {
-    players,
-    deck,
     options: { dealerSelection },
-    dealerSelectionCards,
   } = useGameStore();
-  const { myPlayer } = useGameUI();
-
-  if (!myPlayer) return null;
 
   switch (dealerSelection) {
     case 'random_cards':

@@ -1,37 +1,19 @@
 import { useMemo } from 'react';
 import { useGame } from '~/contexts/GameContext';
-import { useGameUI } from '~/hooks/useGameUI';
 import { useGameStore } from '~/store/gameStore';
+import { select } from '~/store/selectors/players';
+import { getPositionClasses, getRelativePlayerPosition } from '~/utils/game/playerPositionUtils';
 import { CardBack } from '../Card';
-import DealerSelectionStatus from './DealerSelectionStatus';
 import PlayerDealingArea from './PlayerDealingArea';
 
 export function RandomCardsSelection() {
-  const { dealerSelectionCards } = useGameStore();
-  const getPositionClasses = (position: string) => {
-    switch (position) {
-      case 'bottom':
-        return 'absolute left-1/2 -translate-x-1/2 bottom-0';
-      case 'left':
-        return 'absolute top-1/2 -translate-y-1/2 rotate-90 translate-x-1/2';
-      case 'top':
-        return 'absolute left-1/2 -translate-x-1/2';
-      case 'right':
-        return 'absolute -rotate-90 right-0 top-1/2 -translate-y-1/2 -translate-x-1/2';
-      default:
-        return '';
-    }
-  };
-
-  const gameStore = useGameStore();
+  const { dealerSelectionCards, deck, players } = useGameStore();
   const { drawDealerCard } = useGame();
-  const { myPlayer, getPlayerPosition } = useGameUI();
+  const myPlayer = useGameStore(select.myPlayer);
 
   const cardsRemaining = useMemo(() => {
-    return (
-      gameStore.deck.length - (dealerSelectionCards ? Object.keys(dealerSelectionCards).length : 0)
-    );
-  }, [gameStore.deck.length, dealerSelectionCards]);
+    return deck.length - (dealerSelectionCards ? Object.keys(dealerSelectionCards).length : 0);
+  }, [deck.length, dealerSelectionCards]);
 
   const canPickCard = useMemo(
     () => myPlayer && !dealerSelectionCards?.[myPlayer.position],
@@ -43,8 +25,8 @@ export function RandomCardsSelection() {
   return (
     <>
       {/* Show dealt cards for each player in their positions */}
-      {gameStore.players.map(player => {
-        const position = getPlayerPosition(player);
+      {players.map(player => {
+        const position = getRelativePlayerPosition(player, myPlayer.position);
         const drawnCard = dealerSelectionCards?.[player.position];
         const hasDrawn = !!drawnCard;
         const isMyTurn = player.id === myPlayer.id && !hasDrawn;
@@ -102,24 +84,12 @@ export function RandomCardsSelection() {
               })}
             </div>
 
-            <div className='text-center text-white mt-4'>
+            <div className='text-center text-white mt-4 p-2 bg-black/50 rounded-lg backdrop-blur-sm border border-white/20'>
               <p className='text-sm animate-pulse'>Click any card to draw</p>
             </div>
           </div>
         </div>
       )}
-
-      {/* Status display */}
-      <DealerSelectionStatus
-        dealerFound={
-          !!(
-            dealerSelectionCards &&
-            Object.keys(dealerSelectionCards).length === gameStore.players.length
-          )
-        }
-        currentStep={dealerSelectionCards ? Object.keys(dealerSelectionCards).length : 0}
-        totalSteps={gameStore.players.length}
-      />
     </>
   );
 }

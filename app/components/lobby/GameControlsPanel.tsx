@@ -15,7 +15,7 @@ export default function GameControlsPanel({
   canStartGame,
   onStartGame,
 }: GameControlsPanelProps) {
-  const gameStore = useGameStore();
+  const { options } = useGameStore();
   const playersNeeded = 4 - connectedPlayersCount;
 
   const handleStartGame = () => {
@@ -38,8 +38,8 @@ export default function GameControlsPanel({
         ) : isHost ? (
           <div>
             {connectedPlayersCount === 4 &&
-            gameStore.options.dealerSelection === 'predetermined_first_dealer' &&
-            gameStore.options.predeterminedFirstDealerId === undefined ? (
+            options.dealerSelection === 'predetermined_first_dealer' &&
+            options.predeterminedFirstDealerId === undefined ? (
               <div>
                 <p className='text-yellow-600 font-medium mb-4'>
                   Please select a first dealer before starting the game.

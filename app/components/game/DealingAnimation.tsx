@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 
 import { useGame } from '~/contexts/GameContext';
-import { useGameUI } from '~/hooks/useGameUI';
 import { useGameStore } from '~/store/gameStore';
-import type { Player } from '~/types/game';
+import { select } from '~/store/selectors/players';
+import { getPositionClasses, getRelativePlayerPosition } from '~/utils/game/playerPositionUtils';
 import { CardBack } from './Card';
 
 interface DealingStep {
@@ -21,7 +21,8 @@ interface AnimatingCard {
 
 export function DealingAnimation() {
   const { players, currentDealerPosition } = useGameStore();
-  const { myPlayer } = useGameUI();
+  const myPlayer = useGameStore(select.myPlayer);
+
   const { completeDealingAnimation } = useGame();
 
   const [dealingSteps, setDealingSteps] = useState<DealingStep[]>([]);
@@ -134,37 +135,6 @@ export function DealingAnimation() {
     };
   }, [completeDealingAnimation, currentStep, dealingSteps]);
 
-  const getPlayerPosition = (player: Player, myPosition: number) => {
-    const relativePosition = (player.position - myPosition + 4) % 4;
-    switch (relativePosition) {
-      case 0:
-        return 'bottom';
-      case 1:
-        return 'left';
-      case 2:
-        return 'top';
-      case 3:
-        return 'right';
-      default:
-        return 'bottom';
-    }
-  };
-
-  const getPositionClasses = (position: string) => {
-    switch (position) {
-      case 'bottom':
-        return 'absolute bottom-2 left-1/2 transform -translate-x-1/2';
-      case 'left':
-        return 'absolute left-14 top-1/2 transform -translate-y-1/2 rotate-90 -translate-x-1/2';
-      case 'top':
-        return 'absolute top-14 left-1/2 transform -translate-x-1/2 -translate-y-1/2';
-      case 'right':
-        return 'absolute right-14 top-1/2 transform -translate-y-1/2 -rotate-90 translate-x-1/2';
-      default:
-        return '';
-    }
-  };
-
   const getCardTargetPosition = (playerId: string): { x: number; y: number; rotation: number } => {
     const player = players.find(p => p.id === playerId);
     if (!player) return { x: 0, y: 0, rotation: 0 };
@@ -256,7 +226,7 @@ export function DealingAnimation() {
 
       {/* Player areas to show card count during dealing */}
       {players.map(player => {
-        const position = getPlayerPosition(player, myPlayer.position);
+        const position = getRelativePlayerPosition(player, myPlayer.position);
         // Count completed cards dealt to this player (not including currently animating ones)
         const cardsDealtToPlayer = dealingSteps
           .slice(0, Math.max(0, currentStep))
@@ -267,7 +237,7 @@ export function DealingAnimation() {
             <div
               className={`text-center flex flex-col items-center gap-2 ${position === 'top' ? 'flex-col-reverse' : ''}`}
             >
-              <div className='inline-block px-3 py-1 rounded-lg text-sm font-medium mb-2 bg-white/20 text-white'>
+              <div className='inline-block text-nowrap px-3 py-1 rounded-lg text-sm font-medium mb-2 bg-white/20 text-white'>
                 {player.name} {player.position === myPlayer.position && '(You)'}
                 {player.position === currentDealerPosition && '(Dealer)'}
               </div>
@@ -291,24 +261,6 @@ export function DealingAnimation() {
           </div>
         );
       })}
-
-      {/* Dealing status */}
-      <div className='absolute bottom-32 left-1/2 transform -translate-x-1/2 text-white text-center'>
-        <div className='bg-black/70 backdrop-blur-sm px-6 py-3 rounded-lg shadow-lg border border-white/20'>
-          <div className='text-lg font-medium mb-1'>Dealing Cards</div>
-          <div className='text-sm text-gray-300'>
-            {currentStep < 0
-              ? 'Preparing to deal...'
-              : currentStep >= dealingSteps.length
-                ? 'Dealing complete!'
-                : (() => {
-                    const currentStepData = dealingSteps[currentStep];
-                    const playerName = players.find(p => p.id === currentStepData?.playerId)?.name;
-                    return `Dealing to ${playerName}... (${currentStep + 1}/${dealingSteps.length})`;
-                  })()}
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

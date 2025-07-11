@@ -11,7 +11,8 @@ import { Stack } from '~/components/ui/Stack';
 import { useGame } from '~/contexts/GameContext';
 
 import { useElementHeight } from '~/hooks/useElementHeight';
-import { useGameUI } from '~/hooks/useGameUI';
+import { useGameStore } from '~/store/gameStore';
+import { select } from '~/store/selectors/players';
 import type { Route } from './+types/game';
 
 export function meta({ params }: Route.MetaArgs) {
@@ -23,18 +24,19 @@ export function meta({ params }: Route.MetaArgs) {
 
 export default function Game({ params }: Route.ComponentProps) {
   const { gameCode } = params;
-  const { gameState, connectionStatus } = useGame();
-  const { myPlayer } = useGameUI();
+  const { connectionStatus } = useGame();
+  const { phase } = useGameStore();
+  const myPlayer = useGameStore(select.myPlayer);
 
   const navigate = useNavigate();
   const headerHeight = useElementHeight('#game-header');
 
   useEffect(() => {
     // Redirect to lobby if game hasn't started
-    if (gameState.phase === 'lobby') {
+    if (phase === 'lobby') {
       navigate(`/lobby/${gameCode}`);
     }
-  }, [gameState.phase, gameCode, navigate]);
+  }, [phase, gameCode, navigate]);
 
   const shouldShowCards = () => {
     return [
@@ -43,13 +45,13 @@ export default function Game({ params }: Route.ComponentProps) {
       'dealer_discard',
       'playing',
       'trick_complete',
-    ].includes(gameState.phase);
+    ].includes(phase);
   };
 
   if (!myPlayer) {
     return (
       <GameContainer>
-        <Center className='text-white text-center'>
+        <Center className='text-white text-center min-h-screen'>
           <Stack spacing='4'>
             <Center>
               <Spinner size='lg' color='white' />

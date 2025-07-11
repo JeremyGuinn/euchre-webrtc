@@ -1,10 +1,11 @@
 import type { Card, Player } from '~/types/game';
+import type { Position } from '~/utils/game/playerPositionUtils';
 import { Card as CardComponent } from '../Card';
 
 interface PlayerDealingAreaProps {
   player: Player;
   myPlayer: Player;
-  position: 'bottom' | 'left' | 'top' | 'right';
+  position: Position;
   positionClasses: string;
   isCurrentPlayer?: boolean;
   isWinner?: boolean;

@@ -2,14 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { PlayerHand } from '~/components/game/PlayerHand';
 import { PlayerManagementMenu } from '~/components/game/PlayerManagementMenu';
-import type { Card as CardType, GameState, Player } from '~/types/game';
+import { useGameStore } from '~/store/gameStore';
+import type { Card as CardType, Player } from '~/types/game';
+import { getPositionClasses, type Position } from '~/utils/game/playerPositionUtils';
 
 interface PlayerPositionProps {
   player: Player;
   myPlayer: Player;
   myHand: CardType[];
-  gameState: GameState;
-  position: string;
+  position: Position;
   isCurrentPlayer: boolean;
   isPlayerSittingOut: boolean;
   isSittingOut: () => boolean;
@@ -26,7 +27,6 @@ export function PlayerPosition({
   player,
   myPlayer,
   myHand,
-  gameState,
   position,
   isCurrentPlayer,
   isPlayerSittingOut,
@@ -39,6 +39,8 @@ export function PlayerPosition({
   isHost,
   onKickPlayer,
 }: PlayerPositionProps) {
+  const { phase, currentDealerPosition } = useGameStore();
+
   const [showManagementMenu, setShowManagementMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const menuRef = useRef<HTMLDivElement>(null);
@@ -96,32 +98,17 @@ export function PlayerPosition({
     setShowManagementMenu(false);
   };
 
-  const getPositionClasses = (position: string) => {
-    switch (position) {
-      case 'bottom':
-        return 'absolute bottom-2 left-1/2 transform -translate-x-1/2';
-      case 'left':
-        return 'absolute left-14 top-1/2 transform -translate-y-1/2 rotate-90 -translate-x-1/2';
-      case 'top':
-        return 'absolute top-14 left-1/2 transform -translate-x-1/2 -translate-y-1/2';
-      case 'right':
-        return 'absolute right-14 top-1/2 transform -translate-y-1/2 -rotate-90 translate-x-1/2';
-      default:
-        return '';
-    }
-  };
-
   return (
     <div className={getPositionClasses(position)}>
       <div
         className={`text-center flex gap-2 items-center ${position === 'top' ? 'flex-col-reverse ' : 'flex-col'}`}
       >
-        {gameState.phase !== 'dealing_animation' && gameState.phase !== 'dealer_selection' && (
+        {phase !== 'dealing_animation' && phase !== 'dealer_selection' && (
           <div className='relative'>
             {isHost && player.id !== myPlayer.id && onKickPlayer ? (
               <button
                 ref={nameRef}
-                className={`inline-block px-3 py-1 rounded-lg text-sm font-medium w-fit cursor-pointer hover:opacity-80 transition-opacity ${
+                className={`inline-block text-nowrap px-3 py-1 rounded-lg text-sm font-medium w-fit cursor-pointer hover:opacity-80 transition-opacity ${
                   isPlayerSittingOut
                     ? 'bg-gray-500 text-gray-300'
                     : isCurrentPlayer
@@ -133,12 +120,12 @@ export function PlayerPosition({
               >
                 {player.name} {player.id === myPlayer.id && '(You)'}
                 {!player.isConnected && ' (Disconnected)'}
-                {gameState.currentDealerPosition === player.position && ' (Dealer)'}
+                {currentDealerPosition === player.position && ' (Dealer)'}
                 {isPlayerSittingOut && ' (Sitting Out)'}
               </button>
             ) : (
               <div
-                className={`inline-block px-3 py-1 rounded-lg text-sm font-medium w-fit ${
+                className={`inline-block text-nowrap px-3 py-1 rounded-lg text-sm font-medium w-fit ${
                   isPlayerSittingOut
                     ? 'bg-gray-500 text-gray-300'
                     : isCurrentPlayer
@@ -148,7 +135,7 @@ export function PlayerPosition({
               >
                 {player.name} {player.id === myPlayer.id && '(You)'}
                 {!player.isConnected && ' (Disconnected)'}
-                {gameState.currentDealerPosition === player.position && ' (Dealer)'}
+                {currentDealerPosition === player.position && ' (Dealer)'}
                 {isPlayerSittingOut && ' (Sitting Out)'}
               </div>
             )}
@@ -167,7 +154,6 @@ export function PlayerPosition({
                 >
                   <PlayerManagementMenu
                     player={player}
-                    gameState={gameState}
                     isMyPlayer={player.id === myPlayer.id}
                     isHost={isHost || false}
                     onKickPlayer={onKickPlayer}
@@ -184,7 +170,6 @@ export function PlayerPosition({
           player={player}
           myPlayer={myPlayer}
           myHand={myHand}
-          gameState={gameState}
           isSittingOut={isSittingOut}
           canPlay={canPlay}
           isMyTurn={isMyTurn}

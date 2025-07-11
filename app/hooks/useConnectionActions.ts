@@ -14,10 +14,8 @@ import { withTimeout } from '~/utils/async';
 export function useConnectionActions(
   networkService: GameNetworkService,
   connectionStatus: ConnectionStatus,
-  myPlayerId: string,
   isHost: boolean,
   sessionManager: SessionContextType,
-  setMyPlayerId: (id: string) => void,
   setIsHost: (isHost: boolean) => void,
   setConnectionStatus: (status: ConnectionStatus) => void,
   setReconnectionStatus: (status: ReconnectionStatus) => void
@@ -30,7 +28,7 @@ export function useConnectionActions(
     return logger.withPerformance('hostGame', async () => {
       logger.info('Starting to host game', {
         connectionStatus,
-        myPlayerId: myPlayerId || 'none',
+        myPlayerId: gameStore.myPlayerId || 'none',
       });
 
       if (connectionStatus === 'connected') {
@@ -45,7 +43,8 @@ export function useConnectionActions(
       const { gameCode, hostId, gameUuid } = await networkService.hostGame();
       logger.info('Game hosted successfully', { gameCode, hostId, gameUuid });
 
-      setMyPlayerId(hostId);
+      gameStore.setMyPlayerId(hostId);
+
       setIsHost(true);
 
       // Save session data for reconnection
@@ -65,16 +64,7 @@ export function useConnectionActions(
 
       return gameCode;
     });
-  }, [
-    connectionStatus,
-    networkService,
-    setMyPlayerId,
-    setIsHost,
-    gameStore,
-    logger,
-    myPlayerId,
-    sessionManager,
-  ]);
+  }, [connectionStatus, networkService, setIsHost, gameStore, logger, sessionManager]);
 
   const joinGame = useCallback(
     async (gameCode: string, playerName: string): Promise<void> => {
@@ -83,7 +73,7 @@ export function useConnectionActions(
           gameCode,
           playerName,
           connectionStatus,
-          myPlayerId: myPlayerId || 'none',
+          myPlayerId: gameStore.myPlayerId || 'none',
         });
 
         if (connectionStatus === 'connected' || connectionStatus === 'connecting') {
@@ -102,14 +92,13 @@ export function useConnectionActions(
           playerId,
         });
 
-        setMyPlayerId(playerId);
+        gameStore.setMyPlayerId(playerId);
         setIsHost(false);
         logger.debug('Player state updated', { playerId, isHost: false });
 
         // Update network service configuration immediately with the new playerId
         // This ensures the message handlers have the correct context when JOIN_RESPONSE arrives
         networkService.updateConfig({
-          myPlayerId: playerId,
           isHost: false,
         });
 
@@ -118,7 +107,7 @@ export function useConnectionActions(
         logger.debug('Session will be saved when JOIN_RESPONSE is received');
       });
     },
-    [connectionStatus, networkService, setMyPlayerId, setIsHost, logger, myPlayerId, sessionManager]
+    [connectionStatus, networkService, setIsHost, logger, sessionManager]
   );
 
   const attemptReconnection = useCallback(async (): Promise<boolean> => {
@@ -187,7 +176,7 @@ export function useConnectionActions(
             gameCodeChanged: reconnectionResult.gameCode !== session.gameCode,
           });
 
-          setMyPlayerId(reconnectionResult.hostId);
+          gameStore.setMyPlayerId(reconnectionResult.hostId);
           setIsHost(true);
 
           // Try to restore the full game state from localStorage
@@ -247,7 +236,7 @@ export function useConnectionActions(
               oldPeerId: session.playerId,
               newPeerId,
             });
-            setMyPlayerId(newPeerId);
+            gameStore.setMyPlayerId(newPeerId);
           }
           setIsHost(false);
 
@@ -285,7 +274,6 @@ export function useConnectionActions(
   }, [
     networkService,
     setConnectionStatus,
-    setMyPlayerId,
     setIsHost,
     gameStore,
     navigate,
@@ -353,7 +341,7 @@ export function useConnectionActions(
             oldPeerId: session.playerId,
             newPeerId,
           });
-          setMyPlayerId(newPeerId);
+          gameStore.setMyPlayerId(newPeerId);
         }
         setIsHost(false);
 
@@ -396,14 +384,14 @@ export function useConnectionActions(
       }
     });
   }, [
-    networkService,
-    setConnectionStatus,
-    setMyPlayerId,
-    setIsHost,
-    setReconnectionStatus,
-    navigate,
     logger,
     sessionManager,
+    setReconnectionStatus,
+    networkService,
+    setIsHost,
+    setConnectionStatus,
+    gameStore,
+    navigate,
   ]);
 
   const leaveGame = useCallback(
@@ -416,12 +404,12 @@ export function useConnectionActions(
           reason,
           isHost,
           connectionStatus,
-          myPlayerId: myPlayerId || 'none',
+          myPlayerId: gameStore.myPlayerId || 'none',
           additionalContext,
         });
 
         setConnectionStatus('disconnected');
-        setMyPlayerId('');
+        gameStore.setMyPlayerId('');
         setIsHost(false);
         sessionManager.clearSession();
         GameStatePersistenceService.clear();
@@ -473,13 +461,11 @@ export function useConnectionActions(
       isHost,
       connectionStatus,
       setConnectionStatus,
-      setMyPlayerId,
+      gameStore,
       setIsHost,
       navigate,
       logger,
-      myPlayerId,
       sessionManager,
-      gameStore.id,
     ]
   );
 

@@ -1,12 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import { useGameUI } from '~/hooks/useGameUI';
 import { useGameStore } from '~/store/gameStore';
+import { select } from '~/store/selectors/players';
 import type { Card, Player } from '~/types/game';
 import { CardBack } from '../Card';
 
 interface FirstBlackJackDealingAnimationProps {
-  isVisible: boolean;
   currentCard: Card | null;
   targetPlayerId: string | null;
   onAnimationComplete: () => void;
@@ -17,20 +16,99 @@ interface AnimatingCard {
   isAnimating: boolean;
 }
 
+const getPlayerPosition = (player: Player, myPosition: number) => {
+  const relativePosition = (player.position - myPosition + 4) % 4;
+  switch (relativePosition) {
+    case 0:
+      return 'bottom';
+    case 1:
+      return 'left';
+    case 2:
+      return 'top';
+    case 3:
+      return 'right';
+    default:
+      return 'bottom';
+  }
+};
+
+const getCardTargetPosition = (
+  players: Player[],
+  playerId: string,
+  myPosition: number
+): { x: number; y: number; rotation: number } => {
+  const player = players.find(p => p.id === playerId);
+  if (!player) return { x: 0, y: 0, rotation: 0 };
+
+  const position = getPlayerPosition(player, myPosition);
+
+  // Try to get the actual DOM position of the player's card container
+  const cardContainer = document.getElementById(`blackjack-player-cards-${player.id}`);
+  const centerElement = document.getElementById('blackjack-dealing-center');
+
+  const containerRect = cardContainer?.getBoundingClientRect();
+  const centerRect = centerElement?.getBoundingClientRect();
+
+  if (!containerRect || !centerRect) {
+    // Fallback positions based on player position
+    switch (position) {
+      case 'bottom':
+        return { x: 0, y: 200, rotation: 0 };
+      case 'left':
+        return { x: -300, y: 0, rotation: 90 };
+      case 'top':
+        return { x: 0, y: -200, rotation: 0 };
+      case 'right':
+        return { x: 300, y: 0, rotation: -90 };
+      default:
+        return { x: 0, y: 0, rotation: 0 };
+    }
+  }
+
+  // Calculate relative position from center
+  let x = containerRect.left + containerRect.width / 2 - (centerRect.left + centerRect.width / 2);
+  let y = containerRect.top + containerRect.height / 2 - (centerRect.top + centerRect.height / 2);
+
+  // Add slight random offset for natural feel
+  x += (Math.random() - 0.5) * 15;
+  y += (Math.random() - 0.5) * 15;
+
+  // Base rotation based on position, with slight random variation
+  let baseRotation = 0;
+  switch (position) {
+    case 'left':
+      baseRotation = 90;
+      break;
+    case 'right':
+      baseRotation = -90;
+      break;
+    case 'bottom':
+    case 'top':
+    default:
+      baseRotation = 0;
+      break;
+  }
+
+  // Add small random rotation for natural feel
+  const randomRotation = (Math.random() - 0.5) * 8; // ±4 degrees
+  const rotation = baseRotation + randomRotation;
+
+  return { x, y, rotation };
+};
+
 export function FirstBlackJackDealingAnimation({
-  isVisible,
   currentCard,
   targetPlayerId,
   onAnimationComplete,
 }: FirstBlackJackDealingAnimationProps) {
   const { players } = useGameStore();
-  const { myPlayer } = useGameUI();
+  const myPlayer = useGameStore(select.myPlayer);
 
   const [animatingCard, setAnimatingCard] = useState<AnimatingCard | null>(null);
 
   // Start animation when a new card is being dealt
   useEffect(() => {
-    if (!isVisible || !currentCard || !targetPlayerId) return;
+    if (!currentCard || !targetPlayerId) return;
 
     const cardId = `dealing-${currentCard.id}-${targetPlayerId}`;
 
@@ -55,90 +133,15 @@ export function FirstBlackJackDealingAnimation({
         onAnimationComplete();
       }, 250); // Increased duration to match dealing timing
     }, 50); // Reduced initial delay
-  }, [currentCard, targetPlayerId, isVisible, onAnimationComplete]);
+  }, [currentCard, targetPlayerId, onAnimationComplete]);
 
-  const getPlayerPosition = (player: Player, myPosition: number) => {
-    const relativePosition = (player.position - myPosition + 4) % 4;
-    switch (relativePosition) {
-      case 0:
-        return 'bottom';
-      case 1:
-        return 'left';
-      case 2:
-        return 'top';
-      case 3:
-        return 'right';
-      default:
-        return 'bottom';
-    }
-  };
-
-  const getCardTargetPosition = (
-    playerId: string,
-    myPosition: number
-  ): { x: number; y: number; rotation: number } => {
-    const player = players.find(p => p.id === playerId);
-    if (!player) return { x: 0, y: 0, rotation: 0 };
-
-    const position = getPlayerPosition(player, myPosition);
-
-    // Try to get the actual DOM position of the player's card container
-    const cardContainer = document.getElementById(`blackjack-player-cards-${player.id}`);
-    const centerElement = document.getElementById('blackjack-dealing-center');
-
-    const containerRect = cardContainer?.getBoundingClientRect();
-    const centerRect = centerElement?.getBoundingClientRect();
-
-    if (!containerRect || !centerRect) {
-      // Fallback positions based on player position
-      switch (position) {
-        case 'bottom':
-          return { x: 0, y: 200, rotation: 0 };
-        case 'left':
-          return { x: -300, y: 0, rotation: 90 };
-        case 'top':
-          return { x: 0, y: -200, rotation: 0 };
-        case 'right':
-          return { x: 300, y: 0, rotation: -90 };
-        default:
-          return { x: 0, y: 0, rotation: 0 };
-      }
-    }
-
-    // Calculate relative position from center
-    let x = containerRect.left + containerRect.width / 2 - (centerRect.left + centerRect.width / 2);
-    let y = containerRect.top + containerRect.height / 2 - (centerRect.top + centerRect.height / 2);
-
-    // Add slight random offset for natural feel
-    x += (Math.random() - 0.5) * 15;
-    y += (Math.random() - 0.5) * 15;
-
-    // Base rotation based on position, with slight random variation
-    let baseRotation = 0;
-    switch (position) {
-      case 'left':
-        baseRotation = 90;
-        break;
-      case 'right':
-        baseRotation = -90;
-        break;
-      case 'bottom':
-      case 'top':
-      default:
-        baseRotation = 0;
-        break;
-    }
-
-    // Add small random rotation for natural feel
-    const randomRotation = (Math.random() - 0.5) * 8; // ±4 degrees
-    const rotation = baseRotation + randomRotation;
-
-    return { x, y, rotation };
-  };
-
-  if (!isVisible || !animatingCard || !targetPlayerId || !myPlayer) return null;
-
-  const targetPos = getCardTargetPosition(targetPlayerId, myPlayer.position);
+  const targetPos = useMemo(
+    () =>
+      targetPlayerId && myPlayer
+        ? getCardTargetPosition(players, targetPlayerId, myPlayer.position)
+        : undefined,
+    [players, targetPlayerId, myPlayer]
+  );
 
   return (
     <div className='absolute inset-0 z-40 pointer-events-none'>
@@ -174,20 +177,22 @@ export function FirstBlackJackDealingAnimation({
           </div>
 
           {/* Animating card */}
-          <div
-            key={animatingCard.id}
-            className='absolute top-1 left-1 z-50'
-            style={{
-              transform: animatingCard.isAnimating
-                ? `translate(${targetPos.x}px, ${targetPos.y}px) scale(0.9) rotate(${targetPos.rotation}deg)`
-                : `translate(0px, 0px) scale(1) rotate(0deg)`,
-              transition: animatingCard.isAnimating
-                ? 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-                : 'none',
-            }}
-          >
-            <CardBack size='medium' />
-          </div>
+          {animatingCard && targetPos && (
+            <div
+              key={animatingCard.id}
+              className='absolute top-1 left-1 z-50'
+              style={{
+                transform: animatingCard.isAnimating
+                  ? `translate(${targetPos.x}px, ${targetPos.y}px) scale(0.9) rotate(${targetPos.rotation}deg)`
+                  : `translate(0px, 0px) scale(1) rotate(0deg)`,
+                transition: animatingCard.isAnimating
+                  ? 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                  : 'none',
+              }}
+            >
+              <CardBack size='medium' />
+            </div>
+          )}
         </div>
       </div>
     </div>

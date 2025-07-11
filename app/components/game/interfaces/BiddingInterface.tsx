@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import Button from '~/components/ui/Button';
 import { useGame } from '~/contexts/GameContext';
-import { useGameUI } from '~/hooks/useGameUI';
 import { useGameStore } from '~/store/gameStore';
+import { select } from '~/store/selectors/players';
 import type { Card as CardType } from '~/types/game';
 import { getSuitColor, getSuitSymbol } from '~/utils/game/cardUtils';
 
@@ -12,7 +12,7 @@ export function BiddingInterface() {
   const { placeBid } = useGame();
   const { phase, kitty, players, currentDealerPosition, turnedDownSuit, isDealerScrewed } =
     useGameStore();
-  const { myPlayer } = useGameUI();
+  const myPlayer = useGameStore(select.myPlayer);
   const [selectedSuit, setSelectedSuit] = useState<CardType['suit'] | null>(null);
 
   const isDealerTeammate = useMemo(() => {

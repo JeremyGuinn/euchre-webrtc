@@ -5,6 +5,7 @@ import type { GameStore } from '../gameStore';
 
 export interface PlayerSlice {
   addPlayer: (player: Player) => void;
+  setMyPlayerId: (playerId: string) => void;
   removePlayer: (playerId: string) => void;
   updatePlayerConnection: (playerId: string, isConnected: boolean) => void;
   reconnectPlayer: (oldPlayerId: string, newPlayerId: string, playerName: string) => void;
@@ -42,6 +43,10 @@ export const createPlayerSlice: StateCreator<GameStore, [], [], PlayerSlice> = (
               [availablePosition]: hands[availablePosition] || [],
             },
     });
+  },
+
+  setMyPlayerId: (playerId: string) => {
+    set({ myPlayerId: playerId });
   },
 
   removePlayer: (playerId: string) => {

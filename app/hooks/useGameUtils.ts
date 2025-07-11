@@ -4,7 +4,7 @@ import type { Card, GameState, Player } from '~/types/game';
 import { canPlayCardWithOptions, getEffectiveSuit } from '~/utils/game/gameLogic';
 import { getPositionFromPlayerId } from '~/utils/game/playerUtils';
 
-export function useGameUtils(gameState: GameState, myPlayerId: string) {
+export function useGameUtils(gameState: GameState, myPlayerId: string | undefined) {
   const myPosition = getPositionFromPlayerId(myPlayerId, gameState.players);
 
   const canPlay = useCallback(

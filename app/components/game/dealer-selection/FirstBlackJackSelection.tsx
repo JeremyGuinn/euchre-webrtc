@@ -1,17 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useGame } from '~/contexts/GameContext';
-import { useGameUI } from '~/hooks/useGameUI';
 import { useGameStore } from '~/store/gameStore';
+import { select } from '~/store/selectors/players';
 import type { Card, Player } from '~/types/game';
+import { getPositionClasses } from '~/utils/game/playerPositionUtils';
 import { getPlayerIdFromPosition } from '~/utils/game/playerUtils';
 import CardDeck from './CardDeck';
-import DealerSelectionStatus from './DealerSelectionStatus';
 import { FirstBlackJackDealingAnimation } from './FirstBlackJackDealingAnimation';
 import PlayerDealingArea from './PlayerDealingArea';
 
 export function FirstBlackJackSelection() {
   const { players } = useGameStore();
-  const { myPlayer } = useGameUI();
+  const myPlayer = useGameStore(select.myPlayer);
+
   const { gameState, isHost, dealFirstBlackJackCard, completeBlackJackDealerSelection } = useGame();
 
   // Animation state
@@ -140,21 +141,6 @@ export function FirstBlackJackSelection() {
     };
   }, []);
 
-  const getPositionClasses = (position: string) => {
-    switch (position) {
-      case 'bottom':
-        return 'absolute left-1/2 -translate-x-1/2 bottom-0';
-      case 'left':
-        return 'absolute top-1/2 -translate-y-1/2 rotate-90 translate-x-1/2';
-      case 'top':
-        return 'absolute left-1/2 -translate-x-1/2';
-      case 'right':
-        return 'absolute -rotate-90 right-0 top-1/2 -translate-y-1/2 -translate-x-1/2';
-      default:
-        return '';
-    }
-  };
-
   // Reset completed animations when component becomes visible
   useEffect(() => {
     if (!dealingComplete) {
@@ -192,12 +178,13 @@ export function FirstBlackJackSelection() {
       </div>
 
       {/* Dealing Animation */}
-      <FirstBlackJackDealingAnimation
-        isVisible={isAnimating}
-        currentCard={pendingDeal?.card || null}
-        targetPlayerId={pendingDeal?.playerId || null}
-        onAnimationComplete={handleAnimationComplete}
-      />
+      {isAnimating && (
+        <FirstBlackJackDealingAnimation
+          currentCard={pendingDeal?.card || null}
+          targetPlayerId={pendingDeal?.playerId || null}
+          onAnimationComplete={handleAnimationComplete}
+        />
+      )}
 
       {/* Show cards for each player in their positions */}
       {players.map(player => {
@@ -223,15 +210,6 @@ export function FirstBlackJackSelection() {
           />
         );
       })}
-
-      {/* Central status message */}
-      <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
-        <DealerSelectionStatus
-          dealerFound={dealingComplete || !!dealingState?.blackJackFound}
-          currentStep={currentCardIndex}
-          totalSteps={gameState.deck?.length ?? 52}
-        />
-      </div>
     </>
   );
 }

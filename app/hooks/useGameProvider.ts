@@ -47,7 +47,6 @@ export function useGameProvider() {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(
     getInitialConnectionStatus()
   );
-  const [myPlayerId, setMyPlayerId] = useState('');
   const [isHost, setIsHost] = useState(false);
   const [reconnectionStatus, setReconnectionStatus] = useState<ReconnectionStatus>({
     isReconnecting: false,
@@ -57,17 +56,15 @@ export function useGameProvider() {
 
   const networkService = useMemo(() => new GameNetworkService(), []);
 
-  const { broadcastGameState } = useGameStateEffects(gameStore, myPlayerId, isHost, networkService);
+  const { broadcastGameState } = useGameStateEffects(gameStore, isHost, networkService);
 
   useGameStatePersistence(gameStore, isHost, connectionStatus);
 
   const connectionActions = useConnectionActions(
     networkService,
     connectionStatus,
-    myPlayerId,
     isHost,
     sessionManager,
-    setMyPlayerId,
     setIsHost,
     setConnectionStatus,
     setReconnectionStatus
@@ -83,12 +80,10 @@ export function useGameProvider() {
   useEffect(() => {
     networkService.configure({
       gameStore,
-      myPlayerId,
       isHost,
       broadcastGameState,
       handleKicked,
       setConnectionStatus,
-      setMyPlayerId,
       setIsHost,
       pollForHostReconnection: connectionActions.pollForHostReconnection,
       sessionManager: {
@@ -102,12 +97,10 @@ export function useGameProvider() {
     networkService,
     gameStore,
     gameStore.deck,
-    myPlayerId,
     isHost,
     broadcastGameState,
     handleKicked,
     setConnectionStatus,
-    setMyPlayerId,
     setIsHost,
     connectionActions.pollForHostReconnection,
     sessionManager.saveSession,
@@ -142,14 +135,14 @@ export function useGameProvider() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount - ignore ESLint warning about connectionActions
 
-  const gameActions = useGameActions(myPlayerId, isHost, networkService);
+  const gameActions = useGameActions(gameStore.myPlayerId, isHost, networkService);
 
-  const gameUtils = useGameUtils(gameStore, myPlayerId);
+  const gameUtils = useGameUtils(gameStore, gameStore.myPlayerId);
 
   const contextValue: GameContextType = {
     gameState: gameStore,
     networkManager: networkService.getNetworkManager(),
-    myPlayerId,
+    myPlayerId: gameStore.myPlayerId,
     isHost,
     connectionStatus,
     reconnectionStatus,

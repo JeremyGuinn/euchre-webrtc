@@ -7,7 +7,7 @@ import type { Bid, Card, GameOptions } from '~/types/game';
 import { getPositionFromPlayerId, makeNameUnique } from '~/utils/game/playerUtils';
 
 export function useGameActions(
-  myPlayerId: string,
+  myPlayerId: string | undefined,
   isHost: boolean,
   networkService: GameNetworkService
 ) {
@@ -134,7 +134,7 @@ export function useGameActions(
           drawnCard = availableCards[randomIndex];
         }
 
-        gameStore.drawDealerCard(myPlayerId, drawnCard);
+        if (myPlayerId) gameStore.drawDealerCard(myPlayerId, drawnCard);
       } else {
         if (cardIndex === undefined) {
           return;

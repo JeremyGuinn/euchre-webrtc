@@ -2,7 +2,9 @@ import { CurrentTurnIndicator } from '~/components/game/indicators/CurrentTurnIn
 import { PlayerPosition } from '~/components/game/PlayerPosition';
 import { TrickCenter } from '~/components/game/TrickCenter';
 import { useGame } from '~/contexts/GameContext';
-import { useGameUI } from '~/hooks/useGameUI';
+import { useGameStore } from '~/store/gameStore';
+import { select } from '~/store/selectors/players';
+import { getRelativePlayerPosition } from '~/utils/game/playerPositionUtils';
 
 interface GameTableProps {
   headerHeight: number;
@@ -10,26 +12,12 @@ interface GameTableProps {
 }
 
 export function GameTable({ headerHeight, shouldShowCards }: GameTableProps) {
-  const {
-    gameState,
-    myPlayer,
-    isHost,
-    getPlayerPosition,
-    getMyHand,
-    canPlay,
-    isMyTurn,
-    isSittingOut,
-    handlePlayCard,
-    handleDealerDiscard,
-  } = useGameUI();
+  const { kickPlayer, canPlay, playCard, dealerDiscard, isSittingOut } = useGame();
+  const { players, currentPlayerPosition, maker, phase } = useGameStore();
+  const myPlayer = useGameStore(select.myPlayer);
+  const myHand = useGameStore(select.myHand);
 
-  const { kickPlayer } = useGame();
-
-  if (!myPlayer) {
-    return null;
-  }
-
-  const myHand = getMyHand();
+  if (!myPlayer) return null;
 
   return (
     <div
@@ -43,41 +31,41 @@ export function GameTable({ headerHeight, shouldShowCards }: GameTableProps) {
       <TrickCenter />
 
       {/* Players around the table */}
-      {gameState.players.map(player => {
-        const position = getPlayerPosition(player);
-        const isCurrentPlayer = player.position === gameState.currentPlayerPosition;
+      {players.map(player => {
+        const position = getRelativePlayerPosition(player, myPlayer.position);
+        const isCurrentPlayer = player.position === currentPlayerPosition;
 
         // Check if this player is sitting out due to going alone
         const isPlayerSittingOut =
-          gameState.maker?.alone &&
-          gameState.maker.playerPosition !== player.position &&
-          gameState.players.find(p => p.position === gameState.maker!.playerPosition)?.teamId ===
-            player.teamId;
+          maker?.alone &&
+          maker.playerPosition !== player.position &&
+          players.find(p => p.position === maker!.playerPosition)?.teamId === player.teamId;
 
         return (
           <PlayerPosition
             key={player.id}
             player={player}
             myPlayer={myPlayer}
-            myHand={myHand}
-            gameState={gameState}
+            myHand={myHand || []}
             position={position}
             isCurrentPlayer={isCurrentPlayer}
             isPlayerSittingOut={isPlayerSittingOut || false}
             isSittingOut={isSittingOut}
             canPlay={canPlay}
-            isMyTurn={isMyTurn}
-            onCardClick={handlePlayCard}
-            onDealerDiscard={handleDealerDiscard}
+            isMyTurn={() => player.position === currentPlayerPosition}
+            onCardClick={playCard}
+            onDealerDiscard={dealerDiscard}
             shouldShowCards={shouldShowCards}
-            isHost={isHost}
+            isHost={myPlayer?.isHost}
             onKickPlayer={() => kickPlayer(player.id)}
           />
         );
       })}
 
       {/* Current turn indicator */}
-      <CurrentTurnIndicator />
+      {['dealing_animation', 'dealer_selection', 'team_summary'].includes(phase) && (
+        <CurrentTurnIndicator />
+      )}
     </div>
   );
 }

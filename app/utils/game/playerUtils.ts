@@ -133,7 +133,7 @@ export function getPlayerFromPosition(
  * @returns Player position, or undefined if player not found
  */
 export function getPositionFromPlayerId(
-  playerId: string,
+  playerId: string | undefined,
   players: Player[]
 ): 0 | 1 | 2 | 3 | undefined {
   return players.find(p => p.id === playerId)?.position;

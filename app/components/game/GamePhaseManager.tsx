@@ -10,49 +10,56 @@ import { TrickCompleteOverlay } from '~/components/game/overlays/TrickCompleteOv
 import Button from '~/components/ui/Button';
 import { Center } from '~/components/ui/Center';
 import { useGame } from '~/contexts/GameContext';
-import { useGameUI } from '~/hooks/useGameUI';
 import { useGameStore } from '~/store/gameStore';
+import { select } from '~/store/selectors/players';
 
 interface GamePhaseManagerProps {
   headerHeight: number;
 }
 
 export function GamePhaseManager({ headerHeight }: GamePhaseManagerProps) {
-  const gameState = useGameStore();
-  const { isHost, myPlayer } = useGameUI();
+  const {
+    phase,
+    dealerSelectionCards,
+    firstBlackJackDealing,
+    options,
+    kitty,
+    farmersHandPosition,
+  } = useGameStore();
   const { selectDealer, isMyTurn } = useGame();
+  const myPlayer = useGameStore(select.myPlayer);
 
   // Dealer Selection Animation
-  if (gameState.phase === 'dealer_selection') {
-    if (!gameState.dealerSelectionCards && !gameState.firstBlackJackDealing) {
+  if (phase === 'dealer_selection') {
+    if (!dealerSelectionCards && !firstBlackJackDealing) {
       // Initial state - show instruction overlay
       return (
         <Center className='absolute inset-0 bg-black/60 z-40'>
           <div className='text-white text-center p-8 bg-black/40 rounded-lg backdrop-blur-sm border border-white/20'>
             <h2 className='text-3xl font-bold mb-4'>
-              {gameState.options.dealerSelection === 'random_cards' &&
-              gameState.options.teamSelection === 'random_cards'
+              {options.dealerSelection === 'random_cards' &&
+              options.teamSelection === 'random_cards'
                 ? 'Dealer and Team Selection'
                 : 'Dealer Selection'}
             </h2>
             <p className='text-lg mb-4'>
-              {gameState.options.dealerSelection === 'random_cards' &&
-                gameState.options.teamSelection === 'predetermined' &&
+              {options.dealerSelection === 'random_cards' &&
+                options.teamSelection === 'predetermined' &&
                 'Each player will draw a card to determine the dealer.'}
-              {gameState.options.dealerSelection === 'random_cards' &&
-                gameState.options.teamSelection === 'random_cards' &&
+              {options.dealerSelection === 'random_cards' &&
+                options.teamSelection === 'random_cards' &&
                 'Each player will draw a card to determine the dealer and teams.'}
-              {gameState.options.dealerSelection === 'first_black_jack' &&
-                gameState.options.teamSelection === 'predetermined' &&
+              {options.dealerSelection === 'first_black_jack' &&
+                options.teamSelection === 'predetermined' &&
                 'The player with the first Black Jack will be the dealer.'}
-              {gameState.options.dealerSelection === 'first_black_jack' &&
-                gameState.options.teamSelection === 'random_cards' &&
+              {options.dealerSelection === 'first_black_jack' &&
+                options.teamSelection === 'random_cards' &&
                 'The player with the first Black Jack will be the dealer, and the two players with the lowest cards will form one team.'}
-              {gameState.options.dealerSelection === 'predetermined_first_dealer' &&
+              {options.dealerSelection === 'predetermined_first_dealer' &&
                 'The predetermined dealer has been selected and the game will continue.'}
             </p>
-            {gameState.options.teamSelection === 'random_cards' &&
-              gameState.options.dealerSelection === 'random_cards' && (
+            {options.teamSelection === 'random_cards' &&
+              options.dealerSelection === 'random_cards' && (
                 <p className='text-sm text-gray-300 mb-6'>
                   The two players with the lowest cards will form one team.
                   <br />
@@ -60,11 +67,11 @@ export function GamePhaseManager({ headerHeight }: GamePhaseManagerProps) {
                 </p>
               )}
 
-            {isHost ? (
+            {myPlayer?.isHost ? (
               <Button onClick={() => selectDealer()} size='lg'>
-                {gameState.options.dealerSelection === 'random_cards'
+                {options.dealerSelection === 'random_cards'
                   ? 'Start Card Drawing'
-                  : gameState.options.dealerSelection === 'first_black_jack'
+                  : options.dealerSelection === 'first_black_jack'
                     ? 'Find First Black Jack'
                     : 'Continue Game'}
               </Button>
@@ -90,12 +97,12 @@ export function GamePhaseManager({ headerHeight }: GamePhaseManagerProps) {
   }
 
   // Team Summary - Show dealer and team assignments
-  if (gameState.phase === 'team_summary') {
+  if (phase === 'team_summary') {
     return <TeamSummaryOverlay />;
   }
 
   // Dealing Animation
-  if (gameState.phase === 'dealing_animation') {
+  if (phase === 'dealing_animation') {
     return (
       <div
         className='relative w-full'
@@ -110,35 +117,31 @@ export function GamePhaseManager({ headerHeight }: GamePhaseManagerProps) {
   }
 
   // Bidding Interface - positioned below player's hand
-  if (
-    ((gameState.phase === 'bidding_round1' && gameState.kitty) ||
-      gameState.phase === 'bidding_round2') &&
-    isMyTurn()
-  ) {
+  if (((phase === 'bidding_round1' && kitty) || phase === 'bidding_round2') && isMyTurn()) {
     return <BiddingInterface />;
   }
 
   // Trick Complete - Show winner and continue
-  if (gameState.phase === 'trick_complete') {
+  if (phase === 'trick_complete') {
     return <TrickCompleteOverlay />;
   }
 
   // Hand Complete - Show hand results
-  if (gameState.phase === 'hand_complete') {
+  if (phase === 'hand_complete') {
     return <HandCompleteOverlay />;
   }
 
   // Farmer's Hand Interface - Allow player to swap cards
-  if (gameState.phase === 'farmers_hand_swap') {
-    if (gameState.farmersHandPosition === myPlayer?.position) {
+  if (phase === 'farmers_hand_swap') {
+    if (farmersHandPosition === myPlayer?.position) {
       return <FarmersHandInterface />;
-    } else if (gameState.farmersHandPosition) {
+    } else if (farmersHandPosition) {
       return <FarmersHandWaiting />;
     }
   }
 
   // Game Complete - Show final results
-  if (gameState.phase === 'game_complete') {
+  if (phase === 'game_complete') {
     return <GameCompleteOverlay />;
   }
 

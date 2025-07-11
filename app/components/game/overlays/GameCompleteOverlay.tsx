@@ -3,23 +3,20 @@ import { useNavigate } from 'react-router';
 import Button from '~/components/ui/Button';
 import { Stack } from '~/components/ui/Stack';
 import { useGame } from '~/contexts/GameContext';
-import { useGameUI } from '~/hooks/useGameUI';
 import { useGameStore } from '~/store/gameStore';
+import { select } from '~/store/selectors/players';
 
 export function GameCompleteOverlay() {
   const navigate = useNavigate();
-  const gameStore = useGameStore();
-  const { myPlayer, isHost } = useGameUI();
+  const { scores, gameCode, teamNames, players, resetGame } = useGameStore();
+  const myPlayer = useGameStore(select.myPlayer);
+
   const { leaveGame } = useGame();
 
-  if (gameStore.phase !== 'game_complete' || !myPlayer) {
-    return null;
-  }
-
-  const team0Won = gameStore.scores.team0 >= 10;
-  const team1Won = gameStore.scores.team1 >= 10;
+  const team0Won = scores.team0 >= 10;
+  const team1Won = scores.team1 >= 10;
   const winningTeam = team0Won ? 0 : 1;
-  const myTeam = myPlayer.teamId;
+  const myTeam = myPlayer?.teamId;
   const iWon = myTeam === winningTeam;
 
   return (
@@ -42,12 +39,12 @@ export function GameCompleteOverlay() {
                   {iWon
                     ? 'You Won!'
                     : `${
-                        gameStore.teamNames[`team${winningTeam}` as 'team0' | 'team1'] ||
+                        teamNames[`team${winningTeam}` as 'team0' | 'team1'] ||
                         `Team ${winningTeam + 1}`
                       } Wins!`}
                 </h3>
                 <Stack spacing='1'>
-                  {gameStore.players
+                  {players
                     .filter(p => p.teamId === winningTeam)
                     .map(player => (
                       <p
@@ -55,7 +52,7 @@ export function GameCompleteOverlay() {
                         className={`text-lg ${iWon ? 'text-green-700' : 'text-gray-700'}`}
                       >
                         🏆 {player.name}
-                        {player.id === myPlayer.id && ' (You)'}
+                        {player.id === myPlayer?.id && ' (You)'}
                       </p>
                     ))}
                 </Stack>
@@ -68,23 +65,21 @@ export function GameCompleteOverlay() {
                     team0Won ? 'bg-yellow-100 border-yellow-400 border-2' : 'bg-blue-50'
                   }`}
                 >
-                  <h3 className='text-lg font-semibold text-gray-800 mb-2'>
-                    {gameStore.teamNames.team0}
-                  </h3>
+                  <h3 className='text-lg font-semibold text-gray-800 mb-2'>{teamNames.team0}</h3>
                   <div
                     className={`text-4xl font-bold ${team0Won ? 'text-yellow-600' : 'text-blue-600'}`}
                   >
-                    {gameStore.scores.team0}
+                    {scores.team0}
                   </div>
                   {team0Won && <div className='text-sm text-yellow-700 mt-1'>🏆 Winners!</div>}
                   <div className='mt-2'>
                     <Stack spacing='1'>
-                      {gameStore.players
+                      {players
                         .filter(p => p.teamId === 0)
                         .map(player => (
                           <div key={player.id} className='text-sm text-gray-600'>
                             {player.name}
-                            {player.id === myPlayer.id && ' (You)'}
+                            {player.id === myPlayer?.id && ' (You)'}
                           </div>
                         ))}
                     </Stack>
@@ -96,23 +91,21 @@ export function GameCompleteOverlay() {
                     team1Won ? 'bg-yellow-100 border-yellow-400 border-2' : 'bg-red-50'
                   }`}
                 >
-                  <h3 className='text-lg font-semibold text-gray-800 mb-2'>
-                    {gameStore.teamNames.team1}
-                  </h3>
+                  <h3 className='text-lg font-semibold text-gray-800 mb-2'>{teamNames.team1}</h3>
                   <div
                     className={`text-4xl font-bold ${team1Won ? 'text-yellow-600' : 'text-red-600'}`}
                   >
-                    {gameStore.scores.team1}
+                    {scores.team1}
                   </div>
                   {team1Won && <div className='text-sm text-yellow-700 mt-1'>🏆 Winners!</div>}
                   <div className='mt-2'>
                     <Stack spacing='1'>
-                      {gameStore.players
+                      {players
                         .filter(p => p.teamId === 1)
                         .map(player => (
                           <div key={player.id} className='text-sm text-gray-600'>
                             {player.name}
-                            {player.id === myPlayer.id && ' (You)'}
+                            {player.id === myPlayer?.id && ' (You)'}
                           </div>
                         ))}
                     </Stack>
@@ -126,14 +119,14 @@ export function GameCompleteOverlay() {
               <Button onClick={() => leaveGame('manual')} size='lg' className='w-full'>
                 Return to Home
               </Button>
-              {isHost && (
+              {myPlayer?.isHost && (
                 <Button
                   variant='secondary'
                   size='lg'
                   className='w-full'
                   onClick={() => {
-                    gameStore.resetGame();
-                    navigate(`/lobby/${gameStore.gameCode}`);
+                    resetGame();
+                    navigate(`/lobby/${gameCode}`);
                   }}
                 >
                   Start New Game
