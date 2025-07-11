@@ -15,7 +15,7 @@ let appLogger: Logger;
 /**
  * Initialize the application logger with environment-specific configuration
  */
-export function initializeLogger(): Logger {
+function initializeLogger(): Logger {
   const isDevelopment = import.meta.env.DEV;
   const logLevel = isDevelopment ? LogLevel.DEBUG : LogLevel.INFO;
 
@@ -48,7 +48,7 @@ export function initializeLogger(): Logger {
 /**
  * Get the application logger instance
  */
-export function getLogger(): Logger {
+function getLogger(): Logger {
   if (!appLogger) {
     initializeLogger();
   }
@@ -65,7 +65,7 @@ const contextStack: LogContext[] = [];
  * @param context - The context to add
  * @returns A function to remove the context from the stack
  */
-export function pushLogContext(context: LogContext): () => void {
+function pushLogContext(context: LogContext): () => void {
   contextStack.push(context);
   return () => {
     const index = contextStack.indexOf(context);
@@ -78,7 +78,7 @@ export function pushLogContext(context: LogContext): () => void {
 /**
  * Get the current merged logging context from the stack
  */
-export function getCurrentLogContext(): LogContext {
+function getCurrentLogContext(): LogContext {
   return contextStack.reduce((merged, context) => ({ ...merged, ...context }), {});
 }
 

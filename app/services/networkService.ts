@@ -1,8 +1,8 @@
 import type { SessionData } from '~/contexts/SessionContext';
+import { createScopedLogger } from '~/hooks/useLogger';
 import { createMessageHandlers } from '~/network/handlers';
 import { NetworkManager, type ConnectionStatus } from '~/network/networkManager';
 import { createMessageId } from '~/network/protocol';
-import { createScopedLogger } from '~/services/loggingService';
 import type { GameStore } from '~/store/gameStore';
 import type { HandlerContext } from '~/types/handlers';
 import type { GameMessage } from '~/types/messages';

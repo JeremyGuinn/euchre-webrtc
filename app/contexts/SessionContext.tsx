@@ -1,8 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useIsClient } from '~/hooks/useClientOnly';
-import { createScopedLogger } from '~/services/loggingService';
-
-const logger = createScopedLogger('SessionContext');
+import { useLogger } from '~/hooks/useLogger';
 
 export interface SessionData {
   playerId: string;
@@ -59,6 +57,7 @@ const storageStrategy: Storage =
 
 export function SessionProvider({ children }: SessionProviderProps) {
   const isClient = useIsClient();
+  const logger = useLogger('SessionContext');
 
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [playerName, setPlayerName] = useState<string | null>(null);

@@ -1,6 +1,6 @@
 import type { DataConnection } from 'peerjs';
 import Peer from 'peerjs';
-import { createScopedLogger } from '~/services/loggingService';
+import { createScopedLogger } from '~/hooks/useLogger';
 import type { GameMessage } from '~/types/messages';
 import { decodeMessage, encodeMessage, isRecentMessage, ProtocolError } from './protocol';
 

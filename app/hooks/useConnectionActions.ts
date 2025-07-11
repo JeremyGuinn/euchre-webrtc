@@ -2,9 +2,9 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router';
 
 import { type SessionContextType } from '~/contexts/SessionContext';
+import { useLogger } from '~/hooks/useLogger';
 import type { ConnectionStatus } from '~/network/networkManager';
 import { GameStatePersistenceService } from '~/services/gameStatePersistenceService';
-import { createScopedLogger } from '~/services/loggingService';
 import { GameNetworkService } from '~/services/networkService';
 import { useGameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
@@ -16,7 +16,7 @@ export function useConnectionActions(
   setConnectionStatus: (status: ConnectionStatus) => void
 ) {
   const navigate = useNavigate();
-  const logger = createScopedLogger('useConnectionActions');
+  const logger = useLogger('useConnectionActions');
   const gameStore = useGameStore();
 
   const isHost = useGameStore(state => select.myPlayer(state)?.isHost);
