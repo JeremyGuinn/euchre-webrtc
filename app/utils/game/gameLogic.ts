@@ -1,4 +1,4 @@
-import type { Card, Player, Trick } from '~/types/game';
+import type { Card, Player, PositionIndex, TeamIndex, Trick } from '~/types/game';
 
 export function createDeck(): Card[] {
   const suits: Card['suit'][] = ['spades', 'hearts', 'diamonds', 'clubs'];
@@ -146,10 +146,10 @@ export function canPlayCard(
 }
 
 export function getWinningCard(
-  cards: Array<{ card: Card; playerPosition: 0 | 1 | 2 | 3 }>,
+  cards: Array<{ card: Card; playerPosition: PositionIndex }>,
   trump: Card['suit'],
   leadSuit: Card['suit']
-): { card: Card; playerPosition: 0 | 1 | 2 | 3 } {
+): { card: Card; playerPosition: PositionIndex } {
   if (cards.length === 0) throw new Error('No cards to evaluate');
 
   let winningPlay = cards[0];
@@ -221,7 +221,7 @@ export function getDealerSelectionRank(card: Card): number {
  */
 export function selectDealerAndTeams(
   players: Player[],
-  drawnCards: Partial<Record<0 | 1 | 2 | 3, Card>>
+  drawnCards: Partial<Record<PositionIndex, Card>>
 ): {
   dealer: Player;
   arrangedPlayers: Player[];
@@ -304,7 +304,7 @@ export function selectDealerAndTeams(
  */
 export function selectDealerOnly(
   players: Player[],
-  drawnCards: Partial<Record<0 | 1 | 2 | 3, Card>>
+  drawnCards: Partial<Record<PositionIndex, Card>>
 ): {
   dealer: Player;
   arrangedPlayers: Player[];
@@ -337,12 +337,12 @@ export function selectDealerOnly(
 
   // Rotate positions so dealer is at position 0
   players.forEach(player => {
-    const newPosition = ((player.position - dealerOriginalPosition + 4) % 4) as 0 | 1 | 2 | 3;
+    const newPosition = ((player.position - dealerOriginalPosition + 4) % 4) as PositionIndex;
     arrangedPlayers[newPosition] = {
       ...player,
       position: newPosition,
       // Keep original team assignments based on new positions
-      teamId: (newPosition % 2) as 0 | 1,
+      teamId: (newPosition % 2) as TeamIndex,
     };
   });
 
@@ -380,11 +380,11 @@ export function findFirstBlackJackDealer(
       // Arrange players so dealer is at position 0
       const arrangedPlayers: Player[] = [];
       players.forEach(player => {
-        const newPosition = ((player.position - dealerOriginalPosition + 4) % 4) as 0 | 1 | 2 | 3;
+        const newPosition = ((player.position - dealerOriginalPosition + 4) % 4) as PositionIndex;
         arrangedPlayers[newPosition] = {
           ...player,
           position: newPosition,
-          teamId: (newPosition % 2) as 0 | 1,
+          teamId: (newPosition % 2) as TeamIndex,
         };
       });
 
@@ -402,8 +402,8 @@ export function findFirstBlackJackDealer(
   // Fallback: if no black Jack found, first player deals
   const arrangedPlayers = players.map((player, index) => ({
     ...player,
-    position: index as 0 | 1 | 2 | 3,
-    teamId: (index % 2) as 0 | 1,
+    position: index as PositionIndex,
+    teamId: (index % 2) as TeamIndex,
   }));
 
   return {
@@ -529,8 +529,8 @@ export function dealTestFarmersHand(
  * @returns Expected trick size (3 if going alone, 4 otherwise)
  */
 export function getExpectedTrickSize(maker?: {
-  playerPosition: 0 | 1 | 2 | 3;
-  teamId: 0 | 1;
+  playerPosition: PositionIndex;
+  teamId: TeamIndex;
   alone: boolean;
 }): number {
   // If someone is going alone, only 3 players participate
@@ -548,7 +548,7 @@ export function getExpectedTrickSize(maker?: {
 export function calculateHandScore(
   tricks: Trick[],
   players: Player[],
-  makingTeam: 0 | 1,
+  makingTeam: TeamIndex,
   alone: boolean
 ): { team0: number; team1: number } {
   const makingTeamTricks = tricks.filter(trick => {

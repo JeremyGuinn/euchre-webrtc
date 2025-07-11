@@ -15,6 +15,7 @@ import { useGame } from '~/contexts/GameContext';
 import PageContainer from '~/components/layout/PageContainer';
 import { useGameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
+import type { PositionIndex } from '~/types/game';
 import type { Route } from './+types/lobby';
 
 export function meta({ params }: Route.MetaArgs) {
@@ -87,7 +88,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
   const handleDragOver = (e: React.DragEvent) => e.preventDefault();
   const handleRenamePlayer = (playerId: string, newName: string) => renamePlayer(playerId, newName);
 
-  const handleDrop = (e: React.DragEvent, position: 0 | 1 | 2 | 3) => {
+  const handleDrop = (e: React.DragEvent, position: PositionIndex) => {
     e.preventDefault();
     if (draggedPlayer && myPlayer?.isHost) {
       movePlayer(draggedPlayer, position);

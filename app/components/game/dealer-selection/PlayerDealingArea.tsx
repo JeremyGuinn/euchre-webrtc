@@ -1,5 +1,4 @@
-import type { Card, Player } from '~/types/game';
-import type { Position } from '~/utils/game/playerPositionUtils';
+import type { Card, Player, Position } from '~/types/game';
 import { Card as CardComponent } from '../Card';
 
 interface PlayerDealingAreaProps {

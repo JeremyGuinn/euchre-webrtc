@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand';
-import type { Card, Trick } from '~/types/game';
+import type { Card, PositionIndex, Trick } from '~/types/game';
 import {
   calculateHandScore,
   getEffectiveSuit,
@@ -10,13 +10,13 @@ import { getNextDealerPosition, getNextPlayerPositionWithAlone } from '~/utils/g
 import type { GameStore } from '../gameStore';
 
 export interface PlayingSlice {
-  playCard: (card: Card, playerPosition: 0 | 1 | 2 | 3) => void;
+  playCard: (card: Card, playerPosition: PositionIndex) => void;
   completeTrick: () => void;
   completeHand: () => void;
 }
 
 export const createPlayingSlice: StateCreator<GameStore, [], [], PlayingSlice> = (set, get) => ({
-  playCard: (card: Card, playerPosition: 0 | 1 | 2 | 3) => {
+  playCard: (card: Card, playerPosition: PositionIndex) => {
     const state = get();
 
     if (!state.currentTrick) {
@@ -119,7 +119,7 @@ export const createPlayingSlice: StateCreator<GameStore, [], [], PlayingSlice> =
       trump: undefined,
       maker: undefined,
       bids: [],
-      hands: phase === 'game_complete' ? get().hands : ({} as Record<0 | 1 | 2 | 3, Card[]>),
+      hands: phase === 'game_complete' ? get().hands : ({} as Record<PositionIndex, Card[]>),
       currentTrick: undefined,
       turnedDownSuit: undefined,
       handScores: { team0: 0, team1: 0 },

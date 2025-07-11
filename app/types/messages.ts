@@ -1,3 +1,4 @@
+import type { PositionIndex, TeamIndex } from '~/types/game';
 import type { Bid, Card, Player, PublicGameState } from './game';
 
 // Client-to-Host message types (sent by clients to the host)
@@ -152,7 +153,7 @@ export interface RenamePlayerMessage extends BaseClientToHostMessage {
 export interface RenameTeamMessage extends BaseClientToHostMessage {
   type: 'RENAME_TEAM';
   payload: {
-    teamId: 0 | 1;
+    teamId: TeamIndex;
     newName: string;
   };
 }
@@ -168,7 +169,7 @@ export interface MovePlayerMessage extends BaseHostToClientMessage {
   type: 'MOVE_PLAYER';
   payload: {
     targetPlayerId: string;
-    newPosition: 0 | 1 | 2 | 3;
+    newPosition: PositionIndex;
   };
 }
 

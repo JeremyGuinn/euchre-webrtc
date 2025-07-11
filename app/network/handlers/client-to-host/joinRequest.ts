@@ -2,11 +2,11 @@ import type { Player } from '~/types/game';
 import type { JoinRequestMessage } from '~/types/messages';
 
 import { createMessageId } from '~/network/protocol';
+import type { TeamIndex } from '~/types/game';
 import type { ClientToHostHandler } from '~/types/handlers';
 import { makeNameUnique } from '~/utils/game/playerUtils';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
 import { validateGameCapacity, validatePlayerNotAlreadyJoined } from '../validators';
-
 /**
  * Handles JOIN_REQUEST messages sent by players trying to join the game.
  * This is a client-to-host message that only the host should process.
@@ -31,7 +31,7 @@ const handleJoinRequestImpl: ClientToHostHandler<JoinRequestMessage> = (
     isHost: false,
     isConnected: true,
     position: availablePosition,
-    teamId: (availablePosition % 2) as 0 | 1,
+    teamId: (availablePosition % 2) as TeamIndex,
   };
 
   gameStore.addPlayer(newPlayer);

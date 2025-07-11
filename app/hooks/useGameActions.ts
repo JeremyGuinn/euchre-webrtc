@@ -4,7 +4,7 @@ import { createMessageId } from '~/network/protocol';
 import { GameNetworkService } from '~/services/networkService';
 import { useGameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
-import type { Bid, Card, GameOptions } from '~/types/game';
+import type { Bid, Card, GameOptions, PositionIndex, TeamIndex } from '~/types/game';
 import { getPositionFromPlayerId, makeNameUnique } from '~/utils/game/playerUtils';
 
 export function useGameActions(networkService: GameNetworkService) {
@@ -237,7 +237,7 @@ export function useGameActions(networkService: GameNetworkService) {
   );
 
   const renameTeam = useCallback(
-    (teamId: 0 | 1, newName: string): void => {
+    (teamId: TeamIndex, newName: string): void => {
       // Only allow team renaming during specific phases
       const allowedPhases = ['lobby', 'team_summary'];
       if (!allowedPhases.includes(gameStore.phase)) {
@@ -281,7 +281,7 @@ export function useGameActions(networkService: GameNetworkService) {
   );
 
   const movePlayer = useCallback(
-    (playerId: string, newPosition: 0 | 1 | 2 | 3): void => {
+    (playerId: string, newPosition: PositionIndex): void => {
       if (!myPlayer?.isHost) return;
 
       gameStore.movePlayer(playerId, newPosition);

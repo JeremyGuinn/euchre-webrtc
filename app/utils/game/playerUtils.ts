@@ -1,4 +1,4 @@
-import type { Player } from '~/types/game';
+import type { Player, PositionIndex, TeamIndex } from '~/types/game';
 
 /**
  * Ensures a player name is unique among existing players by appending a number if needed
@@ -48,8 +48,8 @@ export function makeNameUnique(
  * @param position - Player position (0-3)
  * @returns Team ID (0 or 1)
  */
-export function getTeamId(position: number): 0 | 1 {
-  return (position % 2) as 0 | 1;
+export function getTeamId(position: PositionIndex): TeamIndex {
+  return (position % 2) as TeamIndex;
 }
 
 /**
@@ -57,8 +57,8 @@ export function getTeamId(position: number): 0 | 1 {
  * @param currentPosition - Current player's position
  * @returns Next player's position
  */
-export function getNextPlayerPosition(currentPosition: 0 | 1 | 2 | 3): 0 | 1 | 2 | 3 {
-  return ((currentPosition + 1) % 4) as 0 | 1 | 2 | 3;
+export function getNextPlayerPosition(currentPosition: PositionIndex): PositionIndex {
+  return ((currentPosition + 1) % 4) as PositionIndex;
 }
 
 /**
@@ -68,9 +68,9 @@ export function getNextPlayerPosition(currentPosition: 0 | 1 | 2 | 3): 0 | 1 | 2
  * @returns Next player's position
  */
 export function getNextPlayerPositionWithAlone(
-  currentPosition: 0 | 1 | 2 | 3,
-  maker?: { playerPosition: 0 | 1 | 2 | 3; teamId: 0 | 1; alone: boolean }
-): 0 | 1 | 2 | 3 {
+  currentPosition: PositionIndex,
+  maker?: { playerPosition: PositionIndex; teamId: TeamIndex; alone: boolean }
+): PositionIndex {
   // If someone is going alone, skip their teammate
   if (maker?.alone) {
     const makerTeamId = maker.teamId;
@@ -96,7 +96,7 @@ export function getNextPlayerPositionWithAlone(
  * @param currentDealerPosition - Current dealer's position
  * @returns Next dealer's position
  */
-export function getNextDealerPosition(currentDealerPosition: 0 | 1 | 2 | 3): 0 | 1 | 2 | 3 {
+export function getNextDealerPosition(currentDealerPosition: PositionIndex): PositionIndex {
   return getNextPlayerPosition(currentDealerPosition);
 }
 
@@ -107,7 +107,7 @@ export function getNextDealerPosition(currentDealerPosition: 0 | 1 | 2 | 3): 0 |
  * @returns Player ID at that position, or undefined if no player
  */
 export function getPlayerIdFromPosition(
-  position: 0 | 1 | 2 | 3,
+  position: PositionIndex,
   players: Player[]
 ): string | undefined {
   return players.find(p => p.position === position)?.id;
@@ -120,7 +120,7 @@ export function getPlayerIdFromPosition(
  * @returns Player at that position, or undefined if no player
  */
 export function getPlayerFromPosition(
-  position: 0 | 1 | 2 | 3,
+  position: PositionIndex,
   players: Player[]
 ): Player | undefined {
   return players.find(p => p.position === position);
@@ -135,7 +135,7 @@ export function getPlayerFromPosition(
 export function getPositionFromPlayerId(
   playerId: string | undefined,
   players: Player[]
-): 0 | 1 | 2 | 3 | undefined {
+): PositionIndex | undefined {
   return players.find(p => p.id === playerId)?.position;
 }
 
@@ -145,6 +145,6 @@ export function getPositionFromPlayerId(
  * @param players - Array of all players
  * @returns True if position is occupied
  */
-export function isPositionOccupied(position: 0 | 1 | 2 | 3, players: Player[]): boolean {
+export function isPositionOccupied(position: PositionIndex, players: Player[]): boolean {
   return players.some(p => p.position === position);
 }

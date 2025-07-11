@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand';
-import type { Card, GameState, Player } from '~/types/game';
+import type { Card, GameState, Player, PositionIndex } from '~/types/game';
 import {
   createDeck,
   dealHands,
@@ -49,7 +49,7 @@ export const createGameFlowSlice: StateCreator<GameStore, [], [], GameFlowSlice>
       const dealerOriginalPosition = dealer.position;
 
       players.forEach(player => {
-        const newPosition = ((player.position - dealerOriginalPosition + 4) % 4) as 0 | 1 | 2 | 3;
+        const newPosition = ((player.position - dealerOriginalPosition + 4) % 4) as PositionIndex;
         arrangedPlayers[newPosition] = {
           ...player,
           position: newPosition,
@@ -111,7 +111,7 @@ export const createGameFlowSlice: StateCreator<GameStore, [], [], GameFlowSlice>
     } else {
       set({
         deck,
-        dealerSelectionCards: {} as Partial<Record<0 | 1 | 2 | 3, Card>>,
+        dealerSelectionCards: {} as Partial<Record<PositionIndex, Card>>,
       });
     }
   },
@@ -206,13 +206,13 @@ export const createGameFlowSlice: StateCreator<GameStore, [], [], GameFlowSlice>
     const { hands, kitty, remainingDeck } = dealHands(deck);
 
     // Create position-based hands mapping
-    const playerHands: Record<0 | 1 | 2 | 3, Card[]> = {} as Record<0 | 1 | 2 | 3, Card[]>;
+    const playerHands: Record<PositionIndex, Card[]> = {} as Record<PositionIndex, Card[]>;
     players.forEach((player, index) => {
       playerHands[player.position] = hands[index];
     });
 
     let nextPhase: GameState['phase'] = 'bidding_round1';
-    let farmersHandPosition: 0 | 1 | 2 | 3 | undefined = undefined;
+    let farmersHandPosition: PositionIndex | undefined = undefined;
     let currentPlayerPosition = getNextPlayerPosition(currentDealerPosition);
 
     if (options.farmersHand) {
@@ -252,7 +252,7 @@ export const createGameFlowSlice: StateCreator<GameStore, [], [], GameFlowSlice>
       trump: undefined,
       maker: undefined,
       bids: [],
-      hands: {} as Record<0 | 1 | 2 | 3, Card[]>,
+      hands: {} as Record<PositionIndex, Card[]>,
       currentTrick: undefined,
       turnedDownSuit: undefined,
       handScores: { team0: 0, team1: 0 },

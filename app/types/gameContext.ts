@@ -1,4 +1,5 @@
 import type { ConnectionStatus, NetworkManager } from '~/network/networkManager';
+import type { PositionIndex, TeamIndex } from '~/types/game';
 import type { Card, GameOptions, GameState } from './game';
 
 export interface GameContextType {
@@ -26,10 +27,10 @@ export interface GameContextType {
   leaveGame: (reason?: 'manual' | 'error' | 'network') => Promise<void>;
 
   renamePlayer: (playerId: string, newName: string) => void;
-  renameTeam: (teamId: 0 | 1, newName: string) => void;
+  renameTeam: (teamId: TeamIndex, newName: string) => void;
 
   kickPlayer: (playerId: string) => void;
-  movePlayer: (playerId: string, newPosition: 0 | 1 | 2 | 3) => void;
+  movePlayer: (playerId: string, newPosition: PositionIndex) => void;
   updateGameOptions: (options: GameOptions) => void;
   setPredeterminedDealer: (playerId: string) => void;
 }

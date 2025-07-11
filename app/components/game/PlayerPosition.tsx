@@ -3,8 +3,8 @@ import { createPortal } from 'react-dom';
 import { PlayerHand } from '~/components/game/PlayerHand';
 import { PlayerManagementMenu } from '~/components/game/PlayerManagementMenu';
 import { useGameStore } from '~/store/gameStore';
-import type { Card as CardType, Player } from '~/types/game';
-import { getPositionClasses, type Position } from '~/utils/game/playerPositionUtils';
+import type { Card as CardType, Player, Position } from '~/types/game';
+import { getPositionClasses } from '~/utils/game/playerPositionUtils';
 
 interface PlayerPositionProps {
   player: Player;

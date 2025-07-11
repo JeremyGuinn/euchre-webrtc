@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import type { TeamIndex } from '~/types/game';
 import Input from './Input';
 
 interface EditableTeamNameProps {
-  teamId: 0 | 1;
+  teamId: TeamIndex;
   teamName: string;
-  onRename: (teamId: 0 | 1, newName: string) => void;
+  onRename: (teamId: TeamIndex, newName: string) => void;
   disabled?: boolean;
   className?: string;
 }

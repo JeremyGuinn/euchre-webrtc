@@ -1,6 +1,4 @@
-import type { Player } from '~/types/game';
-
-export type Position = 'bottom' | 'left' | 'top' | 'right';
+import type { Player, Position, PositionIndex } from '~/types/game';
 
 /**
  * Get the relative position of a player from the perspective of another player
@@ -8,7 +6,7 @@ export type Position = 'bottom' | 'left' | 'top' | 'right';
  * @param myPosition - The position of the viewing player (0-3)
  * @returns The relative position as a string: 'bottom', 'left', 'top', 'right'
  */
-export function getRelativePlayerPosition(player: Player, myPosition: number): Position {
+export function getRelativePlayerPosition(player: Player, myPosition: PositionIndex): Position {
   const relativePosition = (player.position - myPosition + 4) % 4;
   switch (relativePosition) {
     case 0:
@@ -72,18 +70,3 @@ export function getPositionClasses(position: Position) {
       return '';
   }
 }
-
-// export function getPositionClasses(position: Position) {
-//   switch (position) {
-//     case 'bottom':
-//       return 'absolute bottom-2 left-1/2 transform -translate-x-1/2';
-//     case 'left':
-//       return 'absolute left-14 top-1/2 transform -translate-y-1/2 rotate-90 -translate-x-1/2';
-//     case 'top':
-//       return 'absolute top-14 left-1/2 transform -translate-x-1/2 -translate-y-1/2';
-//     case 'right':
-//       return 'absolute right-14 top-1/2 transform -translate-y-1/2 -rotate-90 translate-x-1/2';
-//     default:
-//       return '';
-//   }
-// }

@@ -1,12 +1,12 @@
 import type { StateCreator } from 'zustand';
-import type { Bid, Card } from '~/types/game';
+import type { Bid, Card, PositionIndex } from '~/types/game';
 import { getNextDealerPosition, getNextPlayerPositionWithAlone } from '~/utils/game/playerUtils';
 import type { GameStore } from '../gameStore';
 
 export interface BiddingSlice {
   placeBid: (bid: Bid) => void;
   dealerDiscard: (card: Card) => void;
-  setTrump: (trump: Card['suit'], makerPosition: 0 | 1 | 2 | 3, alone?: boolean) => void;
+  setTrump: (trump: Card['suit'], makerPosition: PositionIndex, alone?: boolean) => void;
 }
 
 export const createBiddingSlice: StateCreator<GameStore, [], [], BiddingSlice> = (set, get) => ({
@@ -113,7 +113,7 @@ export const createBiddingSlice: StateCreator<GameStore, [], [], BiddingSlice> =
         newPhase === 'dealing_animation'
           ? currentPlayerPosition || state.currentDealerPosition
           : state.currentDealerPosition,
-      hands: newPhase === 'dealing_animation' ? ({} as Record<0 | 1 | 2 | 3, Card[]>) : newHands,
+      hands: newPhase === 'dealing_animation' ? ({} as Record<PositionIndex, Card[]>) : newHands,
     });
   },
 
@@ -132,7 +132,7 @@ export const createBiddingSlice: StateCreator<GameStore, [], [], BiddingSlice> =
     });
   },
 
-  setTrump: (trump: Card['suit'], makerPosition: 0 | 1 | 2 | 3, alone?: boolean) => {
+  setTrump: (trump: Card['suit'], makerPosition: PositionIndex, alone?: boolean) => {
     const { players } = get();
 
     const makerPlayer = players.find(p => p.position === makerPosition);

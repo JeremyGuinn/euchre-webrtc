@@ -3,7 +3,7 @@ import PlayerCard from '~/components/lobby/PlayerCard';
 import { Center } from '~/components/ui/Center';
 import { Placeholder } from '~/components/ui/Placeholder';
 import { Stack } from '~/components/ui/Stack';
-import type { Player } from '~/types/game';
+import type { Player, PositionIndex, TeamIndex } from '~/types/game';
 
 interface TeamPlayersPanelProps {
   players: Player[];
@@ -11,11 +11,11 @@ interface TeamPlayersPanelProps {
   myPlayerId?: string;
   isHost: boolean;
   onRenamePlayer: (playerId: string, newName: string) => void;
-  onRenameTeam: (teamId: 0 | 1, newName: string) => void;
+  onRenameTeam: (teamId: TeamIndex, newName: string) => void;
   onKickPlayer: (playerId: string) => void;
   onDragStart: (playerId: string) => void;
   onDragOver: (e: React.DragEvent) => void;
-  onDrop: (e: React.DragEvent, position: 0 | 1 | 2 | 3) => void;
+  onDrop: (e: React.DragEvent, position: PositionIndex) => void;
 }
 
 export function TeamPlayersPanel({
@@ -71,7 +71,7 @@ export function TeamPlayersPanel({
                 key={position}
                 className='border-dashed border-gray-300 bg-gray-50 transition-colors hover:border-blue-400'
                 onDragOver={onDragOver}
-                onDrop={e => onDrop(e, position as 0 | 1 | 2 | 3)}
+                onDrop={e => onDrop(e, position as PositionIndex)}
               >
                 <Placeholder>
                   <Center className='text-gray-500'>
@@ -114,7 +114,7 @@ export function TeamPlayersPanel({
                     : 'border-dashed border-gray-300 bg-gray-50'
                 } ${isHost && !player ? 'hover:border-red-400' : ''}`}
                 onDragOver={onDragOver}
-                onDrop={e => onDrop(e, position as 0 | 1 | 2 | 3)}
+                onDrop={e => onDrop(e, position as PositionIndex)}
               >
                 {player ? (
                   <PlayerCard

@@ -2,6 +2,7 @@ import Panel from '~/components/ui/Panel';
 import { Stack } from '~/components/ui/Stack';
 import type { GameState, Player } from '~/types/game';
 
+import type { PositionIndex, TeamIndex } from '~/types/game';
 import HostControlsInfo from './HostControlsInfo';
 import RandomPlayersPanel from './RandomPlayersPanel';
 import { TeamPlayersPanel } from './TeamPlayersPanel';
@@ -13,10 +14,10 @@ interface PlayersSectionProps {
   connectedPlayers: Player[];
   onRenamePlayer: (playerId: string, newName: string) => void;
   onKickPlayer: (playerId: string) => void;
-  onRenameTeam: (teamId: 0 | 1, newName: string) => void;
+  onRenameTeam: (teamId: TeamIndex, newName: string) => void;
   onDragStart: (playerId: string) => void;
   onDragOver: (e: React.DragEvent) => void;
-  onDrop: (e: React.DragEvent, position: 0 | 1 | 2 | 3) => void;
+  onDrop: (e: React.DragEvent, position: PositionIndex) => void;
 }
 
 export default function PlayersSection({

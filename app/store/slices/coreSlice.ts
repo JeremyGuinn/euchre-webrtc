@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand';
-import type { Card, GameState, Player, PublicGameState } from '~/types/game';
+import type { Card, GameState, Player, PositionIndex, PublicGameState } from '~/types/game';
 import type { GameStore } from '../gameStore';
 
 export interface CoreSlice {
@@ -8,7 +8,7 @@ export interface CoreSlice {
   setIsHost: (isHost: boolean) => void;
   restoreGameState: (gameState: GameState) => void;
   syncState: (gameState: PublicGameState, playerHand?: Card[], receivingPlayerId?: string) => void;
-  setCurrentPlayerPosition: (position: 0 | 1 | 2 | 3) => void;
+  setCurrentPlayerPosition: (position: PositionIndex) => void;
   setPhase: (phase: GameState['phase']) => void;
   createPublicGameState: (forPlayerId?: string) => PublicGameState;
   isDealerScrewed: () => boolean;
@@ -83,7 +83,7 @@ export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set,
     const receivingPlayer = receivingPlayerId
       ? state.players.find(p => p.id === receivingPlayerId)
       : undefined;
-    const newHands = { 0: [], 1: [], 2: [], 3: [] } as Record<0 | 1 | 2 | 3, Card[]>;
+    const newHands = { 0: [], 1: [], 2: [], 3: [] } as Record<PositionIndex, Card[]>;
 
     if (playerHand && receivingPlayer) {
       newHands[receivingPlayer.position] = playerHand;
@@ -114,7 +114,7 @@ export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set,
     });
   },
 
-  setCurrentPlayerPosition: (position: 0 | 1 | 2 | 3) => {
+  setCurrentPlayerPosition: (position: PositionIndex) => {
     set({ currentPlayerPosition: position });
   },
 

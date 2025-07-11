@@ -1,20 +1,20 @@
 import type { StateCreator } from 'zustand';
-import type { Card } from '~/types/game';
+import type { Card, PositionIndex } from '~/types/game';
 import { performFarmersHandSwap } from '~/utils/game/gameLogic';
 import { getNextPlayerPosition } from '~/utils/game/playerUtils';
 import type { GameStore } from '../gameStore';
 
 export interface FarmersHandSlice {
-  farmersHandDetected: (playerPosition: 0 | 1 | 2 | 3) => void;
-  farmersHandSwap: (playerPosition: 0 | 1 | 2 | 3, cardsToSwap: Card[]) => void;
-  farmersHandDeclined: (playerPosition: 0 | 1 | 2 | 3) => void;
+  farmersHandDetected: (playerPosition: PositionIndex) => void;
+  farmersHandSwap: (playerPosition: PositionIndex, cardsToSwap: Card[]) => void;
+  farmersHandDeclined: (playerPosition: PositionIndex) => void;
 }
 
 export const createFarmersHandSlice: StateCreator<GameStore, [], [], FarmersHandSlice> = (
   set,
   get
 ) => ({
-  farmersHandDetected: (playerPosition: 0 | 1 | 2 | 3) => {
+  farmersHandDetected: (playerPosition: PositionIndex) => {
     set({
       phase: 'farmers_hand_swap',
       farmersHandPosition: playerPosition,
@@ -22,7 +22,7 @@ export const createFarmersHandSlice: StateCreator<GameStore, [], [], FarmersHand
     });
   },
 
-  farmersHandSwap: (playerPosition: 0 | 1 | 2 | 3, cardsToSwap: Card[]) => {
+  farmersHandSwap: (playerPosition: PositionIndex, cardsToSwap: Card[]) => {
     const { kitty, farmersHandPosition, hands, deck, currentDealerPosition } = get();
 
     if (!kitty || farmersHandPosition === undefined || farmersHandPosition !== playerPosition) {
@@ -54,7 +54,7 @@ export const createFarmersHandSlice: StateCreator<GameStore, [], [], FarmersHand
     });
   },
 
-  farmersHandDeclined: (playerPosition: 0 | 1 | 2 | 3) => {
+  farmersHandDeclined: (playerPosition: PositionIndex) => {
     const { farmersHandPosition, currentDealerPosition } = get();
 
     if (farmersHandPosition === undefined || farmersHandPosition !== playerPosition) {

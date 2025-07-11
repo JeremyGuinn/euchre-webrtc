@@ -1,3 +1,7 @@
+export type Position = 'bottom' | 'left' | 'top' | 'right';
+export type PositionIndex = 0 | 1 | 2 | 3;
+export type TeamIndex = 0 | 1;
+
 export type Card = {
   suit: 'spades' | 'hearts' | 'diamonds' | 'clubs';
   value: '9' | '10' | 'J' | 'Q' | 'K' | 'A';
@@ -9,8 +13,8 @@ export type Player = {
   name: string;
   isHost: boolean;
   isConnected: boolean;
-  position: 0 | 1 | 2 | 3; // Position around the table
-  teamId: 0 | 1; // Team 0: positions 0,2; Team 1: positions 1,3
+  position: PositionIndex; // Position around the table
+  teamId: TeamIndex; // Team 0: positions 0,2; Team 1: positions 1,3
 };
 
 export type GamePhase =
@@ -30,7 +34,7 @@ export type GamePhase =
   | 'game_complete';
 
 export type Bid = {
-  playerPosition: 0 | 1 | 2 | 3;
+  playerPosition: PositionIndex;
   suit: Card['suit'] | 'pass';
   alone?: boolean;
 };
@@ -39,10 +43,10 @@ export type Trick = {
   id: string;
   cards: Array<{
     card: Card;
-    playerPosition: 0 | 1 | 2 | 3;
+    playerPosition: PositionIndex;
   }>;
-  winnerPosition?: 0 | 1 | 2 | 3;
-  leaderPosition: 0 | 1 | 2 | 3;
+  winnerPosition?: PositionIndex;
+  leaderPosition: PositionIndex;
 };
 
 export type GameOptions = {
@@ -61,10 +65,10 @@ export type GameState = {
   players: Player[];
   phase: GamePhase;
   options: GameOptions;
-  currentDealerPosition: 0 | 1 | 2 | 3;
-  currentPlayerPosition?: 0 | 1 | 2 | 3;
+  currentDealerPosition: PositionIndex;
+  currentPlayerPosition?: PositionIndex;
   deck: Card[];
-  hands: Record<0 | 1 | 2 | 3, Card[]>; // Keyed by position instead of player ID
+  hands: Record<PositionIndex, Card[]>; // Keyed by position instead of player ID
   trump?: Card['suit'];
   kitty?: Card; // The turned-up card
   turnedDownSuit?: Card['suit']; // The suit that was turned down in round 1
@@ -84,17 +88,17 @@ export type GameState = {
     team1: string;
   };
   maker?: {
-    playerPosition: 0 | 1 | 2 | 3;
-    teamId: 0 | 1;
+    playerPosition: PositionIndex;
+    teamId: TeamIndex;
     alone: boolean;
   };
-  farmersHandPosition?: 0 | 1 | 2 | 3; // Position of player who has a farmer's hand
-  dealerSelectionCards?: Partial<Record<0 | 1 | 2 | 3, Card>>; // Cards drawn for dealer selection
+  farmersHandPosition?: PositionIndex; // Position of player who has a farmer's hand
+  dealerSelectionCards?: Partial<Record<PositionIndex, Card>>; // Cards drawn for dealer selection
   firstBlackJackDealing?: {
     currentPlayerIndex: number;
     currentCardIndex: number;
-    dealtCards: Array<{ playerPosition: 0 | 1 | 2 | 3; card: Card }>;
-    blackJackFound?: { playerPosition: 0 | 1 | 2 | 3; card: Card };
+    dealtCards: Array<{ playerPosition: PositionIndex; card: Card }>;
+    blackJackFound?: { playerPosition: PositionIndex; card: Card };
   };
 };
 

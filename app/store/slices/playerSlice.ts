@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand';
-import type { Player } from '~/types/game';
+import type { Player, PositionIndex } from '~/types/game';
 import { getTeamId } from '~/utils/game/playerUtils';
 import type { GameStore } from '../gameStore';
 
@@ -10,7 +10,7 @@ export interface PlayerSlice {
   updatePlayerConnection: (playerId: string, isConnected: boolean) => void;
   renamePlayer: (playerId: string, newName: string) => void;
   kickPlayer: (playerId: string) => void;
-  movePlayer: (playerId: string, newPosition: 0 | 1 | 2 | 3) => void;
+  movePlayer: (playerId: string, newPosition: PositionIndex) => void;
 }
 
 export const createPlayerSlice: StateCreator<GameStore, [], [], PlayerSlice> = (set, get) => ({
@@ -82,7 +82,7 @@ export const createPlayerSlice: StateCreator<GameStore, [], [], PlayerSlice> = (
     });
   },
 
-  movePlayer: (playerId: string, newPosition: 0 | 1 | 2 | 3) => {
+  movePlayer: (playerId: string, newPosition: PositionIndex) => {
     const { players } = get();
 
     const playerToMove = players.find(p => p.id === playerId);
