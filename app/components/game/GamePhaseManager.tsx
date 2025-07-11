@@ -18,6 +18,8 @@ interface GamePhaseManagerProps {
 }
 
 export function GamePhaseManager({ headerHeight }: GamePhaseManagerProps) {
+  const { selectDealer } = useGame();
+
   const {
     phase,
     dealerSelectionCards,
@@ -25,10 +27,9 @@ export function GamePhaseManager({ headerHeight }: GamePhaseManagerProps) {
     options,
     kitty,
     farmersHandPosition,
+    currentPlayerPosition,
   } = useGameStore();
-  const { selectDealer } = useGame();
   const myPlayer = useGameStore(select.myPlayer);
-  const currentPlayerPosition = useGameStore(state => state.currentPlayerPosition);
 
   const isMyTurn = () => {
     return myPlayer?.position === currentPlayerPosition;

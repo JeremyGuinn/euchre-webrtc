@@ -1,9 +1,11 @@
+import { useCallback, useMemo } from 'react';
 import { CurrentTurnIndicator } from '~/components/game/indicators/CurrentTurnIndicator';
 import { PlayerPosition } from '~/components/game/PlayerPosition';
 import { TrickCenter } from '~/components/game/TrickCenter';
 import { useGame } from '~/contexts/GameContext';
 import { useGameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
+import type { Card } from '~/types/game';
 import { getRelativePlayerPosition } from '~/utils/game/playerPositionUtils';
 
 interface GameTableProps {
@@ -13,11 +15,12 @@ interface GameTableProps {
 
 export function GameTable({ headerHeight, shouldShowCards }: GameTableProps) {
   const { kickPlayer, playCard, dealerDiscard } = useGame();
+  const gameStore = useGameStore();
   const { players, currentPlayerPosition, maker, phase } = useGameStore();
-  const myPlayer = useGameStore(select.myPlayer);
-  const myHand = useGameStore(select.myHand);
-  const canPlay = useGameStore(select.canPlay);
-  const isSittingOut = useGameStore(select.isSittingOut);
+  const myPlayer = useMemo(() => select.myPlayer(gameStore), [gameStore]);
+  const myHand = useMemo(() => select.myHand(gameStore), [gameStore]);
+  const canPlay = useCallback((card: Card) => select.canPlay(gameStore)(card), [gameStore]);
+  const isSittingOut = useMemo(() => select.isSittingOut(gameStore), [gameStore]);
 
   if (!myPlayer) return null;
 
