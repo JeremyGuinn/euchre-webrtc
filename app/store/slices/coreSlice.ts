@@ -103,10 +103,25 @@ export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set,
     const receivingPlayer = receivingPlayerId
       ? state.players.find(p => p.id === receivingPlayerId)
       : undefined;
-    const newHands = { 0: [], 1: [], 2: [], 3: [] } as Record<PositionIndex, Card[]>;
+
+    // Preserve current hands state and only update with new data as needed
+    // This prevents losing custom hand ordering when the host sends game updates
+    const newHands = { ...state.hands };
 
     if (playerHand && receivingPlayer) {
-      newHands[receivingPlayer.position] = playerHand;
+      // Only update the player's hand if we don't already have cards or if the cards have changed
+      const currentHand = state.hands[receivingPlayer.position];
+      const hasHandChanged =
+        !currentHand ||
+        currentHand.length !== playerHand.length ||
+        !currentHand.every((card, index) => playerHand.some(newCard => newCard.id === card.id));
+
+      // Only overwrite the hand if the cards have actually changed (new cards dealt, cards played, etc.)
+      // If only the order changed, preserve the current hand to maintain custom sorting
+      if (hasHandChanged) {
+        newHands[receivingPlayer.position] = playerHand;
+      }
+      // If hasHandChanged is false, we keep the existing hand with its custom order
     }
 
     set({

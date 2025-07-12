@@ -22,7 +22,7 @@ export function LinkButton({
   onClick,
 }: LinkButtonProps) {
   const baseClasses = cn(
-    'inline-block text-center font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 hover:shadow-lg'
+    'inline-block cursor-pointer text-center font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 hover:shadow-lg'
   );
 
   const variantClasses = {
