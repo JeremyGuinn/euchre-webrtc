@@ -18,7 +18,10 @@ export type PeerMessageHandler<T extends GameMessage = GameMessage> = (
   senderId: string
 ) => void;
 export type PeerConnectionHandler = (peerId: string, connected: boolean) => void;
-export type PeerStatusHandler = (status: ConnectionStatus) => void;
+export type PeerStatusHandler = (
+  status: ConnectionStatus,
+  additionalInfo?: { message?: string; error?: unknown }
+) => void;
 
 export class NetworkManager {
   private peer: Peer | null = null;
@@ -97,7 +100,7 @@ export class NetworkManager {
             peerId,
             isHost,
           });
-          this.notifyStatusChange('error');
+          this.notifyStatusChange('error', { message: error.message, error });
           reject(error);
         });
 
@@ -559,12 +562,15 @@ export class NetworkManager {
     );
   }
 
-  private notifyStatusChange(status: ConnectionStatus): void {
+  private notifyStatusChange(
+    status: ConnectionStatus,
+    { message, error }: { message?: string; error?: unknown } = {}
+  ): void {
     this.logger.debug('Notifying status change', {
       status,
       handlerCount: this.statusHandlers.size,
     });
-    this.statusHandlers.forEach(handler => handler(status));
+    this.statusHandlers.forEach(handler => handler(status, { message, error }));
   }
 
   private notifyConnectionChange(peerId: string, connected: boolean): void {

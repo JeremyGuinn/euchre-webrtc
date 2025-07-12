@@ -9,6 +9,7 @@ import type { HandlerContext } from '~/types/handlers';
 import type { GameMessage } from '~/types/messages';
 import type { NetworkService } from '~/types/networkService';
 import { sleep } from '~/utils/async';
+import { mapToUserFriendlyError } from '~/utils/errors';
 import { gameCodeToHostId, generateGameCode } from '~/utils/game/gameCode';
 
 export interface NetworkServiceConfig {
@@ -258,9 +259,14 @@ export function useNetworkService(): NetworkService {
 
     logger.debug('Setting up network event handlers');
 
-    networkManager.onStatusChange(status => {
+    networkManager.onStatusChange((status, { message, error } = {}) => {
       logger.info('Network status changed', { status });
       configRef.current?.setConnectionStatus(status);
+
+      if (message) {
+        logger.debug('Network status change message', { message, error, status });
+        configRef.current?.setError?.(mapToUserFriendlyError(message, status, error), status);
+      }
     });
 
     networkManager.onConnectionChange((peerId, connected) => {
