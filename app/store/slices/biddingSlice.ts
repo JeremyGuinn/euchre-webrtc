@@ -4,12 +4,33 @@ import { getNextDealerPosition, getNextPlayerPositionWithAlone } from '~/utils/g
 import type { GameStore } from '../gameStore';
 
 export interface BiddingSlice {
+  // State properties
+  bids: Bid[];
+  trump: Card['suit'] | undefined;
+  kitty: Card | undefined;
+  turnedDownSuit: Card['suit'] | undefined;
+  maker:
+    | {
+        playerPosition: PositionIndex;
+        teamId: 0 | 1;
+        alone: boolean;
+      }
+    | undefined;
+
+  // Actions
   placeBid: (bid: Bid) => void;
   dealerDiscard: (card: Card) => void;
   setTrump: (trump: Card['suit'], makerPosition: PositionIndex, alone?: boolean) => void;
 }
 
 export const createBiddingSlice: StateCreator<GameStore, [], [], BiddingSlice> = (set, get) => ({
+  // State
+  bids: [],
+  trump: undefined,
+  kitty: undefined,
+  turnedDownSuit: undefined,
+  maker: undefined,
+
   placeBid: (bid: Bid) => {
     const state = get();
     const newBids = [...state.bids, bid];

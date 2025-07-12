@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 
 import { createMessageId } from '~/network/protocol';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore as useGameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
 import type { Bid, Card, GameOptions, PositionIndex, TeamIndex } from '~/types/game';
 import type { NetworkService } from '~/types/networkService';

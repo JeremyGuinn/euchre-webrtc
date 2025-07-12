@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { Card, CardBack } from '~/components/game/Card';
 import { Center } from '~/components/ui/Center';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
 import type { Player } from '~/types/game';
 import {
@@ -11,8 +11,11 @@ import {
 } from '~/utils/game/playerPositionUtils';
 
 export function TrickCenter() {
-  const { currentTrick, players, phase, kitty } = useGameStore();
-  const myPlayer = useGameStore(select.myPlayer);
+  const currentTrick = gameStore.use.currentTrick();
+  const kitty = gameStore.use.kitty();
+  const phase = gameStore.use.phase();
+  const players = gameStore.use.players();
+  const myPlayer = gameStore(select.myPlayer);
 
   const getPlayerCircularPosition = useCallback(
     (player: Player, radius: number) => {

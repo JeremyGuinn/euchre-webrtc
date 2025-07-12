@@ -1,9 +1,9 @@
 import { Spinner } from '~/components/ui/Spinner';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
 
 export function FarmersHandWaiting() {
-  const currentFarmersHandPlayer = useGameStore(select.currentFarmersHandPlayer);
+  const currentFarmersHandPlayer = gameStore(select.currentFarmersHandPlayer);
 
   return (
     <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-40'>

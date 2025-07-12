@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import Button from '~/components/ui/Button';
 import { useGame } from '~/contexts/GameContext';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
 import type { Card as CardType } from '~/types/game';
 import { getSuitColor, getSuitSymbol } from '~/utils/game/cardUtils';
@@ -10,9 +10,15 @@ const SUITS: CardType['suit'][] = ['spades', 'hearts', 'diamonds', 'clubs'];
 
 export function BiddingInterface() {
   const { placeBid } = useGame();
-  const { phase, kitty, players, currentDealerPosition, turnedDownSuit, isDealerScrewed } =
-    useGameStore();
-  const myPlayer = useGameStore(select.myPlayer);
+
+  const currentDealerPosition = gameStore.use.currentDealerPosition();
+  const kitty = gameStore.use.kitty();
+  const myPlayer = gameStore(select.myPlayer);
+  const phase = gameStore.use.phase();
+  const players = gameStore.use.players();
+  const turnedDownSuit = gameStore.use.turnedDownSuit();
+  const isDealerScrewed = gameStore.use.isDealerScrewed();
+
   const [selectedSuit, setSelectedSuit] = useState<CardType['suit'] | null>(null);
 
   const isDealerTeammate = useMemo(() => {

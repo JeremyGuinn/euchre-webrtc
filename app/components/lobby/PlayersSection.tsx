@@ -2,7 +2,7 @@ import Panel from '~/components/ui/Panel';
 import { Stack } from '~/components/ui/Stack';
 import type { Player } from '~/types/game';
 
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import type { PositionIndex, TeamIndex } from '~/types/game';
 import HostControlsInfo from './HostControlsInfo';
 import RandomPlayersPanel from './RandomPlayersPanel';
@@ -31,9 +31,9 @@ export default function PlayersSection({
   onDragOver,
   onDrop,
 }: PlayersSectionProps) {
-  const players = useGameStore(state => state.players);
-  const options = useGameStore(state => state.options);
-  const teamNames = useGameStore(state => state.teamNames);
+  const players = gameStore.use.players();
+  const options = gameStore.use.options();
+  const teamNames = gameStore.use.teamNames();
 
   return (
     <Panel variant='compact'>

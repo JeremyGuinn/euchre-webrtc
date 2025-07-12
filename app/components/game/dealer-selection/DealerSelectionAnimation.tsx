@@ -1,11 +1,9 @@
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import { FirstBlackJackSelection } from './FirstBlackJackSelection';
 import { RandomCardsSelection } from './RandomCardsSelection';
 
 export function DealerSelectionAnimation() {
-  const {
-    options: { dealerSelection },
-  } = useGameStore();
+  const dealerSelection = gameStore.use.options().dealerSelection;
 
   switch (dealerSelection) {
     case 'random_cards':

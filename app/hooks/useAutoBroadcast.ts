@@ -1,18 +1,18 @@
 import { useEffect } from 'react';
 
 import { createMessageId } from '~/network/protocol';
-import { useGameStore } from '~/store/gameStore';
-import { select } from '~/store/selectors/players';
+import { gameStore } from '~/store/gameStore';
 import type { Player } from '~/types/game';
 import type { NetworkService } from '~/types/networkService';
 
-export function useGameStateEffects(networkService: NetworkService) {
-  const { createPublicGameState } = useGameStore();
-  const players = useGameStore(state => state.players);
-  const myPlayerId = useGameStore(state => state.myPlayerId);
-  const id = useGameStore(state => state.id);
-  const isHost = useGameStore(state => select.myPlayer(state)?.isHost);
-  const updateGameOptions = useGameStore(state => state.updateGameOptions);
+export function useAutoBroadcast(networkService: NetworkService) {
+  const { createPublicGameState } = gameStore();
+
+  const id = gameStore.use.id();
+  const isHost = gameStore.use.isHost();
+  const myPlayerId = gameStore.use.myPlayerId();
+  const players = gameStore.use.players();
+  const updateGameOptions = gameStore.use.updateGameOptions();
 
   // Initialize the game state with default values
   useEffect(() => {
@@ -49,7 +49,7 @@ export function useGameStateEffects(networkService: NetworkService) {
       });
     };
 
-    const unsubscribe = useGameStore.subscribe(
+    const unsubscribe = gameStore.subscribe(
       state => ({
         players: state.players,
         phase: state.phase,

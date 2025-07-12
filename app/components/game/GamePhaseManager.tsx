@@ -10,7 +10,7 @@ import { TrickCompleteOverlay } from '~/components/game/overlays/TrickCompleteOv
 import Button from '~/components/ui/Button';
 import { Center } from '~/components/ui/Center';
 import { useGame } from '~/contexts/GameContext';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
 
 interface GamePhaseManagerProps {
@@ -20,16 +20,14 @@ interface GamePhaseManagerProps {
 export function GamePhaseManager({ headerHeight }: GamePhaseManagerProps) {
   const { selectDealer } = useGame();
 
-  const {
-    phase,
-    dealerSelectionCards,
-    firstBlackJackDealing,
-    options,
-    kitty,
-    farmersHandPosition,
-    currentPlayerPosition,
-  } = useGameStore();
-  const myPlayer = useGameStore(select.myPlayer);
+  const phase = gameStore.use.phase();
+  const dealerSelectionCards = gameStore.use.dealerSelectionCards();
+  const firstBlackJackDealing = gameStore.use.firstBlackJackDealing();
+  const options = gameStore.use.options();
+  const kitty = gameStore.use.kitty();
+  const farmersHandPosition = gameStore.use.farmersHandPosition();
+  const currentPlayerPosition = gameStore.use.currentPlayerPosition();
+  const myPlayer = gameStore(select.myPlayer);
 
   const isMyTurn = () => {
     return myPlayer?.position === currentPlayerPosition;

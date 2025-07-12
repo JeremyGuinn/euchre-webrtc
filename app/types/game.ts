@@ -1,3 +1,6 @@
+import type { GameStore } from '~/store/gameStore';
+import type { ExcludeFunctions } from './utility';
+
 export type Position = 'bottom' | 'left' | 'top' | 'right';
 export type PositionIndex = 0 | 1 | 2 | 3;
 export type TeamIndex = 0 | 1;
@@ -58,51 +61,9 @@ export type GameOptions = {
   farmersHand: boolean;
 };
 
-export type GameState = {
-  id: string;
-  gameCode?: string; // User-friendly game code
-  myPlayerId?: string; // ID of the current player
-  players: Player[];
-  phase: GamePhase;
-  options: GameOptions;
-  currentDealerPosition: PositionIndex;
-  currentPlayerPosition?: PositionIndex;
-  deck: Card[];
-  hands: Record<PositionIndex, Card[]>; // Keyed by position instead of player ID
-  trump?: Card['suit'];
-  kitty?: Card; // The turned-up card
-  turnedDownSuit?: Card['suit']; // The suit that was turned down in round 1
-  bids: Bid[];
-  currentTrick?: Trick;
-  completedTricks: Trick[];
-  scores: {
-    team0: number;
-    team1: number;
-  };
-  handScores: {
-    team0: number;
-    team1: number;
-  };
-  teamNames: {
-    team0: string;
-    team1: string;
-  };
-  maker?: {
-    playerPosition: PositionIndex;
-    teamId: TeamIndex;
-    alone: boolean;
-  };
-  farmersHandPosition?: PositionIndex; // Position of player who has a farmer's hand
-  dealerSelectionCards?: Partial<Record<PositionIndex, Card>>; // Cards drawn for dealer selection
-  firstBlackJackDealing?: {
-    currentPlayerIndex: number;
-    currentCardIndex: number;
-    dealtCards: Array<{ playerPosition: PositionIndex; card: Card }>;
-    blackJackFound?: { playerPosition: PositionIndex; card: Card };
-  };
-};
+export type GameState = ExcludeFunctions<GameStore>;
 
-export type PublicGameState = Omit<GameState, 'hands'> & {
+export type PublicGameState = Omit<GameState, 'hands' | 'myPlayerId'> & {
   playerHand?: Card[]; // Only for the current player
   deck: Card[]; // Placeholder cards for clients, actual cards for host
 };

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { Card, CardBack } from '~/components/game/Card';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import type { Card as CardType, Player } from '~/types/game';
 
 interface PlayerHandProps {
@@ -27,7 +27,12 @@ export function PlayerHand({
   onDealerDiscard,
   shouldShowCards,
 }: PlayerHandProps) {
-  const { phase, currentDealerPosition, kitty, completedTricks, currentTrick } = useGameStore();
+  const completedTricks = gameStore.use.completedTricks();
+  const currentDealerPosition = gameStore.use.currentDealerPosition();
+  const currentTrick = gameStore.use.currentTrick();
+  const kitty = gameStore.use.kitty();
+  const phase = gameStore.use.phase();
+
   const [hoveredDiscardCard, setHoveredDiscardCard] = useState<CardType | null>(null);
 
   if (player.id === myPlayer.id) {

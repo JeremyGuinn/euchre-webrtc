@@ -2,18 +2,18 @@ import Button from '~/components/ui/Button';
 import { Center } from '~/components/ui/Center';
 import { Spinner } from '~/components/ui/Spinner';
 import { useGame } from '~/contexts/GameContext';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import { select as playerSelectors } from '~/store/selectors/players';
 import { select as teamSelectors } from '~/store/selectors/teams';
 import { getSuitColor, getSuitSymbol } from '~/utils/game/cardUtils';
 
 export function HandCompleteOverlay() {
   const { completeHand } = useGame();
-  const { handScores, maker, phase, trump, teamNames, scores } = useGameStore();
-  const myPlayer = useGameStore(playerSelectors.myPlayer);
-  const currentMakerPlayer = useGameStore(playerSelectors.currentMakerPlayer);
-  const team0Score = useGameStore(teamSelectors.teamScore(0));
-  const team1Score = useGameStore(teamSelectors.teamScore(1));
+  const { handScores, maker, phase, trump, teamNames, scores } = gameStore();
+  const myPlayer = gameStore(playerSelectors.myPlayer);
+  const currentMakerPlayer = gameStore(playerSelectors.currentMakerPlayer);
+  const team0Score = gameStore(teamSelectors.teamScore(0));
+  const team1Score = gameStore(teamSelectors.teamScore(1));
 
   if (phase !== 'hand_complete') {
     return null;

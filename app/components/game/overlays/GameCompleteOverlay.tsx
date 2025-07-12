@@ -3,15 +3,19 @@ import { useNavigate } from 'react-router';
 import Button from '~/components/ui/Button';
 import { Stack } from '~/components/ui/Stack';
 import { useGame } from '~/contexts/GameContext';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
 
 export function GameCompleteOverlay() {
   const navigate = useNavigate();
-  const { scores, gameCode, teamNames, players, resetGame } = useGameStore();
-  const myPlayer = useGameStore(select.myPlayer);
-
   const { leaveGame } = useGame();
+
+  const gameCode = gameStore.use.gameCode();
+  const myPlayer = gameStore(select.myPlayer);
+  const players = gameStore.use.players();
+  const scores = gameStore.use.scores();
+  const teamNames = gameStore.use.teamNames();
+  const resetGame = gameStore.use.resetGame();
 
   const team0Won = scores.team0 >= 10;
   const team1Won = scores.team1 >= 10;

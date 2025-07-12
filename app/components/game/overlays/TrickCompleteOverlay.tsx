@@ -3,15 +3,18 @@ import Button from '~/components/ui/Button';
 import { Spinner } from '~/components/ui/Spinner';
 import { useGame } from '~/contexts/GameContext';
 import { useAutoAdvance } from '~/hooks/useAutoAdvance';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
 import { getSuitColor, getSuitSymbol } from '~/utils/game/cardUtils';
 import { Card } from '../Card';
 
 export function TrickCompleteOverlay() {
   const { continueTrick } = useGame();
-  const { phase, completedTricks, players } = useGameStore();
-  const myPlayer = useGameStore(select.myPlayer);
+
+  const phase = gameStore.use.phase();
+  const players = gameStore.use.players();
+  const completedTricks = gameStore.use.completedTricks();
+  const myPlayer = gameStore(select.myPlayer);
 
   const { trigger, cancel, progress } = useAutoAdvance(continueTrick, {
     delayMs: 1500,

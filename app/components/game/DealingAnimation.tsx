@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { useGame } from '~/contexts/GameContext';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
 import { getPositionClasses, getRelativePlayerPosition } from '~/utils/game/playerPositionUtils';
 import { CardBack } from './Card';
@@ -20,8 +20,9 @@ interface AnimatingCard {
 }
 
 export function DealingAnimation() {
-  const { players, currentDealerPosition } = useGameStore();
-  const myPlayer = useGameStore(select.myPlayer);
+  const players = gameStore.use.players();
+  const currentDealerPosition = gameStore.use.currentDealerPosition();
+  const myPlayer = gameStore(select.myPlayer);
 
   const { completeDealingAnimation } = useGame();
 

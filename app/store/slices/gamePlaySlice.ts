@@ -9,13 +9,30 @@ import {
 import { getNextDealerPosition, getNextPlayerPositionWithAlone } from '~/utils/game/playerUtils';
 import type { GameStore } from '../gameStore';
 
-export interface PlayingSlice {
+export interface GamePlaySlice {
+  // State properties
+  deck: Card[];
+  hands: Record<PositionIndex, Card[]>;
+  currentTrick: Trick | undefined;
+  completedTricks: Trick[];
+  currentDealerPosition: PositionIndex;
+  currentPlayerPosition: PositionIndex | undefined;
+
+  // Actions
   playCard: (card: Card, playerPosition: PositionIndex) => void;
   completeTrick: () => void;
   completeHand: () => void;
 }
 
-export const createPlayingSlice: StateCreator<GameStore, [], [], PlayingSlice> = (set, get) => ({
+export const createGamePlaySlice: StateCreator<GameStore, [], [], GamePlaySlice> = (set, get) => ({
+  // State
+  deck: [],
+  hands: { 0: [], 1: [], 2: [], 3: [] },
+  currentTrick: undefined,
+  completedTricks: [],
+  currentDealerPosition: 0,
+  currentPlayerPosition: undefined,
+
   playCard: (card: Card, playerPosition: PositionIndex) => {
     const state = get();
 

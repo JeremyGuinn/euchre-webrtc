@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { PlayerHand } from '~/components/game/PlayerHand';
 import { PlayerManagementMenu } from '~/components/game/PlayerManagementMenu';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import type { Card as CardType, Player, Position } from '~/types/game';
 import { getPositionClasses } from '~/utils/game/playerPositionUtils';
 
@@ -39,7 +39,8 @@ export function PlayerPosition({
   isHost,
   onKickPlayer,
 }: PlayerPositionProps) {
-  const { phase, currentDealerPosition } = useGameStore();
+  const phase = gameStore.use.phase();
+  const currentDealerPosition = gameStore.use.currentDealerPosition();
 
   const [showManagementMenu, setShowManagementMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });

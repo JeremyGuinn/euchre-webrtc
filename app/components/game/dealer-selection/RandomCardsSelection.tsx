@@ -1,15 +1,18 @@
 import { useMemo } from 'react';
 import { useGame } from '~/contexts/GameContext';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
 import { getPositionClasses, getRelativePlayerPosition } from '~/utils/game/playerPositionUtils';
 import { CardBack } from '../Card';
 import PlayerDealingArea from './PlayerDealingArea';
 
 export function RandomCardsSelection() {
-  const { dealerSelectionCards, deck, players } = useGameStore();
   const { drawDealerCard } = useGame();
-  const myPlayer = useGameStore(select.myPlayer);
+
+  const dealerSelectionCards = gameStore.use.dealerSelectionCards();
+  const deck = gameStore.use.deck();
+  const players = gameStore.use.players();
+  const myPlayer = gameStore(select.myPlayer);
 
   const cardsRemaining = useMemo(() => {
     return deck.length - (dealerSelectionCards ? Object.keys(dealerSelectionCards).length : 0);

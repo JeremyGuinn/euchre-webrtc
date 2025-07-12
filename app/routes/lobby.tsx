@@ -13,7 +13,7 @@ import { Stack } from '~/components/ui/Stack';
 import { useGame } from '~/contexts/GameContext';
 
 import PageContainer from '~/components/layout/PageContainer';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
 import type { PositionIndex } from '~/types/game';
 import type { Route } from './+types/lobby';
@@ -43,13 +43,12 @@ export default function Lobby({ params }: Route.ComponentProps) {
   } = useGame();
   const { gameCode } = params;
 
-  const gameStore = useGameStore();
-  const myPlayer = useGameStore(select.myPlayer);
+  const players = gameStore.use.players();
+  const options = gameStore.use.options();
+  const phase = gameStore.use.phase();
+  const myPlayer = gameStore(select.myPlayer);
 
-  const connectedPlayers = useMemo(
-    () => gameStore.players.filter(p => p.isConnected),
-    [gameStore.players]
-  );
+  const connectedPlayers = useMemo(() => players.filter(p => p.isConnected), [players]);
 
   const [draggedPlayer, setDraggedPlayer] = useState<string | null>(null);
 
@@ -60,16 +59,16 @@ export default function Lobby({ params }: Route.ComponentProps) {
     }
 
     // If predetermined dealer is selected, ensure a dealer is chosen
-    if (gameStore.options.dealerSelection === 'predetermined_first_dealer') {
-      return gameStore.options.predeterminedFirstDealerId !== undefined;
+    if (options.dealerSelection === 'predetermined_first_dealer') {
+      return options.predeterminedFirstDealerId !== undefined;
     }
 
     return true;
   }, [
     myPlayer?.isHost,
     connectedPlayers.length,
-    gameStore.options.dealerSelection,
-    gameStore.options.predeterminedFirstDealerId,
+    options.dealerSelection,
+    options.predeterminedFirstDealerId,
   ]);
 
   useEffect(() => {
@@ -80,10 +79,10 @@ export default function Lobby({ params }: Route.ComponentProps) {
 
   useEffect(() => {
     // Redirect to game if it has started
-    if (gameStore.phase !== 'lobby') {
+    if (phase !== 'lobby') {
       navigate(`/game/${gameCode}`);
     }
-  }, [gameStore.phase, gameCode, navigate, gameStore.players.length]);
+  }, [phase, gameCode, navigate, players.length]);
 
   const handleStartGame = () => startGame();
   const handleLeaveGame = () => leaveGame();
@@ -135,20 +134,18 @@ export default function Lobby({ params }: Route.ComponentProps) {
             />
 
             <GameOptionsPanel
-              options={gameStore.options}
+              options={options}
               onOptionsChange={updateGameOptions}
               isHost={myPlayer?.isHost || false}
-              disabled={gameStore.phase !== 'lobby'}
+              disabled={phase !== 'lobby'}
             />
 
-            {gameStore.options.dealerSelection === 'predetermined_first_dealer' && (
+            {options.dealerSelection === 'predetermined_first_dealer' && (
               <PredeterminedDealerSelector
-                players={gameStore.players.filter(p => p.isConnected)}
+                players={players.filter(p => p.isConnected)}
                 selectedDealerId={
-                  gameStore.options.predeterminedFirstDealerId !== undefined
-                    ? gameStore.players.find(
-                        p => p.id === gameStore.options.predeterminedFirstDealerId
-                      )?.id
+                  options.predeterminedFirstDealerId !== undefined
+                    ? players.find(p => p.id === options.predeterminedFirstDealerId)?.id
                     : undefined
                 }
                 onDealerSelect={setPredeterminedDealer}

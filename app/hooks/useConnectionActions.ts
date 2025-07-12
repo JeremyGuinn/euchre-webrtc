@@ -5,8 +5,7 @@ import { type SessionContextType } from '~/contexts/SessionContext';
 import { useLogger } from '~/hooks/useLogger';
 import type { ConnectionStatus } from '~/network/networkManager';
 import { GameStatePersistenceService } from '~/services/gameStatePersistenceService';
-import { useGameStore } from '~/store/gameStore';
-import { select } from '~/store/selectors/players';
+import { gameStore } from '~/store/gameStore';
 import type { NetworkService } from '~/types/networkService';
 
 export function useConnectionActions(
@@ -17,16 +16,18 @@ export function useConnectionActions(
 ) {
   const navigate = useNavigate();
   const logger = useLogger('useConnectionActions');
-  const gameStore = useGameStore();
 
-  const isHost = useGameStore(state => select.myPlayer(state)?.isHost);
-  const setIsHost = useGameStore(state => state.setIsHost);
+  const isHost = gameStore.use.isHost();
+  const setIsHost = gameStore.use.setIsHost();
+  const myPlayerId = gameStore.use.myPlayerId();
+  const setMyPlayerId = gameStore.use.setMyPlayerId();
+  const initGame = gameStore.use.initGame();
 
   const hostGame = useCallback(async (): Promise<string> => {
     return logger.withPerformance('hostGame', async () => {
       logger.info('Starting to host game', {
         connectionStatus,
-        myPlayerId: gameStore.myPlayerId || 'none',
+        myPlayerId: myPlayerId || 'none',
       });
 
       if (connectionStatus === 'connected') {
@@ -41,8 +42,7 @@ export function useConnectionActions(
       const { gameCode, hostId, gameUuid } = await networkService.hostGame();
       logger.info('Game hosted successfully', { gameCode, hostId, gameUuid });
 
-      gameStore.setMyPlayerId(hostId);
-
+      setMyPlayerId(hostId);
       setIsHost(true);
 
       // Save session data for reconnection
@@ -57,7 +57,7 @@ export function useConnectionActions(
       sessionManager.saveSession(sessionData);
       logger.debug('Session saved for reconnection', { sessionData });
 
-      gameStore.initGame(hostId, gameUuid, gameCode);
+      initGame(hostId, gameUuid, gameCode);
       logger.debug('Game initialization called');
 
       return gameCode;
@@ -71,7 +71,7 @@ export function useConnectionActions(
           gameCode,
           playerName,
           connectionStatus,
-          myPlayerId: gameStore.myPlayerId || 'none',
+          myPlayerId: myPlayerId || 'none',
         });
 
         if (connectionStatus === 'connected' || connectionStatus === 'connecting') {
@@ -90,8 +90,9 @@ export function useConnectionActions(
           playerId,
         });
 
-        gameStore.setMyPlayerId(playerId);
+        setMyPlayerId(playerId);
         setIsHost(false);
+
         logger.debug('Player state updated', { playerId, isHost: false });
 
         // We'll save session data when we successfully join and get a game ID
@@ -112,15 +113,16 @@ export function useConnectionActions(
           reason,
           isHost,
           connectionStatus,
-          myPlayerId: gameStore.myPlayerId || 'none',
+          myPlayerId: myPlayerId || 'none',
           additionalContext,
         });
 
         setConnectionStatus('disconnected');
-        gameStore.setMyPlayerId('');
+        setMyPlayerId('');
         setIsHost(false);
         sessionManager.clearSession();
         GameStatePersistenceService.clear();
+
         logger.debug('Player state and session cleared');
 
         // If we're a client (not host), send leave message first

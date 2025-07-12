@@ -1,11 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { useAutoBroadcast } from '~/hooks/useAutoBroadcast';
+import { useAutoGamesave } from '~/hooks/useAutoGamesave';
 import { useConnectionActions } from '~/hooks/useConnectionActions';
 import { useGameActions } from '~/hooks/useGameActions';
-import { useGameStateEffects } from '~/hooks/useGameStateEffects';
-import { useGameStatePersistence } from '~/hooks/useGameStatePersistence';
 import { useNetworkService } from '~/hooks/useNetworkService';
 import type { ConnectionStatus } from '~/network/networkManager';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore as useGameStore } from '~/store/gameStore';
 import type { GameContextType, GameProviderProps } from '~/types/gameContext';
 import { useSession } from './SessionContext';
 
@@ -17,17 +17,10 @@ function useGameProvider() {
   const gameActions = useGameActions(networkService);
   const gameStore = useGameStore();
 
-  // Check for existing session to determine initial connection status
-  const getInitialConnectionStatus = (): ConnectionStatus => {
-    return 'disconnected';
-  };
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
 
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(
-    getInitialConnectionStatus()
-  );
-
-  useGameStateEffects(networkService);
-  useGameStatePersistence(connectionStatus);
+  useAutoBroadcast(networkService);
+  useAutoGamesave(connectionStatus);
 
   const connectionActions = useConnectionActions(
     networkService,
@@ -45,7 +38,7 @@ function useGameProvider() {
   // Configure and update network service with game state and handlers
   useEffect(() => {
     networkService.configure({
-      gameStore,
+      gameStore: gameStore,
       handleKicked,
       setConnectionStatus,
       sessionManager: {
@@ -58,7 +51,6 @@ function useGameProvider() {
   }, [
     networkService,
     gameStore,
-    gameStore.deck,
     handleKicked,
     setConnectionStatus,
     sessionManager.saveSession,
@@ -68,9 +60,7 @@ function useGameProvider() {
   ]);
 
   return {
-    gameState: gameStore,
     networkManager: networkService.getNetworkManager(),
-    myPlayerId: gameStore.myPlayerId,
     connectionStatus,
     ...connectionActions,
     ...gameActions,

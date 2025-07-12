@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useGame } from '~/contexts/GameContext';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
 import type { Card, Player } from '~/types/game';
 import { getPositionClasses } from '~/utils/game/playerPositionUtils';
@@ -10,9 +10,13 @@ import { FirstBlackJackDealingAnimation } from './FirstBlackJackDealingAnimation
 import PlayerDealingArea from './PlayerDealingArea';
 
 export function FirstBlackJackSelection() {
-  const { players } = useGameStore();
-  const myPlayer = useGameStore(select.myPlayer);
-  const { gameState, dealFirstBlackJackCard, completeBlackJackDealerSelection } = useGame();
+  const { dealFirstBlackJackCard, completeBlackJackDealerSelection } = useGame();
+
+  const currentDealerPosition = gameStore.use.currentDealerPosition();
+  const firstBlackJackDealing = gameStore.use.firstBlackJackDealing();
+  const phase = gameStore.use.phase();
+  const players = gameStore.use.players();
+  const myPlayer = gameStore(select.myPlayer);
 
   // Animation state
   const [pendingDeal, setPendingDeal] = useState<{
@@ -24,10 +28,7 @@ export function FirstBlackJackSelection() {
   const [completedAnimations, setCompletedAnimations] = useState<Set<string>>(new Set());
 
   // Get dealing state from game context - all derived state should be in useMemo
-  const dealingState = useMemo(
-    () => gameState.firstBlackJackDealing,
-    [gameState.firstBlackJackDealing]
-  );
+  const dealingState = useMemo(() => firstBlackJackDealing, [firstBlackJackDealing]);
 
   // Track the last dealt card to detect new cards being dealt
   const lastDealtCard = useMemo(() => {
@@ -79,7 +80,7 @@ export function FirstBlackJackSelection() {
     setPendingDeal(null);
   };
 
-  const dealingComplete = useMemo(() => gameState.phase === 'team_summary', [gameState.phase]);
+  const dealingComplete = useMemo(() => phase === 'team_summary', [phase]);
   const currentPlayerIndex = useMemo(
     () => dealingState?.currentPlayerIndex ?? 0,
     [dealingState?.currentPlayerIndex]
@@ -108,10 +109,10 @@ export function FirstBlackJackSelection() {
 
   // Find winner (player who got a black jack) - memoized
   const blackJackWinner = useMemo(() => {
-    const currentDealerId = getPlayerIdFromPosition(gameState.currentDealerPosition, players);
+    const currentDealerId = getPlayerIdFromPosition(currentDealerPosition, players);
 
     return dealingComplete && currentDealerId ? players.find(p => p.id === currentDealerId) : null;
-  }, [dealingComplete, gameState.currentDealerPosition, players]);
+  }, [dealingComplete, currentDealerPosition, players]);
 
   // Memoize current player dealing calculation
   const currentPlayerDealing = useMemo(() => {

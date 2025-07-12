@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand';
-import type { Card, GameState, Player, PositionIndex } from '~/types/game';
+import type { Card, GamePhase, Player, PositionIndex } from '~/types/game';
 import {
   createDeck,
   dealHands,
@@ -17,6 +17,19 @@ import {
 import type { GameStore } from '../gameStore';
 
 export interface GameFlowSlice {
+  // State properties
+  phase: GamePhase;
+  dealerSelectionCards: Partial<Record<PositionIndex, Card>> | undefined;
+  firstBlackJackDealing:
+    | {
+        currentPlayerIndex: number;
+        currentCardIndex: number;
+        dealtCards: Array<{ playerPosition: PositionIndex; card: Card }>;
+        blackJackFound?: { playerPosition: PositionIndex; card: Card };
+      }
+    | undefined;
+
+  // Actions
   startGame: () => void;
   selectDealer: () => void;
   drawDealerCard: (playerId: string, card: Card) => void;
@@ -28,6 +41,11 @@ export interface GameFlowSlice {
 }
 
 export const createGameFlowSlice: StateCreator<GameStore, [], [], GameFlowSlice> = (set, get) => ({
+  // State
+  dealerSelectionCards: undefined,
+  firstBlackJackDealing: undefined,
+  phase: 'lobby',
+
   startGame: () => {
     const { players, options } = get();
 
@@ -211,7 +229,7 @@ export const createGameFlowSlice: StateCreator<GameStore, [], [], GameFlowSlice>
       playerHands[player.position] = hands[index];
     });
 
-    let nextPhase: GameState['phase'] = 'bidding_round1';
+    let nextPhase: GameStore['phase'] = 'bidding_round1';
     let farmersHandPosition: PositionIndex | undefined = undefined;
     let currentPlayerPosition = getNextPlayerPosition(currentDealerPosition);
 

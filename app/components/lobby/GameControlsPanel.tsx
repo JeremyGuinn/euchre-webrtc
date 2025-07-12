@@ -1,6 +1,6 @@
 import Button from '~/components/ui/Button';
 import Panel from '~/components/ui/Panel';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 
 interface GameControlsPanelProps {
   connectedPlayersCount: number;
@@ -15,7 +15,7 @@ export default function GameControlsPanel({
   canStartGame,
   onStartGame,
 }: GameControlsPanelProps) {
-  const { options } = useGameStore();
+  const options = gameStore.use.options();
   const playersNeeded = 4 - connectedPlayersCount;
 
   const handleStartGame = () => {

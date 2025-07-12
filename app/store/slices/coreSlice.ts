@@ -1,20 +1,38 @@
 import type { StateCreator } from 'zustand';
-import type { Card, GameState, Player, PositionIndex, PublicGameState } from '~/types/game';
+import type {
+  Card,
+  GamePhase,
+  GameState,
+  Player,
+  PositionIndex,
+  PublicGameState,
+} from '~/types/game';
 import type { GameStore } from '../gameStore';
 
 export interface CoreSlice {
+  // State properties
+  id: string;
+  gameCode: string | undefined;
+  isHost: boolean;
+
+  // Actions
   initGame: (hostId: string, gameId: string, gameCode?: string) => void;
   resetGame: () => void;
   setIsHost: (isHost: boolean) => void;
   restoreGameState: (gameState: GameState) => void;
   syncState: (gameState: PublicGameState, playerHand?: Card[], receivingPlayerId?: string) => void;
   setCurrentPlayerPosition: (position: PositionIndex) => void;
-  setPhase: (phase: GameState['phase']) => void;
+  setPhase: (phase: GamePhase) => void;
   createPublicGameState: (forPlayerId?: string) => PublicGameState;
   isDealerScrewed: () => boolean;
 }
 
 export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set, get) => ({
+  // Core state
+  id: '',
+  gameCode: undefined,
+  isHost: false,
+
   initGame: (hostId: string, gameId: string, gameCode?: string) => {
     const player: Player = {
       id: hostId,
@@ -28,8 +46,10 @@ export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set,
     set({
       id: gameId,
       gameCode,
-      players: [player],
+      myPlayerId: hostId,
+      isHost: true,
       phase: 'lobby',
+      players: [player],
       options: {
         teamSelection: 'predetermined',
         dealerSelection: 'random_cards',
@@ -71,7 +91,7 @@ export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set,
       player.id === state.myPlayerId ? { ...player, isHost } : player
     );
 
-    set({ players: updatedPlayers });
+    set({ players: updatedPlayers, isHost });
   },
 
   restoreGameState: (gameState: GameState) => {
@@ -118,7 +138,7 @@ export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set,
     set({ currentPlayerPosition: position });
   },
 
-  setPhase: (phase: GameState['phase']) => {
+  setPhase: (phase: GamePhase) => {
     set({ phase });
   },
 
@@ -136,6 +156,7 @@ export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set,
 
     const publicState: PublicGameState = {
       id: state.id,
+      isHost: state.players.some(p => p.id === state.myPlayerId && p.isHost),
       gameCode: state.gameCode,
       players: state.players,
       phase: state.phase,

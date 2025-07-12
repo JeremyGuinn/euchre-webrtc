@@ -1,11 +1,13 @@
 import Button from '~/components/ui/Button';
 import { useGame } from '~/contexts/GameContext';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import { getSuitColor, getSuitSymbol } from '~/utils/game/cardUtils';
 
 export function GameHeader() {
-  const { trump, teamNames, scores } = useGameStore();
   const { leaveGame } = useGame();
+  const teamNames = gameStore.use.teamNames();
+  const scores = gameStore.use.scores();
+  const trump = gameStore.use.trump();
 
   return (
     <div className='absolute top-0 left-0 right-0 bg-black/20 p-4 z-10' id='game-header'>

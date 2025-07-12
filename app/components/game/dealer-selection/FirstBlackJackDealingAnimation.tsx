@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
 import type { Card, Player } from '~/types/game';
 import { CardBack } from '../Card';
@@ -101,8 +101,8 @@ export function FirstBlackJackDealingAnimation({
   targetPlayerId,
   onAnimationComplete,
 }: FirstBlackJackDealingAnimationProps) {
-  const { players } = useGameStore();
-  const myPlayer = useGameStore(select.myPlayer);
+  const players = gameStore.use.players();
+  const myPlayer = gameStore(select.myPlayer);
 
   const [animatingCard, setAnimatingCard] = useState<AnimatingCard | null>(null);
 

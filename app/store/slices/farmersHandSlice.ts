@@ -5,6 +5,10 @@ import { getNextPlayerPosition } from '~/utils/game/playerUtils';
 import type { GameStore } from '../gameStore';
 
 export interface FarmersHandSlice {
+  // State properties
+  farmersHandPosition: PositionIndex | undefined;
+
+  // Actions
   farmersHandDetected: (playerPosition: PositionIndex) => void;
   farmersHandSwap: (playerPosition: PositionIndex, cardsToSwap: Card[]) => void;
   farmersHandDeclined: (playerPosition: PositionIndex) => void;
@@ -14,6 +18,9 @@ export const createFarmersHandSlice: StateCreator<GameStore, [], [], FarmersHand
   set,
   get
 ) => ({
+  // State
+  farmersHandPosition: undefined,
+
   farmersHandDetected: (playerPosition: PositionIndex) => {
     set({
       phase: 'farmers_hand_swap',

@@ -11,7 +11,7 @@ import { Stack } from '~/components/ui/Stack';
 import { useGame } from '~/contexts/GameContext';
 
 import { useElementHeight } from '~/hooks/useElementHeight';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
 import type { Route } from './+types/game';
 
@@ -24,12 +24,13 @@ export function meta({ params }: Route.MetaArgs) {
 
 export default function Game({ params }: Route.ComponentProps) {
   const { gameCode } = params;
-  const { connectionStatus } = useGame();
-  const { phase } = useGameStore();
-  const myPlayer = useGameStore(select.myPlayer);
 
   const navigate = useNavigate();
+  const { connectionStatus } = useGame();
   const headerHeight = useElementHeight('#game-header');
+
+  const phase = gameStore.use.phase();
+  const myPlayer = gameStore(select.myPlayer);
 
   useEffect(() => {
     // Redirect to lobby if game hasn't started

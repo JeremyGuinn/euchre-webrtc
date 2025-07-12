@@ -1,11 +1,9 @@
 import type { ConnectionStatus, NetworkManager } from '~/network/networkManager';
 import type { PositionIndex, TeamIndex } from '~/types/game';
-import type { Card, GameOptions, GameState } from './game';
+import type { Card, GameOptions } from './game';
 
 export interface GameContextType {
-  gameState: GameState;
   networkManager: NetworkManager | null;
-  myPlayerId: string | undefined;
   connectionStatus: ConnectionStatus;
 
   hostGame: () => Promise<string>;

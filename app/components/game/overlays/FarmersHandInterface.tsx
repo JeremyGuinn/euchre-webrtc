@@ -3,7 +3,7 @@ import { Card } from '~/components/game/Card';
 import Button from '~/components/ui/Button';
 import Panel from '~/components/ui/Panel';
 import { useGame } from '~/contexts/GameContext';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
 import type { Card as CardType } from '~/types/game';
 
@@ -11,7 +11,7 @@ export function FarmersHandInterface() {
   const [selectedCards, setSelectedCards] = useState<CardType[]>([]);
   const { swapFarmersHand, declineFarmersHand } = useGame();
 
-  const hand = useGameStore(select.myHand);
+  const hand = gameStore(select.myHand);
 
   const handleCardClick = (card: CardType) => {
     setSelectedCards(prev => {

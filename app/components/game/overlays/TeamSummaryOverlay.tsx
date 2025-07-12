@@ -4,15 +4,18 @@ import { Center } from '~/components/ui/Center';
 import { Spinner } from '~/components/ui/Spinner';
 import { Stack } from '~/components/ui/Stack';
 import { useGame } from '~/contexts/GameContext';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
 import { getSuitColor, getSuitSymbol } from '~/utils/game/cardUtils';
 
 export function TeamSummaryOverlay() {
   const { renameTeam, proceedToDealing } = useGame();
-  const { teamNames, players, dealerSelectionCards, options } = useGameStore();
-  const myPlayer = useGameStore(select.myPlayer);
-  const currentDealer = useGameStore(select.currentDealer);
+  const teamNames = gameStore.use.teamNames();
+  const players = gameStore.use.players();
+  const dealerSelectionCards = gameStore.use.dealerSelectionCards();
+  const options = gameStore.use.options();
+  const myPlayer = gameStore(select.myPlayer);
+  const currentDealer = gameStore(select.currentDealer);
 
   if (!myPlayer) {
     return null;

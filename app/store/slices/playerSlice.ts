@@ -4,6 +4,11 @@ import { getTeamId } from '~/utils/game/playerUtils';
 import type { GameStore } from '../gameStore';
 
 export interface PlayerSlice {
+  // State properties
+  players: Player[];
+  myPlayerId: string;
+
+  // Actions
   addPlayer: (player: Player) => void;
   setMyPlayerId: (playerId: string) => void;
   removePlayer: (playerId: string) => void;
@@ -14,6 +19,10 @@ export interface PlayerSlice {
 }
 
 export const createPlayerSlice: StateCreator<GameStore, [], [], PlayerSlice> = (set, get) => ({
+  // State
+  players: [],
+  myPlayerId: '',
+
   addPlayer: (player: Player) => {
     const { players, hands } = get();
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Button from '~/components/ui/Button';
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import type { Player } from '~/types/game';
 
 interface PlayerManagementMenuProps {
@@ -18,7 +18,7 @@ export function PlayerManagementMenu({
   onKickPlayer,
   onClose,
 }: PlayerManagementMenuProps) {
-  const { phase } = useGameStore();
+  const phase = gameStore.use.phase();
   const [showConfirmKick, setShowConfirmKick] = useState(false);
 
   const handleKickPlayer = () => {

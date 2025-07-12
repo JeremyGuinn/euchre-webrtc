@@ -1,73 +1,42 @@
 import { create } from 'zustand';
-import { subscribeWithSelector } from 'zustand/middleware';
-import type { GameState } from '~/types/game';
-import type {
-  BiddingSlice,
-  CoreSlice,
-  FarmersHandSlice,
-  GameFlowSlice,
-  OptionsSlice,
-  PlayerSlice,
-  PlayingSlice,
-  TeamSlice,
-} from './slices';
-import {
-  createBiddingSlice,
-  createCoreSlice,
-  createFarmersHandSlice,
-  createGameFlowSlice,
-  createOptionsSlice,
-  createPlayerSlice,
-  createPlayingSlice,
-  createTeamSlice,
-} from './slices';
+import { devtools, subscribeWithSelector } from 'zustand/middleware';
+import { createSelectors } from './createSelectors';
+import { type BiddingSlice, createBiddingSlice } from './slices/biddingSlice';
+import { type CoreSlice, createCoreSlice } from './slices/coreSlice';
+import { type FarmersHandSlice, createFarmersHandSlice } from './slices/farmersHandSlice';
+import { type GameFlowSlice, createGameFlowSlice } from './slices/gameFlowSlice';
+import { type GamePlaySlice, createGamePlaySlice } from './slices/gamePlaySlice';
+import { type OptionsSlice, createOptionsSlice } from './slices/optionsSlice';
+import { type PlayerSlice, createPlayerSlice } from './slices/playerSlice';
+import { type TeamSlice, createTeamSlice } from './slices/teamSlice';
 
-export interface GameStore
-  extends GameState,
-    BiddingSlice,
-    CoreSlice,
-    FarmersHandSlice,
-    GameFlowSlice,
-    OptionsSlice,
-    PlayerSlice,
-    PlayingSlice,
-    TeamSlice {}
+export type GameStore = BiddingSlice &
+  CoreSlice &
+  FarmersHandSlice &
+  GameFlowSlice &
+  OptionsSlice &
+  PlayerSlice &
+  GamePlaySlice &
+  TeamSlice;
 
-// Default initial state
-const initialGameState: GameState = {
-  id: '',
-  myPlayerId: '',
-  players: [],
-  phase: 'lobby',
-  options: {
-    teamSelection: 'predetermined',
-    dealerSelection: 'random_cards',
-    allowReneging: false,
-    screwTheDealer: false,
-    farmersHand: false,
-  },
-  currentDealerPosition: 0,
-  deck: [],
-  hands: { 0: [], 1: [], 2: [], 3: [] },
-  bids: [],
-  completedTricks: [],
-  scores: { team0: 0, team1: 0 },
-  handScores: { team0: 0, team1: 0 },
-  teamNames: { team0: 'Team 1', team1: 'Team 2' },
-};
-
-export const useGameStore = create<GameStore>()(
-  subscribeWithSelector((...a) => ({
-    ...initialGameState,
-
-    // Combine all slices
-    ...createBiddingSlice(...a),
-    ...createCoreSlice(...a),
-    ...createFarmersHandSlice(...a),
-    ...createGameFlowSlice(...a),
-    ...createOptionsSlice(...a),
-    ...createPlayerSlice(...a),
-    ...createPlayingSlice(...a),
-    ...createTeamSlice(...a),
-  }))
+const gameStoreBase = create<GameStore>()(
+  devtools(
+    subscribeWithSelector<GameStore>((...a) => ({
+      // Combine all slices
+      ...createBiddingSlice(...a),
+      ...createCoreSlice(...a),
+      ...createFarmersHandSlice(...a),
+      ...createGameFlowSlice(...a),
+      ...createOptionsSlice(...a),
+      ...createPlayerSlice(...a),
+      ...createGamePlaySlice(...a),
+      ...createTeamSlice(...a),
+    })),
+    {
+      name: 'euchere-webrtc',
+      store: 'gameStore',
+    }
+  )
 );
+
+export const gameStore = createSelectors(gameStoreBase);

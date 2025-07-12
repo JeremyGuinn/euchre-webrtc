@@ -1,28 +1,26 @@
 import { useEffect, useRef } from 'react';
 import { GameStatePersistenceService } from '~/services/gameStatePersistenceService';
-import { useGameStore } from '~/store/gameStore';
-import { select } from '~/store/selectors/players';
+import { gameStore } from '~/store/gameStore';
 
 /**
  * Hook that automatically saves game state to localStorage for hosts
  * This enables host reconnection with full game state restoration
  */
-export function useGameStatePersistence(connectionStatus: string) {
+export function useAutoGamesave(connectionStatus: string) {
   const lastSavedRef = useRef<string>('');
 
-  const gameStore = useGameStore();
-  const {
-    id,
-    phase,
-    players,
-    currentPlayerPosition,
-    currentDealerPosition,
-    bids,
-    completedTricks,
-    scores,
-    hands,
-  } = gameStore;
-  const isHost = useGameStore(state => select.myPlayer(state)?.isHost);
+  const isHost = gameStore.use.isHost();
+  const id = gameStore.use.id();
+  const phase = gameStore.use.phase();
+  const players = gameStore.use.players();
+  const currentPlayerPosition = gameStore.use.currentPlayerPosition();
+  const currentDealerPosition = gameStore.use.currentDealerPosition();
+  const hands = gameStore.use.hands();
+  const bids = gameStore.use.bids();
+  const completedTricks = gameStore.use.completedTricks();
+  const scores = gameStore.use.scores();
+
+  const gameState = gameStore();
 
   useEffect(() => {
     const isConnected = () => connectionStatus === 'connected';
@@ -52,7 +50,7 @@ export function useGameStatePersistence(connectionStatus: string) {
       lastSavedRef.current = currentStateString;
 
       // Save the full game state
-      GameStatePersistenceService.saveGameState(id, gameStore);
+      GameStatePersistenceService.saveGameState(id, gameState);
     }
 
     return () => {
@@ -70,7 +68,7 @@ export function useGameStatePersistence(connectionStatus: string) {
     bids.length,
     completedTricks.length,
     scores,
-    gameStore,
+    gameState,
     connectionStatus,
   ]);
 }

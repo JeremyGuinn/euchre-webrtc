@@ -1,10 +1,11 @@
-import { useGameStore } from '~/store/gameStore';
+import { gameStore } from '~/store/gameStore';
 import { select } from '~/store/selectors/players';
 
 export function CurrentTurnIndicator() {
-  const { phase, maker } = useGameStore();
-  const myPlayer = useGameStore(select.myPlayer);
-  const currentPlayer = useGameStore(select.currentPlayer);
+  const phase = gameStore.use.phase();
+  const maker = gameStore.use.maker();
+  const myPlayer = gameStore(select.myPlayer);
+  const currentPlayer = gameStore(select.currentPlayer);
 
   return (
     <div className='absolute top-4 left-1/2 transform -translate-x-1/2 text-white text-center z-20'>
