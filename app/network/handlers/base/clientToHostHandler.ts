@@ -1,7 +1,9 @@
+import { createMessageId } from '~/network/protocol';
 import {
   type ClientToHostHandler,
   type HandlerContext,
   type ValidationFunction,
+  type ValidationResultHandler,
 } from '~/types/handlers';
 import type { ClientToHostMessage } from '~/types/messages';
 import { validatePermissionForHost } from '../validators';
@@ -11,7 +13,8 @@ import { validatePermissionForHost } from '../validators';
  */
 export const createClientToHostHandler = <T extends ClientToHostMessage>(
   handler: ClientToHostHandler<T>,
-  additionalValidations?: Array<ValidationFunction<T>>
+  additionalValidations?: Array<ValidationFunction<T>>,
+  failedValidationHandler?: ValidationResultHandler<T>
 ): ClientToHostHandler<T> => {
   return (message: T, senderId: string, context: HandlerContext) => {
     // First, validate host permission
@@ -25,6 +28,23 @@ export const createClientToHostHandler = <T extends ClientToHostMessage>(
       for (const validation of additionalValidations) {
         const result = validation(message, senderId, context);
         if (!result.isValid) {
+          if (failedValidationHandler) {
+            failedValidationHandler(result, message, senderId, context);
+          } else {
+            context.networkManager?.sendMessage(
+              {
+                type: 'ERROR',
+                timestamp: Date.now(),
+                messageId: createMessageId(),
+                payload: {
+                  message: result.reason || 'Validation failed',
+                  code: result.code || 'VALIDATION_ERROR',
+                },
+              },
+              senderId
+            );
+          }
+
           return;
         }
       }

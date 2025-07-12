@@ -79,7 +79,8 @@ export const validatePlayerNotAlreadyJoined: ValidationFunction = (
   if (playerAlreadyExists) {
     return {
       isValid: false,
-      reason: 'Player is already in the game',
+      reason: 'You are already connected to this game.',
+      code: 'PLAYER_ALREADY_JOINED',
     };
   }
 

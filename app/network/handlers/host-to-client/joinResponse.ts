@@ -5,16 +5,17 @@ import { createHostToClientHandler } from '../base/hostToClientHandler';
 const handleJoinResponseImpl: HostToClientHandler<JoinResponseMessage> = (
   { payload: { success, gameState: newGameState, player, error } },
   _senderId,
-  { gameStore, setConnectionStatus, sessionManager }
+  { gameStore, setConnectionStatus, sessionManager, setError }
 ) => {
   if (!success || !newGameState || !player) {
     setConnectionStatus('error');
-    throw new Error(error || 'Failed to join game');
+    setError?.(error || 'Failed to join game', 'JOIN_REJECTED');
+    return;
   }
 
   // Save session data for reconnection (for clients)
   if (newGameState.gameCode && !player.isHost) {
-    sessionManager.saveSession({
+    sessionManager?.saveSession({
       playerId: player.id,
       gameId: newGameState.id,
       gameCode: newGameState.gameCode,

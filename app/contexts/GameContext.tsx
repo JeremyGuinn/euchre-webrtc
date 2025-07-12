@@ -6,7 +6,7 @@ import { useGameActions } from '~/hooks/useGameActions';
 import { useNetworkService } from '~/hooks/useNetworkService';
 import type { ConnectionStatus } from '~/network/networkManager';
 import { gameStore as useGameStore } from '~/store/gameStore';
-import type { GameContextType, GameProviderProps } from '~/types/gameContext';
+import type { GameContextType, GameError, GameProviderProps } from '~/types/gameContext';
 import { useSession } from './SessionContext';
 
 const GameContext = createContext<GameContextType | null>(null);
@@ -18,6 +18,7 @@ function useGameProvider() {
   const gameStore = useGameStore();
 
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
+  const [currentError, setCurrentError] = useState<GameError | null>(null);
 
   useAutoBroadcast(networkService);
   useAutoGamesave(connectionStatus);
@@ -28,6 +29,19 @@ function useGameProvider() {
     sessionManager,
     setConnectionStatus
   );
+
+  // Error management functions
+  const clearError = useCallback(() => {
+    setCurrentError(null);
+  }, []);
+
+  const setError = useCallback((message: string, code?: string) => {
+    setCurrentError({
+      message,
+      code,
+      timestamp: Date.now(),
+    });
+  }, []);
 
   // Handle when a player gets kicked from the game
   const handleKicked = useCallback(
@@ -41,6 +55,7 @@ function useGameProvider() {
       gameStore: gameStore,
       handleKicked,
       setConnectionStatus,
+      setError, // Add error handler to network service configuration
       sessionManager: {
         saveSession: sessionManager.saveSession,
         updateSession: sessionManager.updateSession,
@@ -53,6 +68,7 @@ function useGameProvider() {
     gameStore,
     handleKicked,
     setConnectionStatus,
+    setError, // Add setError to dependency array
     sessionManager.saveSession,
     sessionManager.updateSession,
     sessionManager.clearSession,
@@ -62,6 +78,9 @@ function useGameProvider() {
   return {
     networkManager: networkService.getNetworkManager(),
     connectionStatus,
+    currentError,
+    clearError,
+    setError,
     ...connectionActions,
     ...gameActions,
   };

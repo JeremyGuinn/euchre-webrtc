@@ -12,6 +12,7 @@ import { useGame } from '~/contexts/GameContext';
 import { useSession } from '~/contexts/SessionContext';
 import { isValidGameCode, normalizeGameCode } from '~/utils/game/gameCode';
 
+import { gameStore } from '~/store/gameStore';
 import type { Route } from './+types/join';
 
 export function meta({ params }: Route.MetaArgs) {
@@ -23,13 +24,20 @@ export function meta({ params }: Route.MetaArgs) {
 
 export default function Join({ params }: Route.ComponentProps) {
   const navigate = useNavigate();
-  const { joinGame, connectionStatus } = useGame();
+  const { joinGame, connectionStatus, currentError, clearError } = useGame();
   const { playerName: savedPlayerName, savePlayerName } = useSession();
   const gameCode = normalizeGameCode(params.gameCode || '');
 
   const [playerName, setPlayerName] = useState('');
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState('');
+
+  const id = gameStore.use.id();
+
+  // Clear any existing error from context when component mounts
+  useEffect(() => {
+    clearError();
+  }, [clearError]);
 
   useEffect(() => {
     // Validate the game code
@@ -46,15 +54,15 @@ export default function Join({ params }: Route.ComponentProps) {
   // Handle connection status changes
   useEffect(() => {
     // If we successfully connect, navigate to lobby
-    if (connectionStatus === 'connected') {
+    if (connectionStatus === 'connected' && id) {
       navigate(`/lobby/${gameCode}`);
     }
+
     // If connection fails or errors out, show error
     if (connectionStatus === 'error') {
-      setError('Connection failed. Please try again.');
       setIsJoining(false);
     }
-  }, [connectionStatus, navigate, gameCode]);
+  }, [connectionStatus, navigate, gameCode, id]);
 
   const handleJoinGame = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,14 +74,22 @@ export default function Join({ params }: Route.ComponentProps) {
 
     setIsJoining(true);
     setError('');
+    clearError(); // Clear any previous network errors
 
     try {
       savePlayerName(playerName.trim());
       await joinGame(gameCode, playerName.trim());
 
       // Navigation to lobby will be handled by the useEffect watching connectionStatus
-    } catch {
-      setError('Failed to join game. Please check the game code and try again.');
+    } catch (error) {
+      // If there's no specific error from the context (currentError), use the error from the exception
+      if (!currentError) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Failed to join game. Please check the game code and try again.';
+        setError(errorMessage);
+      }
       setIsJoining(false);
     }
   };
@@ -101,7 +117,8 @@ export default function Join({ params }: Route.ComponentProps) {
             fullWidth
           />
 
-          {error && <ErrorDisplay error={error} />}
+          {/* Display either context error or local error */}
+          {(currentError || error) && <ErrorDisplay error={currentError?.message || error} />}
 
           <ConnectionStatusDisplay status={connectionStatus} className='justify-between mb-4' />
 
@@ -111,9 +128,9 @@ export default function Join({ params }: Route.ComponentProps) {
             size='lg'
             fullWidth
             disabled={!playerName.trim()}
-            loading={isJoining}
+            loading={isJoining && !currentError}
           >
-            {isJoining ? 'Joining...' : 'Join Game'}
+            {isJoining && !currentError ? 'Joining...' : 'Join Game'}
           </Button>
         </Stack>
       </form>

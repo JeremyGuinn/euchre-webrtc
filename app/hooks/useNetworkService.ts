@@ -15,6 +15,7 @@ export interface NetworkServiceConfig {
   gameStore: GameStore;
   handleKicked: (message: string) => void;
   setConnectionStatus: (status: ConnectionStatus) => void;
+  setError?: (message: string, code?: string) => void;
   sessionManager?: {
     saveSession: (data: Omit<SessionData, 'lastConnectionTime'>) => void;
     updateSession: (updates: Partial<Omit<SessionData, 'lastConnectionTime'>>) => void;
@@ -211,12 +212,8 @@ export function useNetworkService(): NetworkService {
         networkManager,
         handleKicked: configRef.current.handleKicked,
         setConnectionStatus: configRef.current.setConnectionStatus,
-        sessionManager: configRef.current.sessionManager || {
-          saveSession: () => console.warn('SessionManager not available in handler context'),
-          updateSession: () => console.warn('SessionManager not available in handler context'),
-          clearSession: () => console.warn('SessionManager not available in handler context'),
-          sessionData: null,
-        },
+        setError: configRef.current.setError,
+        sessionManager: configRef.current.sessionManager,
       };
 
       try {

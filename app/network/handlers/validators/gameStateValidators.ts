@@ -57,7 +57,8 @@ export const validateGameCapacity: ValidationFunction<JoinRequestMessage> = (
   if (availablePosition === undefined) {
     return {
       isValid: false,
-      reason: 'Game is full',
+      reason: 'This game is full. Maximum of 4 players allowed.',
+      code: 'GAME_FULL',
     };
   }
 

@@ -3,7 +3,7 @@ import type { JoinRequestMessage } from '~/types/messages';
 
 import { createMessageId } from '~/network/protocol';
 import type { TeamIndex } from '~/types/game';
-import type { ClientToHostHandler } from '~/types/handlers';
+import type { ClientToHostHandler, ValidationResultHandler } from '~/types/handlers';
 import { makeNameUnique } from '~/utils/game/playerUtils';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
 import { validateGameCapacity, validatePlayerNotAlreadyJoined } from '../validators';
@@ -68,7 +68,28 @@ const handleJoinRequestImpl: ClientToHostHandler<JoinRequestMessage> = (
   }
 };
 
-export const handleJoinRequest = createClientToHostHandler(handleJoinRequestImpl, [
-  validateGameCapacity,
-  validatePlayerNotAlreadyJoined,
-]);
+const failedValidationHandler: ValidationResultHandler<JoinRequestMessage> = (
+  result,
+  message,
+  senderId,
+  context
+) => {
+  context.networkManager?.sendMessage(
+    {
+      type: 'JOIN_RESPONSE',
+      timestamp: Date.now(),
+      messageId: createMessageId(),
+      payload: {
+        success: false,
+        error: result.reason,
+      },
+    },
+    senderId
+  );
+};
+
+export const handleJoinRequest = createClientToHostHandler(
+  handleJoinRequestImpl,
+  [validateGameCapacity, validatePlayerNotAlreadyJoined],
+  failedValidationHandler
+);

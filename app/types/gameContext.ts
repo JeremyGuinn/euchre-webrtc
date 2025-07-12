@@ -2,9 +2,16 @@ import type { ConnectionStatus, NetworkManager } from '~/network/networkManager'
 import type { PositionIndex, TeamIndex } from '~/types/game';
 import type { Card, GameOptions } from './game';
 
+export interface GameError {
+  message: string;
+  code?: string;
+  timestamp: number;
+}
+
 export interface GameContextType {
   networkManager: NetworkManager | null;
   connectionStatus: ConnectionStatus;
+  currentError: GameError | null;
 
   hostGame: () => Promise<string>;
   joinGame: (gameCode: string, playerName: string) => Promise<void>;
@@ -24,6 +31,9 @@ export interface GameContextType {
   continueTrick: () => void;
   completeHand: () => void;
   leaveGame: (reason?: 'manual' | 'error' | 'network') => Promise<void>;
+
+  clearError: () => void;
+  setError: (message: string, code?: string) => void;
 
   renamePlayer: (playerId: string, newName: string) => void;
   renameTeam: (teamId: TeamIndex, newName: string) => void;

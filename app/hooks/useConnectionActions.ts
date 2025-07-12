@@ -62,7 +62,16 @@ export function useConnectionActions(
 
       return gameCode;
     });
-  }, [connectionStatus, networkService, setIsHost, gameStore, logger, sessionManager]);
+  }, [
+    logger,
+    connectionStatus,
+    myPlayerId,
+    sessionManager,
+    networkService,
+    setMyPlayerId,
+    setIsHost,
+    initGame,
+  ]);
 
   const joinGame = useCallback(
     async (gameCode: string, playerName: string): Promise<void> => {
@@ -100,7 +109,7 @@ export function useConnectionActions(
         logger.debug('Session will be saved when JOIN_RESPONSE is received');
       });
     },
-    [logger, connectionStatus, gameStore, sessionManager, networkService, setIsHost]
+    [logger, connectionStatus, myPlayerId, sessionManager, networkService, setMyPlayerId, setIsHost]
   );
 
   const leaveGame = useCallback(
@@ -167,15 +176,16 @@ export function useConnectionActions(
       });
     },
     [
-      networkService,
+      logger,
       isHost,
       connectionStatus,
+      myPlayerId,
       setConnectionStatus,
-      gameStore,
+      setMyPlayerId,
       setIsHost,
-      navigate,
-      logger,
       sessionManager,
+      networkService,
+      navigate,
     ]
   );
 

@@ -7,14 +7,18 @@ import type { ErrorMessage } from '~/types/messages';
  *
  * @param message - The error message containing the error text and optional error code
  * @param senderId - The ID of the player/host who sent the error
- * @param context - Handler context (not used for error handling currently)
+ * @param context - Handler context (used to set error state in UI)
  */
 export const handleError: PeerToPeerHandler<ErrorMessage> = (
   { payload: { message: errorText, code } },
-  senderId
+  senderId,
+  context
 ) => {
   console.error(`Error from ${senderId}:`, errorText, code ? `(${code})` : '');
 
-  // You could dispatch an action here to show errors in the UI
-  // For now, just log the error for debugging purposes
+  // Set the error in the UI state so it can be displayed to the user
+  if (context.setError) {
+    context.setError(errorText, code);
+    context.setConnectionStatus('error');
+  }
 };

@@ -34,8 +34,11 @@ export interface HandlerContext {
   /** Function to update the connection status in the UI */
   setConnectionStatus: (status: ConnectionStatus) => void;
 
+  /** Function to set an error message that can be displayed in the UI */
+  setError?: (message: string, code?: string) => void;
+
   /** Session management functions */
-  sessionManager: {
+  sessionManager?: {
     saveSession: (data: Omit<SessionData, 'lastConnectionTime'>) => void;
     updateSession: (updates: Partial<Omit<SessionData, 'lastConnectionTime'>>) => void;
     clearSession: () => void;
@@ -59,6 +62,7 @@ export type MessageHandler<T extends BaseMessage> = (
 export interface ValidationResult {
   isValid: boolean;
   reason?: string;
+  code?: string;
 }
 
 export type ValidationFunction<T extends BaseMessage = BaseMessage> = (
@@ -66,6 +70,13 @@ export type ValidationFunction<T extends BaseMessage = BaseMessage> = (
   senderId: string,
   context: HandlerContext
 ) => ValidationResult;
+
+export type ValidationResultHandler<T extends BaseMessage = BaseMessage> = (
+  result: ValidationResult,
+  message: T,
+  senderId: string,
+  context: HandlerContext
+) => void;
 
 /**
  * Base handler for Client-to-Host messages.
