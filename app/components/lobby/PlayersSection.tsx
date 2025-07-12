@@ -18,6 +18,7 @@ interface PlayersSectionProps {
   onDragStart: (playerId: string) => void;
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent, position: PositionIndex) => void;
+  onKeyboardMove: (playerId: string, direction: 'up' | 'down' | 'left' | 'right') => void;
 }
 
 export default function PlayersSection({
@@ -30,6 +31,7 @@ export default function PlayersSection({
   onDragStart,
   onDragOver,
   onDrop,
+  onKeyboardMove,
 }: PlayersSectionProps) {
   const players = gameStore.use.players();
   const options = gameStore.use.options();
@@ -54,6 +56,7 @@ export default function PlayersSection({
             onDragStart={onDragStart}
             onDragOver={onDragOver}
             onDrop={onDrop}
+            onKeyboardMove={onKeyboardMove}
           />
         ) : (
           <RandomPlayersPanel

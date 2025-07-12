@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { cn } from '~/utils/styling/cn';
 import Input from '../forms/Input';
 
 interface PlayerCardProps {
@@ -17,6 +18,7 @@ interface PlayerCardProps {
   onRename: (playerId: string, newName: string) => void;
   onKick: (playerId: string) => void;
   onDragStart?: (playerId: string) => void;
+  onKeyboardMove?: (playerId: string, direction: 'up' | 'down' | 'left' | 'right') => void;
 }
 
 export function PlayerCard({
@@ -28,6 +30,7 @@ export function PlayerCard({
   onRename,
   onKick,
   onDragStart,
+  onKeyboardMove,
 }: PlayerCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(player.name);
@@ -68,22 +71,62 @@ export function PlayerCard({
     }
   };
 
+  const handleCardKeyDown = (e: React.KeyboardEvent) => {
+    if (!canDrag || !onKeyboardMove) return;
+
+    // Allow reordering with keyboard: Arrow keys to move between positions
+    if (e.altKey && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      e.preventDefault();
+
+      const direction = e.key.replace('Arrow', '').toLowerCase() as
+        | 'up'
+        | 'down'
+        | 'left'
+        | 'right';
+      onKeyboardMove(player.id, direction);
+    }
+  };
+
   return (
     <div
-      className={`group relative p-4 rounded-lg border-2 transition-all duration-200 ${
+      className={cn(
+        'group relative p-4 rounded-lg border-2 transition-all duration-200',
         player.isConnected
           ? 'bg-white border-gray-200 hover:border-gray-300'
-          : 'bg-gray-50 border-gray-300 opacity-75'
-      } ${canDrag ? 'cursor-move hover:shadow-md pl-10' : ''}`}
+          : 'bg-gray-50 border-gray-300 opacity-75',
+        canDrag && 'cursor-move hover:shadow-md pl-10'
+      )}
       draggable={canDrag}
       onDragStart={() => onDragStart?.(player.id)}
+      onKeyDown={handleCardKeyDown}
+      tabIndex={canDrag ? 0 : -1}
+      role={canDrag ? 'button' : undefined}
+      aria-label={
+        canDrag
+          ? `${player.name}${isCurrentUser ? ' (You)' : ''}${player.isHost ? ', Host' : ''}. Press Alt+Arrow keys to move to different position.`
+          : undefined
+      }
+      aria-describedby={canDrag ? `player-move-instructions-${player.id}` : undefined}
     >
       {/* Drag indicator */}
       {canDrag && (
         <div className='absolute left-3 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-50 transition-opacity'>
-          <svg className='w-4 h-4 text-gray-400' fill='currentColor' viewBox='0 0 20 20'>
+          <svg
+            className='w-4 h-4 text-gray-400'
+            fill='currentColor'
+            viewBox='0 0 20 20'
+            aria-hidden='true'
+          >
             <path d='M7 2a1 1 0 000 2h6a1 1 0 100-2H7zM7 8a1 1 0 000 2h6a1 1 0 100-2H7zM7 14a1 1 0 000 2h6a1 1 0 100-2H7z' />
           </svg>
+        </div>
+      )}
+
+      {/* Hidden instructions for screen readers */}
+      {canDrag && (
+        <div id={`player-move-instructions-${player.id}`} className='sr-only'>
+          Use Alt+Arrow keys to move this player to a different position. Arrow up/down moves
+          between teams, left/right moves within team.
         </div>
       )}
 

@@ -99,6 +99,46 @@ export default function Lobby({ params }: Route.ComponentProps) {
     }
   };
 
+  const handleKeyboardMove = (playerId: string, direction: 'up' | 'down' | 'left' | 'right') => {
+    if (!myPlayer?.isHost) return;
+
+    const player = players.find(p => p.id === playerId);
+    if (!player) return;
+
+    const currentPosition = player.position;
+    let newPosition: PositionIndex | null = null;
+
+    // Map movement based on team layout:
+    // Team 0: positions 0, 2 (left team)
+    // Team 1: positions 1, 3 (right team)
+    switch (direction) {
+      case 'up':
+        // Move to upper position in same team
+        if (currentPosition === 2) newPosition = 0; // Team 0: bottom to top
+        if (currentPosition === 3) newPosition = 1; // Team 1: bottom to top
+        break;
+      case 'down':
+        // Move to lower position in same team
+        if (currentPosition === 0) newPosition = 2; // Team 0: top to bottom
+        if (currentPosition === 1) newPosition = 3; // Team 1: top to bottom
+        break;
+      case 'left':
+        // Move to corresponding position in team 0
+        if (currentPosition === 1) newPosition = 0; // Top of team 1 to top of team 0
+        if (currentPosition === 3) newPosition = 2; // Bottom of team 1 to bottom of team 0
+        break;
+      case 'right':
+        // Move to corresponding position in team 1
+        if (currentPosition === 0) newPosition = 1; // Top of team 0 to top of team 1
+        if (currentPosition === 2) newPosition = 3; // Bottom of team 0 to bottom of team 1
+        break;
+    }
+
+    if (newPosition !== null) {
+      movePlayer(playerId, newPosition);
+    }
+  };
+
   return (
     <PageContainer maxWidth='full'>
       {/* Header */}
@@ -131,6 +171,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
               onDragStart={handleDragStart}
               onDragOver={handleDragOver}
               onDrop={handleDrop}
+              onKeyboardMove={handleKeyboardMove}
             />
 
             <GameOptionsPanel

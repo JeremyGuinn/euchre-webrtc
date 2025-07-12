@@ -16,6 +16,7 @@ interface TeamPlayersPanelProps {
   onDragStart: (playerId: string) => void;
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent, position: PositionIndex) => void;
+  onKeyboardMove: (playerId: string, direction: 'up' | 'down' | 'left' | 'right') => void;
 }
 
 export function TeamPlayersPanel({
@@ -29,6 +30,7 @@ export function TeamPlayersPanel({
   onDragStart,
   onDragOver,
   onDrop,
+  onKeyboardMove,
 }: TeamPlayersPanelProps) {
   return (
     <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -60,18 +62,32 @@ export function TeamPlayersPanel({
                     onRename={onRenamePlayer}
                     onKick={onKickPlayer}
                     onDragStart={onDragStart}
+                    onKeyboardMove={onKeyboardMove}
                   />
                 </div>
               );
             }
 
-            // Empty slot - use div without interactive behavior since drag-and-drop is visual only
+            // Empty slot - use div with proper accessibility
             return (
               <div
                 key={position}
+                role={isHost ? 'button' : undefined}
+                tabIndex={isHost ? 0 : undefined}
+                aria-label={isHost ? `Drop zone for position ${position + 1} in team 1` : undefined}
                 className='border-dashed border-gray-300 bg-gray-50 transition-colors hover:border-blue-400'
-                onDragOver={onDragOver}
-                onDrop={e => onDrop(e, position as PositionIndex)}
+                onDragOver={isHost ? onDragOver : undefined}
+                onDrop={isHost ? e => onDrop(e, position as PositionIndex) : undefined}
+                onKeyDown={
+                  isHost
+                    ? e => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          // Could handle drop via keyboard here if needed
+                        }
+                      }
+                    : undefined
+                }
               >
                 <Placeholder>
                   <Center className='text-gray-500'>
@@ -113,8 +129,18 @@ export function TeamPlayersPanel({
                       : 'opacity-75'
                     : 'border-dashed border-gray-300 bg-gray-50'
                 } ${isHost && !player ? 'hover:border-red-400' : ''}`}
-                onDragOver={onDragOver}
-                onDrop={e => onDrop(e, position as PositionIndex)}
+                onDragOver={isHost && !player ? onDragOver : undefined}
+                onDrop={isHost && !player ? e => onDrop(e, position as PositionIndex) : undefined}
+                onKeyDown={
+                  isHost && !player
+                    ? e => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          // Could handle drop via keyboard here if needed
+                        }
+                      }
+                    : undefined
+                }
               >
                 {player ? (
                   <PlayerCard
@@ -127,6 +153,7 @@ export function TeamPlayersPanel({
                     onRename={onRenamePlayer}
                     onKick={onKickPlayer}
                     onDragStart={onDragStart}
+                    onKeyboardMove={onKeyboardMove}
                   />
                 ) : (
                   <Placeholder>

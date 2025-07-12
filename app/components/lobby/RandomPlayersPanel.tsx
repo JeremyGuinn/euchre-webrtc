@@ -52,6 +52,7 @@ export default function RandomPlayersPanel({
               onRename={onRenamePlayer}
               onKick={onKickPlayer}
               onDragStart={onDragStart}
+              onKeyboardMove={undefined} // No keyboard movement for random teams
             />
           ))}
           {/* Show empty slots for remaining players */}
