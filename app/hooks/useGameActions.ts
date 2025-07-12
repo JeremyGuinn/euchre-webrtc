@@ -409,6 +409,17 @@ export function useGameActions(networkService: NetworkService) {
     }
   }, [gameStore, networkService]);
 
+  const reorderHand = useCallback(
+    (newOrder: Card[]) => {
+      if (!myPlayer) {
+        return;
+      }
+
+      gameStore.reorderHand(myPlayer.position, newOrder);
+    },
+    [myPlayer, gameStore]
+  );
+
   return {
     startGame,
     selectDealer,
@@ -430,5 +441,6 @@ export function useGameActions(networkService: NetworkService) {
     completeHand,
     swapFarmersHand,
     declineFarmersHand,
+    reorderHand,
   };
 }

@@ -22,6 +22,7 @@ export interface GamePlaySlice {
   playCard: (card: Card, playerPosition: PositionIndex) => void;
   completeTrick: () => void;
   completeHand: () => void;
+  reorderHand: (playerPosition: PositionIndex, newOrder: Card[]) => void;
 }
 
 export const createGamePlaySlice: StateCreator<GameStore, [], [], GamePlaySlice> = (set, get) => ({
@@ -141,5 +142,14 @@ export const createGamePlaySlice: StateCreator<GameStore, [], [], GamePlaySlice>
       turnedDownSuit: undefined,
       handScores: { team0: 0, team1: 0 },
     });
+  },
+
+  reorderHand: (playerPosition: PositionIndex, newOrder: Card[]) => {
+    set(state => ({
+      hands: {
+        ...state.hands,
+        [playerPosition]: newOrder,
+      },
+    }));
   },
 });

@@ -18,6 +18,7 @@ interface PlayerPositionProps {
   isMyTurn: () => boolean;
   onCardClick: (card: CardType) => void;
   onDealerDiscard: (card: CardType) => void;
+  onReorderHand: (newOrder: CardType[]) => void;
   shouldShowCards: boolean;
   isHost?: boolean;
   onKickPlayer?: (playerId: string) => void;
@@ -35,6 +36,7 @@ export function PlayerPosition({
   isMyTurn,
   onCardClick,
   onDealerDiscard,
+  onReorderHand,
   shouldShowCards,
   isHost,
   onKickPlayer,
@@ -176,6 +178,7 @@ export function PlayerPosition({
           isMyTurn={isMyTurn}
           onCardClick={onCardClick}
           onDealerDiscard={onDealerDiscard}
+          onReorderHand={onReorderHand}
           shouldShowCards={shouldShowCards}
         />
       </div>

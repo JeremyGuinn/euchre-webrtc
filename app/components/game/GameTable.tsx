@@ -12,7 +12,7 @@ interface GameTableProps {
 }
 
 export function GameTable({ headerHeight, shouldShowCards }: GameTableProps) {
-  const { kickPlayer, playCard, dealerDiscard } = useGame();
+  const { kickPlayer, playCard, dealerDiscard, reorderHand } = useGame();
 
   const currentPlayerPosition = gameStore.use.currentPlayerPosition();
   const maker = gameStore.use.maker();
@@ -62,6 +62,7 @@ export function GameTable({ headerHeight, shouldShowCards }: GameTableProps) {
             isMyTurn={() => player.position === currentPlayerPosition}
             onCardClick={playCard}
             onDealerDiscard={dealerDiscard}
+            onReorderHand={reorderHand}
             shouldShowCards={shouldShowCards}
             isHost={myPlayer?.isHost}
             onKickPlayer={() => kickPlayer(player.id)}
