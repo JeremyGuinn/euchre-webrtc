@@ -57,6 +57,7 @@ export interface JoinRequestMessage extends BaseClientToHostMessage {
   type: 'JOIN_REQUEST';
   payload: {
     playerName: string;
+    gameCode: string;
   };
 }
 

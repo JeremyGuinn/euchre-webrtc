@@ -22,6 +22,7 @@ export function useConnectionActions(
   const myPlayerId = gameStore.use.myPlayerId();
   const setMyPlayerId = gameStore.use.setMyPlayerId();
   const initGame = gameStore.use.initGame();
+  const clear = gameStore.use.clear();
 
   const hostGame = useCallback(async (): Promise<string> => {
     return logger.withPerformance('hostGame', async () => {
@@ -127,8 +128,7 @@ export function useConnectionActions(
         });
 
         setConnectionStatus('disconnected');
-        setMyPlayerId('');
-        setIsHost(false);
+        clear();
         sessionManager.clearSession();
         GameStatePersistenceService.clear();
 
@@ -181,8 +181,7 @@ export function useConnectionActions(
       connectionStatus,
       myPlayerId,
       setConnectionStatus,
-      setMyPlayerId,
-      setIsHost,
+      clear,
       sessionManager,
       networkService,
       navigate,

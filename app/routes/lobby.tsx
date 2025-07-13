@@ -78,22 +78,10 @@ export default function Lobby({ params }: Route.ComponentProps) {
       } else {
         navigate(`/`);
       }
-    }
-  }, [connectionStatus, gameCode, navigate]);
-
-  useEffect(() => {
-    // Redirect to game if it has started
-    if (phase !== 'lobby') {
+    } else if (phase !== 'lobby') {
       navigate(`/game/${gameCode}`);
     }
-  }, [phase, gameCode, navigate, players.length]);
-
-  const handleStartGame = () => startGame();
-  const handleLeaveGame = () => leaveGame();
-  const handleKickPlayer = (playerId: string) => kickPlayer(playerId);
-  const handleDragStart = (playerId: string) => setDraggedPlayer(playerId);
-  const handleDragOver = (e: React.DragEvent) => e.preventDefault();
-  const handleRenamePlayer = (playerId: string, newName: string) => renamePlayer(playerId, newName);
+  }, [connectionStatus, gameCode, navigate, phase]);
 
   const handleDrop = (e: React.DragEvent, position: PositionIndex) => {
     e.preventDefault();
@@ -151,7 +139,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
           <h1 className='text-2xl font-bold text-gray-800'>Game Lobby</h1>
           <div className='flex items-center space-x-4 flex-wrap space-y-2'>
             <ConnectionStatusDisplay status={connectionStatus} />
-            <Button variant='danger' onClick={handleLeaveGame} size='sm'>
+            <Button variant='danger' onClick={() => leaveGame('manual')} size='sm'>
               Leave Game
             </Button>
           </div>
@@ -169,11 +157,11 @@ export default function Lobby({ params }: Route.ComponentProps) {
               myPlayer={myPlayer}
               isHost={myPlayer?.isHost || false}
               connectedPlayers={connectedPlayers}
-              onRenamePlayer={handleRenamePlayer}
-              onKickPlayer={handleKickPlayer}
+              onRenamePlayer={renamePlayer}
+              onKickPlayer={kickPlayer}
               onRenameTeam={renameTeam}
-              onDragStart={handleDragStart}
-              onDragOver={handleDragOver}
+              onDragStart={setDraggedPlayer}
+              onDragOver={e => e.preventDefault()}
               onDrop={handleDrop}
               onKeyboardMove={handleKeyboardMove}
             />
@@ -202,7 +190,7 @@ export default function Lobby({ params }: Route.ComponentProps) {
               connectedPlayersCount={connectedPlayers.length}
               isHost={myPlayer?.isHost || false}
               canStartGame={canStartGame}
-              onStartGame={handleStartGame}
+              onStartGame={startGame}
             />
           </Stack>
         </Stack>

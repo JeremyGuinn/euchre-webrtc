@@ -16,6 +16,7 @@ export interface CoreSlice {
   isHost: boolean;
 
   // Actions
+  clear: () => void;
   initGame: (hostId: string, gameId: string, gameCode?: string) => void;
   resetGame: () => void;
   setIsHost: (isHost: boolean) => void;
@@ -68,6 +69,42 @@ export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set,
     });
   },
 
+  clear: () => {
+    set({
+      id: '',
+      gameCode: undefined,
+      isHost: false,
+      players: [],
+      phase: 'lobby',
+      currentDealerPosition: 0,
+      deck: [],
+      hands: { 0: [], 1: [], 2: [], 3: [] },
+      bids: [],
+      completedTricks: [],
+      scores: { team0: 0, team1: 0 },
+      handScores: { team0: 0, team1: 0 },
+      teamNames: { team0: 'Team 1', team1: 'Team 2' },
+      trump: undefined,
+      kitty: undefined,
+      turnedDownSuit: undefined,
+      maker: undefined,
+      farmersHandPosition: undefined,
+      dealerSelectionCards: undefined,
+      firstBlackJackDealing: undefined,
+      options: {
+        teamSelection: 'predetermined',
+        dealerSelection: 'random_cards',
+        predeterminedFirstDealerId: undefined,
+        allowReneging: false,
+        screwTheDealer: false,
+        farmersHand: false,
+      },
+      myPlayerId: '',
+      currentTrick: undefined,
+      currentPlayerPosition: undefined,
+    } satisfies GameState);
+  },
+
   resetGame: () => {
     // used to reset the game state when starting a new game after finishing one,
     // it should keep the game code and players intact, but reset game specific state
@@ -114,7 +151,7 @@ export const createCoreSlice: StateCreator<GameStore, [], [], CoreSlice> = (set,
       const hasHandChanged =
         !currentHand ||
         currentHand.length !== playerHand.length ||
-        !currentHand.every((card, index) => playerHand.some(newCard => newCard.id === card.id));
+        !currentHand.every(card => playerHand.some(newCard => newCard.id === card.id));
 
       // Only overwrite the hand if the cards have actually changed (new cards dealt, cards played, etc.)
       // If only the order changed, preserve the current hand to maintain custom sorting
