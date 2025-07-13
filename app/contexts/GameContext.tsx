@@ -17,7 +17,7 @@ function useGameProvider() {
   const gameActions = useGameActions(networkService);
   const gameStore = useGameStore();
 
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('not-initialized');
   const [currentError, setCurrentError] = useState<GameError | null>(null);
 
   useAutoBroadcast(networkService);

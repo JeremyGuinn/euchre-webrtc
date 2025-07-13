@@ -122,8 +122,14 @@ export default function Lobby({ params }: Route.ComponentProps) {
   useEffect(() => {
     if (phase !== 'lobby') {
       navigate(`/game/${gameCode}`);
+    } else if (connectionStatus === 'not-initialized') {
+      if (gameCode) {
+        navigate(`/join/${gameCode}`);
+      } else {
+        navigate('/');
+      }
     }
-  }, [phase, gameCode, navigate]);
+  }, [phase, gameCode, navigate, connectionStatus]);
 
   return (
     <PageContainer maxWidth='full'>

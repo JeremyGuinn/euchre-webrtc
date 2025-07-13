@@ -6,6 +6,10 @@ interface ConnectionStatusDisplayProps {
 }
 
 const statusConfig = {
+  'not-initialized': {
+    color: 'text-gray-600',
+    label: 'disconnected',
+  },
   connected: {
     color: 'text-green-600',
     label: 'connected',
