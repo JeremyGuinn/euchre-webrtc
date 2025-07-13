@@ -8,7 +8,7 @@ import tseslint from 'typescript-eslint';
 export default tseslint.config(
   {
     ignores: [
-      'dist/**',
+      '**/dist/**',
       'build/**',
       '.react-router/**',
       'node_modules/**',
