@@ -37,6 +37,9 @@ export interface HandlerContext {
   /** Function to set an error message that can be displayed in the UI */
   setError?: (message: string, code?: string) => void;
 
+  /** Navigation function to redirect the user */
+  navigate: (path: string) => void;
+
   /** Session management functions */
   sessionManager?: {
     saveSession: (data: Omit<SessionData, 'lastConnectionTime'>) => void;

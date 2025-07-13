@@ -1,4 +1,5 @@
 import { useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router';
 import type { SessionData } from '~/contexts/SessionContext';
 import { useLogger } from '~/hooks/useLogger';
 import { createMessageHandlers } from '~/network/handlers';
@@ -27,6 +28,7 @@ export interface NetworkServiceConfig {
 
 export function useNetworkService(): NetworkService {
   const logger = useLogger('useNetworkService');
+  const navigate = useNavigate();
   const networkManagerRef = useRef<NetworkManager>(new NetworkManager());
   const configRef = useRef<NetworkServiceConfig | null>(null);
   const messageHandlersRegisteredRef = useRef(false);
@@ -214,6 +216,7 @@ export function useNetworkService(): NetworkService {
         handleKicked: configRef.current.handleKicked,
         setConnectionStatus: configRef.current.setConnectionStatus,
         setError: configRef.current.setError,
+        navigate,
         sessionManager: configRef.current.sessionManager,
       };
 

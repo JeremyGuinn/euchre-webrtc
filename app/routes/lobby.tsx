@@ -71,18 +71,6 @@ export default function Lobby({ params }: Route.ComponentProps) {
     options.predeterminedFirstDealerId,
   ]);
 
-  useEffect(() => {
-    if (connectionStatus === 'disconnected') {
-      if (gameCode) {
-        navigate(`/join/${gameCode}`);
-      } else {
-        navigate(`/`);
-      }
-    } else if (phase !== 'lobby') {
-      navigate(`/game/${gameCode}`);
-    }
-  }, [connectionStatus, gameCode, navigate, phase]);
-
   const handleDrop = (e: React.DragEvent, position: PositionIndex) => {
     e.preventDefault();
     if (draggedPlayer && myPlayer?.isHost) {
@@ -130,6 +118,12 @@ export default function Lobby({ params }: Route.ComponentProps) {
       movePlayer(playerId, newPosition);
     }
   };
+
+  useEffect(() => {
+    if (phase !== 'lobby') {
+      navigate(`/game/${gameCode}`);
+    }
+  }, [phase, gameCode, navigate]);
 
   return (
     <PageContainer maxWidth='full'>
