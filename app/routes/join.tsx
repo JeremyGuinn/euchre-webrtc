@@ -53,9 +53,10 @@ export default function Join({ params }: Route.ComponentProps) {
 
   // Handle connection status changes
   useEffect(() => {
-    // If we successfully connect, navigate to lobby
+    // If we successfully connect, navigate to lobby and replace the join entry in history
+    // so that back button from lobby goes to home instead of join
     if (connectionStatus === 'connected' && id) {
-      navigate(`/lobby/${gameCode}`);
+      navigate(`/lobby/${gameCode}`, { replace: true });
     }
 
     // If connection fails or errors out, show error

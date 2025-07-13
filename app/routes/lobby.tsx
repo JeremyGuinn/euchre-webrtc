@@ -121,7 +121,9 @@ export default function Lobby({ params }: Route.ComponentProps) {
 
   useEffect(() => {
     if (phase !== 'lobby') {
-      navigate(`/game/${gameCode}`);
+      // Navigate to game and replace the lobby entry in history
+      // so that back button from game goes to home instead of lobby
+      navigate(`/game/${gameCode}`, { replace: true });
     } else if (connectionStatus === 'not-initialized') {
       if (gameCode) {
         navigate(`/join/${gameCode}`);

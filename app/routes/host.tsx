@@ -39,9 +39,10 @@ export default function Host() {
         const gameCode = await hostGameFn();
         setGameId(gameCode);
 
-        // Navigate to lobby
+        // Navigate to lobby and replace the host entry in history
+        // so that back button from lobby goes to home instead of host
         setTimeout(() => {
-          navigate(`/lobby/${gameCode}`);
+          navigate(`/lobby/${gameCode}`, { replace: true });
         }, 2000);
       } catch {
         setError('Failed to create game. Please try again.');
