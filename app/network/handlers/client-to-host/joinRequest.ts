@@ -7,6 +7,7 @@ import type { ClientToHostHandler, ValidationResultHandler } from '~/types/handl
 import { makeNameUnique } from '~/utils/game/playerUtils';
 import { createClientToHostHandler } from '../base/clientToHostHandler';
 import { validateGameCapacity, validatePlayerNotAlreadyJoined } from '../validators';
+import { validateGameCodeMatch } from '../validators/gameStateValidators';
 /**
  * Handles JOIN_REQUEST messages sent by players trying to join the game.
  * This is a client-to-host message that only the host should process.
@@ -90,6 +91,6 @@ const failedValidationHandler: ValidationResultHandler<JoinRequestMessage> = (
 
 export const handleJoinRequest = createClientToHostHandler(
   handleJoinRequestImpl,
-  [validateGameCapacity, validatePlayerNotAlreadyJoined],
+  [validateGameCodeMatch, validateGameCapacity, validatePlayerNotAlreadyJoined],
   failedValidationHandler
 );

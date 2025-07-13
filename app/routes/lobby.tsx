@@ -73,9 +73,13 @@ export default function Lobby({ params }: Route.ComponentProps) {
 
   useEffect(() => {
     if (connectionStatus === 'disconnected') {
-      navigate(`/`);
+      if (gameCode) {
+        navigate(`/join/${gameCode}`);
+      } else {
+        navigate(`/`);
+      }
     }
-  }, [connectionStatus, navigate]);
+  }, [connectionStatus, gameCode, navigate]);
 
   useEffect(() => {
     // Redirect to game if it has started

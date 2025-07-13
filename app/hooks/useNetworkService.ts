@@ -150,7 +150,7 @@ export function useNetworkService(): NetworkService {
           type: 'JOIN_REQUEST',
           timestamp: Date.now(),
           messageId: createMessageId(),
-          payload: { playerName },
+          payload: { playerName, gameCode },
         } as GameMessage;
 
         logger.debug('Sending join request', { message: joinMessage });

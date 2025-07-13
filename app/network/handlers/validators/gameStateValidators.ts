@@ -7,6 +7,22 @@ import type {
 } from '~/types/messages';
 import { getPositionFromPlayerId } from '~/utils/game/playerUtils';
 
+export const validateGameCodeMatch: ValidationFunction<JoinRequestMessage> = (
+  { payload: { gameCode } },
+  _senderId,
+  context
+): ValidationResult => {
+  if (context.gameStore.gameCode !== gameCode) {
+    return {
+      isValid: false,
+      reason: `Game code mismatch: expected ${context.gameStore.gameCode}, received ${gameCode}`,
+      code: 'game-code-mismatch',
+    };
+  }
+
+  return { isValid: true };
+};
+
 /**
  * Validates that the game is in the expected phase before processing a message
  */
