@@ -47,7 +47,7 @@ export function useNetworkService(): NetworkService {
       });
       networkManager.sendMessage(message, targetId);
     },
-    [logger, networkManager]
+    [networkManager]
   );
 
   // Disconnect function
@@ -55,7 +55,7 @@ export function useNetworkService(): NetworkService {
     logger.info('Disconnecting from network');
     networkManager.disconnect();
     logger.debug('Network disconnection completed');
-  }, [logger, networkManager]);
+  }, [networkManager]);
 
   // Leave game function
   const leaveGame = useCallback(
@@ -92,7 +92,7 @@ export function useNetworkService(): NetworkService {
         }
       });
     },
-    [logger, networkManager, disconnect]
+    [networkManager, disconnect]
   );
 
   // Host game function
@@ -128,7 +128,7 @@ export function useNetworkService(): NetworkService {
         gameUuid,
       };
     });
-  }, [logger, networkManager]);
+  }, [networkManager]);
 
   // Join game function
   const joinGame = useCallback(
@@ -166,7 +166,7 @@ export function useNetworkService(): NetworkService {
         return playerId;
       });
     },
-    [logger, networkManager]
+    [networkManager]
   );
 
   // Get isHost status
@@ -236,7 +236,7 @@ export function useNetworkService(): NetworkService {
         });
       }
     },
-    [logger, networkManager, isHost]
+    [isHost, networkManager, navigate]
   );
 
   // Handle connection changes
@@ -253,7 +253,7 @@ export function useNetworkService(): NetworkService {
 
       configRef.current.gameStore.updatePlayerConnection(peerId, connected);
     },
-    [logger, isHost]
+    [isHost]
   );
 
   // Set up network event handlers
@@ -277,7 +277,7 @@ export function useNetworkService(): NetworkService {
     });
 
     logger.debug('Network event handlers setup complete');
-  }, [logger, networkManager, handleConnectionChange]);
+  }, [networkManager, handleConnectionChange]);
 
   // Set up message handlers
   const setupMessageHandlers = useCallback(() => {
@@ -301,7 +301,7 @@ export function useNetworkService(): NetworkService {
       handlerCount,
       messageTypes: Object.keys(messageHandlers),
     });
-  }, [logger, networkManager, handleMessageWithContext]);
+  }, [networkManager, handleMessageWithContext]);
 
   // Configure the network service
   const configure = useCallback(
@@ -320,7 +320,7 @@ export function useNetworkService(): NetworkService {
         setupMessageHandlers();
       }
     },
-    [logger, isHost, setupNetworkHandlers, setupMessageHandlers]
+    [isHost, setupNetworkHandlers, setupMessageHandlers]
   );
 
   // Update configuration
@@ -338,7 +338,7 @@ export function useNetworkService(): NetworkService {
         gamePhase: configRef.current.gameStore.phase,
       });
     },
-    [logger, isHost]
+    [isHost]
   );
 
   // Get network manager (for compatibility)
