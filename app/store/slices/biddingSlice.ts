@@ -139,7 +139,7 @@ export const createBiddingSlice: StateCreator<GameStore, [], [], BiddingSlice> =
   },
 
   dealerDiscard: (card: Card) => {
-    const { currentDealerPosition, hands, players, maker } = get();
+    const { currentDealerPosition, hands, maker } = get();
 
     const newHands = {
       ...hands,
